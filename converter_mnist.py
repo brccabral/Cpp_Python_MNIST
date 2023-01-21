@@ -8,7 +8,10 @@
 # dummy ** seperator at [10]
 
 
-def generate(img_bin_file, lbl_bin_file, result_file, n_images):
+from PIL import Image
+
+
+def generate(img_bin_file, lbl_bin_file, result_file, save_location, n_images):
 
     img_bf = open(img_bin_file, "rb")  # binary image pixels
     lbl_bf = open(lbl_bin_file, "rb")  # binary labels
@@ -27,22 +30,26 @@ def generate(img_bin_file, lbl_bin_file, result_file, n_images):
     number_of_items = int.from_bytes(lbl_bf.read(4), "big")
     print(f"Label Magic {label_magic} Number of items {number_of_items}")
 
-    for i in range(n_images):  # number images requested
+    for image in range(n_images):  # number images requested
         # digit label first
         lbl = ord(lbl_bf.read(1))  # get label like '3' (one byte)
         encoded = [0] * 10  # make one-hot vector
         encoded[lbl] = 1
-        for i in range(10):
-            res_tf.write(str(encoded[i]))
+        for encode in range(10):
+            res_tf.write(str(encoded[encode]))
             res_tf.write(" ")  # like 0 0 0 1 0 0 0 0 0 0
 
         res_tf.write("** ")  # arbitrary for readibility
 
+        img_bytes = img_bf.read(img_rows * img_cols)
+        img = Image.frombytes("L", (img_rows, img_cols), img_bytes)
+        img.save(f"{save_location}/{image}_{lbl}.png")
+
         # now do the image pixels
-        for j in range(784):  # get 784 vals for each image file
-            val = ord(img_bf.read(1))
+        for value in range(img_rows * img_cols):  # get 784 vals for each image file
+            val = img_bytes[value]
             res_tf.write(str(val))
-            if j != 783:
+            if value != 783:
                 res_tf.write(" ")  # avoid trailing space
         res_tf.write("\n")  # next image
 
@@ -59,16 +66,18 @@ def main():
     generate(
         "./MNIST/train-images.idx3-ubyte",
         "./MNIST/train-labels.idx1-ubyte",
-        "./MNIST/mnist_train_keras_1000.txt",
-        n_images=1000,
+        "./MNIST/mnist_train_keras.txt",
+        "./MNIST/train",
+        n_images=10,
     )  # first n images
 
     # make test data
     generate(
         "./MNIST/t10k-images.idx3-ubyte",
         "./MNIST/t10k-labels.idx1-ubyte",
-        "./MNIST/mnist_test_keras_100.txt",
-        n_images=100,
+        "./MNIST/mnist_test_keras.txt",
+        "./MNIST/test",
+        n_images=5,
     )  # first n images
 
 
