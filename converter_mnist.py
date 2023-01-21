@@ -30,14 +30,15 @@ def generate(img_bin_file, lbl_bin_file, result_file, save_location, n_images):
     number_of_items = int.from_bytes(lbl_bf.read(4), "big")
     print(f"Label Magic {label_magic} Number of items {number_of_items}")
 
+    encoded = [0] * 10  # make one-hot vector
     for image in range(n_images):  # number images requested
         # digit label first
         lbl = ord(lbl_bf.read(1))  # get label like '3' (one byte)
-        encoded = [0] * 10  # make one-hot vector
         encoded[lbl] = 1
         for encode in range(10):
             res_tf.write(str(encoded[encode]))
             res_tf.write(" ")  # like 0 0 0 1 0 0 0 0 0 0
+        encoded[lbl] = 0
 
         res_tf.write("** ")  # arbitrary for readibility
 
