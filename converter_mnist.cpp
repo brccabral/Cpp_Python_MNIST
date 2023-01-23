@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include <eigen3/Eigen/Dense>
 
 template <typename T>
 std::string to_string(const T &value)
@@ -23,12 +24,15 @@ public:
 public:
     MNIST_Image(uint32_t rows, uint32_t cols, int label, char *pixels, int item_id) : _rows(rows), _cols(cols), _label(label), _db_item_id(item_id)
     {
-        _pixels = new char[_rows * _cols];
-        memcpy(_pixels, pixels, _rows * _cols);
+        _pixels = new char[rows * cols];
+        for (int i = 0; i < rows * cols; i++)
+        {
+            _pixels[i] = pixels[i];
+        }
     }
     ~MNIST_Image()
     {
-        free(_pixels);
+        // free(_pixels);
     }
     void save_as_png(std::string save_dir)
     {
@@ -62,26 +66,48 @@ std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
     return outs;
 };
 
+Eigen::MatrixXd to_matrix(std::vector<MNIST_Image> *dataset)
+{
+    int rows = dataset->size();
+    int cols = dataset->at(0)._rows * dataset->at(0)._cols + 1;
+
+    std::cout << "rows " << rows << std::endl;
+    std::cout << "cols " << cols << std::endl;
+
+    Eigen::MatrixXd mat(rows, cols);
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < cols - 1; j++)
+        {
+            mat(i, j) = atof(&dataset->at(i)._pixels[j]);
+        }
+        mat(i, cols - 1) = float(dataset->at(i)._label);
+    }
+    return mat;
+}
+
 uint32_t swap_endian(uint32_t val)
 {
     val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
     return (val << 16) | (val >> 16);
 }
 
-void read_mnist_cv(const char *image_filename, const char *label_filename, const int max_items, const char *save_dir)
+std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *label_filename, const int max_items, const char *save_dir)
 {
+    std::vector<MNIST_Image> dataset;
+
     // Open files
     std::ifstream image_file(image_filename, std::ios::in | std::ios::binary);
     if (!image_file.is_open())
     {
         std::cout << "Failed open image file. " << std::endl;
-        return;
+        return dataset;
     }
     std::ifstream label_file(label_filename, std::ios::in | std::ios::binary);
     if (!label_file.is_open())
     {
         std::cout << "Failed open label file. " << std::endl;
-        return;
+        return dataset;
     }
 
     // Read the magic and the meta data
@@ -96,7 +122,7 @@ void read_mnist_cv(const char *image_filename, const char *label_filename, const
     if (magic != 2051)
     {
         std::cout << "Incorrect image file magic: " << magic << std::endl;
-        return;
+        return dataset;
     }
 
     image_file.read(reinterpret_cast<char *>(&num_items), sizeof(num_items));
@@ -111,14 +137,14 @@ void read_mnist_cv(const char *image_filename, const char *label_filename, const
     if (magic != 2049)
     {
         std::cout << "Incorrect image file magic: " << magic << std::endl;
-        return;
+        return dataset;
     }
     label_file.read(reinterpret_cast<char *>(&num_labels), sizeof(num_labels));
     num_labels = swap_endian(num_labels);
     if (num_items != num_labels)
     {
         std::cout << "image file nums should equal to label num" << std::endl;
-        return;
+        return dataset;
     }
 
     int n_items = max_items;
@@ -150,11 +176,14 @@ void read_mnist_cv(const char *image_filename, const char *label_filename, const
             m_image.save_as_csv(save_dir, false);
         else
             m_image.save_as_csv(save_dir, true);
+
+        dataset.push_back(m_image);
     }
 
     delete[] pixels;
     image_file.close();
     label_file.close();
+    return dataset;
 }
 
 int main()
@@ -165,5 +194,16 @@ int main()
     std::string label_path = base_dir + "/train-labels.idx1-ubyte";
     const int max_items = 10;
 
-    read_mnist_cv(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str());
+    std::vector<MNIST_Image> dataset;
+    dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str());
+    std::cout << "Rows " << dataset.size() << std::endl;
+
+    Eigen::MatrixXd mat = to_matrix(&dataset);
+    std::cout << "mat.rows() " << mat.rows() << std::endl;
+    std::cout << "mat.cols() " << mat.cols() << std::endl;
+
+    for (auto &d : dataset)
+    {
+        delete[] d._pixels;
+    }
 }
