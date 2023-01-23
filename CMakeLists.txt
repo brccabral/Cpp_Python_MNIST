@@ -9,6 +9,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
 find_package(OpenCV REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
+include_directories( "./include" )
 add_executable(converter_mnist converter_mnist.cpp )
 target_link_libraries(converter_mnist ${OpenCV_LIBS})
 
