@@ -3,6 +3,65 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
+template <typename T>
+std::string to_string(const T &value)
+{
+    std::ostringstream ss;
+    ss << value;
+    return ss.str();
+}
+
+class MNIST_Image
+{
+public:
+    uint32_t _rows;
+    uint32_t _cols;
+    int _label;
+    char *_pixels;
+    int _db_item_id;
+
+public:
+    MNIST_Image(uint32_t rows, uint32_t cols, int label, char *pixels, int item_id) : _rows(rows), _cols(cols), _label(label), _db_item_id(item_id)
+    {
+        _pixels = new char[_rows * _cols];
+        memcpy(_pixels, pixels, _rows * _cols);
+    }
+    ~MNIST_Image()
+    {
+        free(_pixels);
+    }
+    void save_as_png(std::string save_dir)
+    {
+        cv::Mat image_tmp(_rows, _cols, CV_8UC1, _pixels);
+        std::string filename = save_dir + "/" + std::to_string(_db_item_id) + "_" + std::to_string(_label) + ".png";
+        cv::imwrite(filename, image_tmp);
+    }
+    void save_as_csv(std::string save_dir, bool append)
+    {
+        std::ofstream outfile;
+        if (append)
+            outfile.open(save_dir + "/res.txt", std::ios_base::app);
+        else
+            outfile.open(save_dir + "/res.txt");
+
+        outfile << _label;
+        for (int p = 0; p < _rows * _cols; p++)
+        {
+            outfile << ',' << std::to_string((unsigned char)_pixels[p]);
+        }
+        outfile << std::endl;
+    }
+};
+std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
+{
+    outs << m._label;
+    for (int p = 0; p < m._rows * m._cols; p++)
+    {
+        outs << ',' << std::to_string((unsigned char)m._pixels[p]);
+    }
+    return outs;
+};
+
 uint32_t swap_endian(uint32_t val)
 {
     val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
@@ -22,15 +81,6 @@ void read_mnist_cv(const char *image_filename, const char *label_filename, const
     if (!label_file.is_open())
     {
         std::cout << "Failed open label file. " << std::endl;
-        return;
-    }
-
-    std::ofstream result_file;
-    std::string result_filename = "/res.txt";
-    result_file.open(save_dir + result_filename);
-    if (!result_file.is_open())
-    {
-        std::cout << "Failed open result file. " << std::endl;
         return;
     }
 
@@ -83,14 +133,6 @@ void read_mnist_cv(const char *image_filename, const char *label_filename, const
     char label;
     char *pixels = new char[rows * cols];
 
-    std::vector<int> compression_params;
-    compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
-    compression_params.push_back(1);
-
-    std::string slash = "/";
-
-    int one_hot[10] = {0};
-
     for (int item_id = 0; item_id < n_items; ++item_id)
     {
         // read image pixel
@@ -98,36 +140,21 @@ void read_mnist_cv(const char *image_filename, const char *label_filename, const
         // read label
         label_file.read(&label, 1);
 
-        one_hot[int(label)] = 1;
-        for (int encode = 0; encode < 10; encode++)
-        {
-            result_file << one_hot[encode] << " ";
-        }
-        result_file << "** ";
-        one_hot[int(label)] = 0;
+        MNIST_Image m_image(rows, cols, int(label), pixels, item_id);
 
         std::string sLabel = std::to_string(int(label));
         std::cout << "lable is: " << sLabel << std::endl;
-        // convert it to cv Mat, and show it
-        cv::Mat image_tmp(rows, cols, CV_8UC1, pixels);
-        // resize bigger for showing
-        // cv::resize(image_tmp, image_tmp, cv::Size(100, 100));
-        // cv::imshow(sLabel, image_tmp);
-        std::string filename = save_dir + slash + std::to_string(item_id) + "_" + sLabel + ".png";
-        cv::imwrite(filename, image_tmp, compression_params);
-        // cv::waitKey(0);
 
-        for (int p = 0; p < rows * cols; p++)
-        {
-            result_file << std::to_string((unsigned char)pixels[p]) << " ";
-        }
-        result_file << std::endl;
+        m_image.save_as_png(save_dir);
+        if (item_id == 0)
+            m_image.save_as_csv(save_dir, false);
+        else
+            m_image.save_as_csv(save_dir, true);
     }
 
     delete[] pixels;
     image_file.close();
     label_file.close();
-    result_file.close();
 }
 
 int main()
