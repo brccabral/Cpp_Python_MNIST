@@ -63,6 +63,7 @@ public:
         outfile << std::endl;
     }
 };
+
 std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
 {
     outs << m._label;
@@ -260,7 +261,7 @@ std::tuple<Eigen::MatrixXf, float, Eigen::MatrixXf, float> back_prop(Eigen::Matr
 {
     int y_size = Y.rows();
     Eigen::MatrixXf one_hot_Y = one_hot_encode(Y);
-    
+
     Eigen::MatrixXf dZ2 = A2 - one_hot_Y;
     Eigen::MatrixXf dW2 = dZ2 * A1.transpose() / y_size;
     float db2 = dZ2.sum() / y_size;
@@ -270,6 +271,14 @@ std::tuple<Eigen::MatrixXf, float, Eigen::MatrixXf, float> back_prop(Eigen::Matr
     float db1 = dZ1.sum() / y_size;
 
     return std::make_tuple(dW1, db1, dW2, db2);
+}
+
+void update_params(Eigen::MatrixXf &W1, Eigen::VectorXf &b1, Eigen::MatrixXf &W2, Eigen::VectorXf &b2, Eigen::MatrixXf &dW1, float db1, Eigen::MatrixXf &dW2, float db2, float alpha)
+{
+    W1 = W1 - dW1 * alpha;
+    b1 = b1.array() - db1 * alpha;
+    W2 = W2 - dW2 * alpha;
+    b2 = b2.array() - db2 * alpha;
 }
 
 int main()
@@ -305,6 +314,8 @@ int main()
     Eigen::MatrixXf dW1, dW2;
     float db1, db2;
 
+    float alpha = 0.1f;
+
     for (int generations = 0; generations < 3; generations++)
     {
         std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> fp = forward_prop(W1, b1, W2, b2, X);
@@ -312,6 +323,8 @@ int main()
 
         std::tuple<Eigen::MatrixXf, float, Eigen::MatrixXf, float> bp = back_prop(Z1, A1, Z2, A2, W2, X, Y_train);
         std::tie(dW1, db1, dW2, db2) = bp;
+
+        update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha);
     }
 
     for (auto &d : dataset)
