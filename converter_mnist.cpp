@@ -213,6 +213,20 @@ std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> f
     return std::make_tuple(Z1, A1, Z2, A2);
 }
 
+std::tuple<Eigen::MatrixXf, Eigen::VectorXf, Eigen::MatrixXf, Eigen::VectorXf> init_params(int categories, int num_features)
+{
+    Eigen::MatrixXf W1 = Eigen::MatrixXf::Random(categories, num_features);
+    W1 = W1.array() - 0.5;
+    Eigen::VectorXf b1 = Eigen::VectorXf::Random(categories);
+    b1 = b1.array() - 0.5;
+    Eigen::MatrixXf W2 = Eigen::MatrixXf::Random(categories, categories);
+    W2 = W2.array() - 0.5;
+    Eigen::VectorXf b2 = Eigen::VectorXf::Random(categories, 1);
+    b2 = b2.array() - 0.5;
+
+    return std::make_tuple(W1, b1, W2, b2);
+}
+
 int main()
 {
     std::string base_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST";
@@ -228,19 +242,16 @@ int main()
     int cols = mat.cols();
 
     Eigen::MatrixXf X_train = mat.leftCols(mat.cols() - 1); // n,784 = 28*28
-    Eigen::MatrixXf Y_train = mat.rightCols(1); // n,1
+    Eigen::MatrixXf Y_train = mat.rightCols(1);             // n,1
     X_train = X_train / 255.0;
 
     Eigen::MatrixXf X = X_train.transpose();
 
-    Eigen::MatrixXf W1 = Eigen::MatrixXf::Random(10, mat.cols() - 1); // 10 categories,784
-    W1 = W1.array() - 0.5;
-    Eigen::VectorXf b1 = Eigen::VectorXf::Random(10); // 10 categories
-    b1 = b1.array() - 0.5;
-    Eigen::MatrixXf W2 = Eigen::MatrixXf::Random(10, 10); // 10,10
-    W2 = W2.array() - 0.5;
-    Eigen::VectorXf b2 = Eigen::VectorXf::Random(10, 1); // 10,1
-    b2 = b2.array() - 0.5;
+    Eigen::MatrixXf W1, W2;
+    Eigen::VectorXf b1, b2;
+
+    std::tuple<Eigen::MatrixXf, Eigen::VectorXf, Eigen::MatrixXf, Eigen::VectorXf> ip = init_params(10, X_train.cols());
+    std::tie(W1, b1, W2, b2) = ip;
 
     Eigen::MatrixXf Z1, A1, Z2, A2;
 
