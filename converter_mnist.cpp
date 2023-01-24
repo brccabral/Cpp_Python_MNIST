@@ -3,6 +3,7 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <eigen3/Eigen/Dense>
+#include <eigen3/unsupported/Eigen/MatrixFunctions>
 
 #ifdef DEBUG
 #define DUMP_VAR(x) std::cout << #x " " << x << std::endl
@@ -198,6 +199,11 @@ Eigen::MatrixXf ReLU(Eigen::MatrixXf &Z)
     return Z.cwiseMax(0);
 }
 
+Eigen::MatrixXf Softmax(Eigen::MatrixXf &Z)
+{
+    return Z.array().exp() / Z.array().exp().sum();
+}
+
 std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> forward_prop(Eigen::MatrixXf &W1, Eigen::VectorXf &b1, Eigen::MatrixXf &W2, Eigen::VectorXf &b2, Eigen::MatrixXf &X)
 {
     Eigen::MatrixXf Z1 = W1 * X;
@@ -213,7 +219,7 @@ std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> f
     {
         Z2.col(c) = Z2.col(c) - b2;
     }
-    Eigen::MatrixXf A2 = Z2; // TODO softMax
+    Eigen::MatrixXf A2 = Softmax(Z2);
 
     return std::make_tuple(Z1, A1, Z2, A2);
 }
