@@ -199,6 +199,13 @@ Eigen::MatrixXf ReLU(Eigen::MatrixXf &Z)
     return Z.cwiseMax(0);
 }
 
+Eigen::MatrixXf deriv_ReLU(Eigen::MatrixXf &Z)
+{
+    Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> b2 = (Z.array() > 0);
+    return b2.unaryExpr([](const bool x)
+                        { return x ? 1.0f : 0.0f; });
+}
+
 Eigen::MatrixXf Softmax(Eigen::MatrixXf &Z)
 {
     return Z.array().exp() / Z.array().exp().sum();
@@ -238,6 +245,33 @@ std::tuple<Eigen::MatrixXf, Eigen::VectorXf, Eigen::MatrixXf, Eigen::VectorXf> i
     return std::make_tuple(W1, b1, W2, b2);
 }
 
+Eigen::MatrixXf one_hot_encode(Eigen::VectorXf &Z)
+{
+    Eigen::MatrixXf o = Eigen::MatrixXf::Zero(Z.rows(), Z.maxCoeff() + 1);
+
+    for (int r = 0; r < Z.rows() - 1; r++)
+    {
+        o(r, int(Z(r))) = 1;
+    }
+    return o.transpose();
+}
+
+std::tuple<Eigen::MatrixXf, float, Eigen::MatrixXf, float> back_prop(Eigen::MatrixXf &Z1, Eigen::MatrixXf &A1, Eigen::MatrixXf &Z2, Eigen::MatrixXf &A2, Eigen::MatrixXf &W2, Eigen::MatrixXf &X, Eigen::VectorXf &Y)
+{
+    int y_size = Y.rows();
+    Eigen::MatrixXf one_hot_Y = one_hot_encode(Y);
+    
+    Eigen::MatrixXf dZ2 = A2 - one_hot_Y;
+    Eigen::MatrixXf dW2 = dZ2 * A1.transpose() / y_size;
+    float db2 = dZ2.sum() / y_size;
+
+    Eigen::MatrixXf dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
+    Eigen::MatrixXf dW1 = dZ1 * X.transpose();
+    float db1 = dZ1.sum() / y_size;
+
+    return std::make_tuple(dW1, db1, dW2, db2);
+}
+
 int main()
 {
     std::string base_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST";
@@ -253,23 +287,31 @@ int main()
     int cols = mat.cols();
 
     Eigen::MatrixXf X_train = mat.leftCols(mat.cols() - 1); // n,784 = 28*28
-    Eigen::MatrixXf Y_train = mat.rightCols(1);             // n,1
+    Eigen::VectorXf Y_train = mat.rightCols(1);             // n,1
     X_train = X_train / 255.0;
+
+    int categories = Y_train.maxCoeff() + 1;
+    DUMP_VAR(categories);
 
     Eigen::MatrixXf X = X_train.transpose();
 
     Eigen::MatrixXf W1, W2;
     Eigen::VectorXf b1, b2;
 
-    std::tuple<Eigen::MatrixXf, Eigen::VectorXf, Eigen::MatrixXf, Eigen::VectorXf> ip = init_params(10, X_train.cols());
+    std::tuple<Eigen::MatrixXf, Eigen::VectorXf, Eigen::MatrixXf, Eigen::VectorXf> ip = init_params(categories, X_train.cols());
     std::tie(W1, b1, W2, b2) = ip;
 
     Eigen::MatrixXf Z1, A1, Z2, A2;
+    Eigen::MatrixXf dW1, dW2;
+    float db1, db2;
 
     for (int generations = 0; generations < 3; generations++)
     {
         std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> fp = forward_prop(W1, b1, W2, b2, X);
         std::tie(Z1, A1, Z2, A2) = fp;
+
+        std::tuple<Eigen::MatrixXf, float, Eigen::MatrixXf, float> bp = back_prop(Z1, A1, Z2, A2, W2, X, Y_train);
+        std::tie(dW1, db1, dW2, db2) = bp;
     }
 
     for (auto &d : dataset)
