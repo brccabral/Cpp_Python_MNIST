@@ -4,6 +4,12 @@
 #include <opencv2/opencv.hpp>
 #include <eigen3/Eigen/Dense>
 
+#ifdef DEBUG
+#define DUMP_VAR(x) std::cout << #x " " << x << std::endl
+#else
+#define DUMP_VAR(x)
+#endif
+
 template <typename T>
 std::string to_string(const T &value)
 {
@@ -66,15 +72,15 @@ std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
     return outs;
 };
 
-Eigen::MatrixXd to_matrix(std::vector<MNIST_Image> *dataset)
+Eigen::MatrixXf to_matrix(std::vector<MNIST_Image> *dataset)
 {
     int rows = dataset->size();
     int cols = dataset->at(0)._rows * dataset->at(0)._cols + 1;
 
-    std::cout << "rows " << rows << std::endl;
-    std::cout << "cols " << cols << std::endl;
+    DUMP_VAR(rows);
+    DUMP_VAR(cols);
 
-    Eigen::MatrixXd mat(rows, cols);
+    Eigen::MatrixXf mat(rows, cols);
     for (int i = 0; i < rows; i++)
     {
         for (int j = 0; j < cols - 1; j++)
@@ -153,8 +159,9 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *l
         n_items = num_items;
     }
 
-    std::cout << "image and label num is: " << num_items << std::endl;
-    std::cout << "image rows: " << rows << ", cols: " << cols << std::endl;
+    DUMP_VAR(num_items);
+    DUMP_VAR(rows);
+    DUMP_VAR(cols);
 
     char label;
     char *pixels = new char[rows * cols];
@@ -186,21 +193,62 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *l
     return dataset;
 }
 
+std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> forward_prop(Eigen::MatrixXf W1, Eigen::VectorXf b1, Eigen::MatrixXf W2, Eigen::VectorXf b2, Eigen::MatrixXf X)
+{
+    Eigen::MatrixXf Z1 = W1 * X;
+    for (int c = 0; c < Z1.cols(); c++)
+    {
+        Z1.col(c) = Z1.col(c) - b1;
+    }
+    Eigen::MatrixXf A1 = Z1; // TODO ReLU
+    DUMP_VAR(A1.rows());
+
+    Eigen::MatrixXf Z2 = W2 * A1;
+    for (int c = 0; c < Z2.cols(); c++)
+    {
+        Z2.col(c) = Z2.col(c) - b2;
+    }
+    Eigen::MatrixXf A2 = Z2; // TODO softMax
+
+    return std::make_tuple(Z1, A1, Z2, A2);
+}
+
 int main()
 {
     std::string base_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST";
     std::string save_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST/train";
     std::string img_path = base_dir + "/train-images.idx3-ubyte";
     std::string label_path = base_dir + "/train-labels.idx1-ubyte";
-    const int max_items = 10;
+    const int max_items = 15;
 
     std::vector<MNIST_Image> dataset;
     dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str());
-    std::cout << "Rows " << dataset.size() << std::endl;
 
-    Eigen::MatrixXd mat = to_matrix(&dataset);
-    std::cout << "mat.rows() " << mat.rows() << std::endl;
-    std::cout << "mat.cols() " << mat.cols() << std::endl;
+    Eigen::MatrixXf mat = to_matrix(&dataset);
+    int cols = mat.cols();
+
+    Eigen::MatrixXf X_train = mat.leftCols(mat.cols() - 1); // n,784 = 28*28
+    Eigen::MatrixXf Y_train = mat.rightCols(1); // n,1
+    X_train = X_train / 255.0;
+
+    Eigen::MatrixXf X = X_train.transpose();
+
+    Eigen::MatrixXf W1 = Eigen::MatrixXf::Random(10, mat.cols() - 1); // 10 categories,784
+    W1 = W1.array() - 0.5;
+    Eigen::VectorXf b1 = Eigen::VectorXf::Random(10); // 10 categories
+    b1 = b1.array() - 0.5;
+    Eigen::MatrixXf W2 = Eigen::MatrixXf::Random(10, 10); // 10,10
+    W2 = W2.array() - 0.5;
+    Eigen::VectorXf b2 = Eigen::VectorXf::Random(10, 1); // 10,1
+    b2 = b2.array() - 0.5;
+
+    Eigen::MatrixXf Z1, A1, Z2, A2;
+
+    for (int generations = 0; generations < 3; generations++)
+    {
+        std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> fp = forward_prop(W1, b1, W2, b2, X);
+        std::tie(Z1, A1, Z2, A2) = fp;
+    }
 
     for (auto &d : dataset)
     {
