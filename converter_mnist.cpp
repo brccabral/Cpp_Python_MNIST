@@ -193,6 +193,11 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *l
     return dataset;
 }
 
+Eigen::MatrixXf ReLU(Eigen::MatrixXf Z)
+{
+    return Z.cwiseMax(0);
+}
+
 std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> forward_prop(Eigen::MatrixXf W1, Eigen::VectorXf b1, Eigen::MatrixXf W2, Eigen::VectorXf b2, Eigen::MatrixXf X)
 {
     Eigen::MatrixXf Z1 = W1 * X;
@@ -200,7 +205,7 @@ std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> f
     {
         Z1.col(c) = Z1.col(c) - b1;
     }
-    Eigen::MatrixXf A1 = Z1; // TODO ReLU
+    Eigen::MatrixXf A1 = ReLU(Z1);
     DUMP_VAR(A1.rows());
 
     Eigen::MatrixXf Z2 = W2 * A1;
