@@ -291,8 +291,16 @@ void update_params(Eigen::MatrixXf &W1, Eigen::VectorXf &b1, Eigen::MatrixXf &W2
     b2 = b2.array() - db2 * alpha;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc != 2)
+    {
+        std::cout << "Wrong parameters: converter_mnist GENERATIONS" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    int num_generations = atoi(argv[1]);
+
     std::string base_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST";
     std::string save_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST/train";
     std::string img_path = base_dir + "/train-images.idx3-ubyte";
@@ -326,7 +334,7 @@ int main()
 
     float alpha = 0.1f;
 
-    for (int generations = 0; generations < 3; generations++)
+    for (int generations = 0; generations < num_generations; generations++)
     {
         std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> fp = forward_prop(W1, b1, W2, b2, X);
         std::tie(Z1, A1, Z2, A2) = fp;
