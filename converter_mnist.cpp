@@ -312,9 +312,9 @@ void update_params(Eigen::MatrixXf &W1, Eigen::VectorXf &b1, Eigen::MatrixXf &W2
 
 int main(int argc, char *argv[])
 {
-    if (argc != 4)
+    if (argc != 5)
     {
-        std::cout << "Wrong parameters: converter_mnist GENERATIONS MAX_ITEMS SAVE_IMG" << std::endl;
+        std::cout << "Wrong parameters: converter_mnist GENERATIONS MAX_ITEMS SAVE_IMG ALPHA" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -323,6 +323,7 @@ int main(int argc, char *argv[])
     int num_generations = atoi(argv[1]);
     int max_items = atoi(argv[2]);
     bool save_img = (bool)atoi(argv[3]);
+    float alpha = atof(argv[4]);
 
     std::string base_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST";
     std::string save_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST/train";
@@ -353,7 +354,6 @@ int main(int argc, char *argv[])
     Eigen::MatrixXf dW1, dW2;
     float db1, db2;
 
-    float alpha = 0.1f;
     int correct_prediction = 0;
     float acc = 0.0f;
 
