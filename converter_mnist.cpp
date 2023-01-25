@@ -11,6 +11,15 @@
 #define DUMP_VAR(x)
 #endif
 
+float get_float_matrix(Eigen::MatrixXf &M, int r, int c)
+{
+    return M(r, c);
+}
+float get_float_vector(Eigen::VectorXf &V, int r)
+{
+    return V(r);
+}
+
 template <typename T>
 std::string to_string(const T &value)
 {
