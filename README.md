@@ -6,10 +6,15 @@ Files are in `idx` format
 
 ```
 pip install pillow
+pip install numpy
 ```
 
-Need OpenCV libraries to compile C++ code https://docs.opencv.org/4.6.0/d7/d9f/tutorial_linux_install.html  
+Need OpenCV libraries to save images on disk https://docs.opencv.org/4.6.0/d7/d9f/tutorial_linux_install.html  
 
-C++ code was adapted from https://stackoverflow.com/questions/12993941/how-can-i-read-the-mnist-dataset-with-c  
+C++ code to read MNIST database was adapted from https://stackoverflow.com/questions/12993941/how-can-i-read-the-mnist-dataset-with-c  
 
-Python code was adapted from https://jamesmccaffrey.wordpress.com/2020/05/05/converting-raw-mnist-binary-files-to-text-files/  
+Python code to read MNIST database was adapted from https://jamesmccaffrey.wordpress.com/2020/05/05/converting-raw-mnist-binary-files-to-text-files/  
+
+Python code for the Neural Network was adapted from a tutorial from Samson Zhang [Building a neural network FROM SCRATCH (no Tensorflow/Pytorch, just numpy & math)](https://www.youtube.com/watch?v=w8yWXqWQYmU)  
+
+C++ code for the Neural Network is an adaptation from myself based on the Python code. It needs Eigen library to do the math calculations [https://eigen.tuxfamily.org/](https://eigen.tuxfamily.org/)  
