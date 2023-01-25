@@ -90,7 +90,7 @@ def read_mnist_db(
 
 
 def get_pixels_as_int_list(image: MNIST_Image):
-    return list(map(int, image.pixels))
+    return list(map(float, image.pixels))
 
 
 def to_numpy(dataset: list[MNIST_Image]):
@@ -113,7 +113,10 @@ def main(argc: int, argv: list[str]):
 
     dataset = read_mnist_db(img_path, label_path, max_items, save_dir, save_img)
     mat = to_numpy(dataset)
-    print(mat.shape)
+
+    X_train = mat[:-1]
+    Y_train = mat[-1]
+    X_train /= 255.0
 
 
 if __name__ == "__main__":
