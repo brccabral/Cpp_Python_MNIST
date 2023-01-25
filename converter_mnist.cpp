@@ -289,6 +289,19 @@ Eigen::VectorXf get_predictions(Eigen::MatrixXf &P)
     return p;
 }
 
+int get_correct_prediction(Eigen::VectorXf &p, Eigen::VectorXf &y)
+{
+    Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> e = p.cwiseEqual(y);
+    Eigen::VectorXi e_int = e.unaryExpr([](const bool x)
+                                        { return x ? 1 : 0; });
+    return e_int.sum();
+}
+
+float get_accuracy(int correct_prediction, int size)
+{
+    return 1.0f * correct_prediction / size;
+}
+
 void update_params(Eigen::MatrixXf &W1, Eigen::VectorXf &b1, Eigen::MatrixXf &W2, Eigen::VectorXf &b2, Eigen::MatrixXf &dW1, float db1, Eigen::MatrixXf &dW2, float db2, float alpha)
 {
     W1 = W1 - dW1 * alpha;
@@ -351,7 +364,11 @@ int main(int argc, char *argv[])
         update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha);
 
         Eigen::VectorXf prediction = get_predictions(A2);
-        DUMP_VAR(prediction);
+
+        int correct_prediction = get_correct_prediction(prediction, Y_train);
+        float acc = get_accuracy(correct_prediction, Y_train.rows());
+        if (generation % 50 == 0)
+            printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
     }
 
     for (auto &d : dataset)
