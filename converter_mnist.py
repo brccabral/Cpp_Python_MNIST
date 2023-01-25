@@ -89,12 +89,24 @@ def read_mnist_db(
     return dataset
 
 
-def get_pixels_as_int_list(image: MNIST_Image):
+def get_pixels_as_int_list(image: MNIST_Image) -> list[float]:
     return list(map(float, image.pixels))
 
 
-def to_numpy(dataset: list[MNIST_Image]):
+def to_numpy(dataset: list[MNIST_Image]) -> np.ndarray:
     return np.asarray(list(map(get_pixels_as_int_list, dataset)))
+
+
+def init_params(
+    categories: int, num_features: int
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    print(categories)
+    print(num_features)
+    W1 = np.random.rand(categories, num_features) - 0.5
+    b1 = np.random.rand(categories, 1) - 0.5
+    W2 = np.random.rand(categories, categories) - 0.5
+    b2 = np.random.rand(categories, 1) - 0.5
+    return (W1, b1, W2, b2)
 
 
 def main(argc: int, argv: list[str]):
@@ -117,6 +129,12 @@ def main(argc: int, argv: list[str]):
     X_train = mat[:-1]
     Y_train = mat[-1]
     X_train /= 255.0
+
+    categories = int(np.max(Y_train)) + 1
+
+    X = X_train.T
+
+    W1, b1, W2, b2 = init_params(categories, X_train.shape[1])
 
 
 if __name__ == "__main__":
