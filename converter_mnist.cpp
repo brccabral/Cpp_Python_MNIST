@@ -243,14 +243,15 @@ std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> f
 
 std::tuple<Eigen::MatrixXf, Eigen::VectorXf, Eigen::MatrixXf, Eigen::VectorXf> init_params(int categories, int num_features)
 {
+    // Random generates [-1:1]. Numpy is [0:1]
     Eigen::MatrixXf W1 = Eigen::MatrixXf::Random(categories, num_features);
-    W1 = W1.array() - 0.5;
+    W1 = W1.array() / 2.0f;
     Eigen::VectorXf b1 = Eigen::VectorXf::Random(categories);
-    b1 = b1.array() - 0.5;
+    b1 = b1.array() / 2.0f;
     Eigen::MatrixXf W2 = Eigen::MatrixXf::Random(categories, categories);
-    W2 = W2.array() - 0.5;
+    W2 = W2.array() / 2.0f;
     Eigen::VectorXf b2 = Eigen::VectorXf::Random(categories, 1);
-    b2 = b2.array() - 0.5;
+    b2 = b2.array() / 2.0f;
 
     return std::make_tuple(W1, b1, W2, b2);
 }
