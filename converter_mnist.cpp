@@ -110,7 +110,7 @@ uint32_t swap_endian(uint32_t val)
     return (val << 16) | (val >> 16);
 }
 
-std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *label_filename, const int max_items, const char *save_dir)
+std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *label_filename, const int max_items, const char *save_dir, bool save_img)
 {
     std::vector<MNIST_Image> dataset;
 
@@ -190,7 +190,8 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *l
         std::string sLabel = std::to_string(int(label));
         std::cout << "lable is: " << sLabel << std::endl;
 
-        m_image.save_as_png(save_dir);
+        if (save_img)
+            m_image.save_as_png(save_dir);
         if (item_id == 0)
             m_image.save_as_csv(save_dir, false);
         else
@@ -314,22 +315,23 @@ void update_params(Eigen::MatrixXf &W1, Eigen::VectorXf &b1, Eigen::MatrixXf &W2
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
+    if (argc != 4)
     {
-        std::cout << "Wrong parameters: converter_mnist GENERATIONS" << std::endl;
+        std::cout << "Wrong parameters: converter_mnist GENERATIONS MAX_ITEMS SAVE_IMG" << std::endl;
         return EXIT_FAILURE;
     }
 
     int num_generations = atoi(argv[1]);
+    int max_items = atoi(argv[2]);
+    bool save_img = (bool)atoi(argv[3]);
 
     std::string base_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST";
     std::string save_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST/train";
     std::string img_path = base_dir + "/train-images.idx3-ubyte";
     std::string label_path = base_dir + "/train-labels.idx1-ubyte";
-    const int max_items = 15;
 
     std::vector<MNIST_Image> dataset;
-    dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str());
+    dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str(), save_img);
 
     Eigen::MatrixXf mat = to_matrix(&dataset);
     int cols = mat.cols();
