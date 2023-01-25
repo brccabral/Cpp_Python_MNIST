@@ -1,4 +1,3 @@
-from statistics import correlation
 import sys
 import time
 import numpy as np
@@ -226,7 +225,9 @@ def main(argc: int, argv: list[str]):
             predictions = get_predictions(A2)
             correct_prediction = get_correct_prediction(predictions, Y_train)
             acc = get_accuracy(correct_prediction, Y_train.size)
-            print(f"Generation: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc}")
+            print(
+                f"Generation: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc}"
+            )
     print(
         f"Final\tCorrect {correct_prediction}\tAccuracy: {get_accuracy(get_correct_prediction(get_predictions(A2), Y_train), Y_train.size)}"
     )
