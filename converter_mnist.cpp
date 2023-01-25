@@ -6,7 +6,8 @@
 #include <eigen3/unsupported/Eigen/MatrixFunctions>
 
 #ifdef DEBUG
-#define DUMP_VAR(x) std::cout << #x " " << x << std::endl
+#define DUMP_VAR(x) std::cout << #x "\n" \
+                              << x << std::endl
 #else
 #define DUMP_VAR(x)
 #endif
