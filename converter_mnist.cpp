@@ -16,19 +16,11 @@ float get_float_matrix(Eigen::MatrixXf &M, int r, int c)
 {
     return M(r, c);
 }
+
 float get_float_vector(Eigen::VectorXf &V, int r)
 {
     return V(r);
 }
-
-template <typename T>
-std::string to_string(const T &value)
-{
-    std::ostringstream ss;
-    ss << value;
-    return ss.str();
-}
-
 class MNIST_Image
 {
 public:
@@ -171,10 +163,6 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *l
         n_items = num_items;
     }
 
-    DUMP_VAR(num_items);
-    DUMP_VAR(rows);
-    DUMP_VAR(cols);
-
     char label;
     char *pixels = new char[rows * cols];
 
@@ -188,7 +176,6 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *l
         MNIST_Image m_image(rows, cols, int(label), pixels, item_id);
 
         std::string sLabel = std::to_string(int(label));
-        std::cout << "lable is: " << sLabel << std::endl;
 
         if (save_img)
             m_image.save_as_png(save_dir);
@@ -222,8 +209,6 @@ Eigen::MatrixXf Softmax(Eigen::MatrixXf &Z)
 {
     Eigen::MatrixXf e = Z.array().exp();
     Eigen::MatrixXf s = e.colwise().sum();
-    // DUMP_VAR(Z);
-    // DUMP_VAR(e);
     for (int c = 0; c < e.cols(); c++)
     {
         e.col(c) = e.col(c) / s(c);
@@ -239,7 +224,6 @@ std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> f
         Z1.col(c) = Z1.col(c) - b1;
     }
     Eigen::MatrixXf A1 = ReLU(Z1);
-    DUMP_VAR(A1.rows());
 
     Eigen::MatrixXf Z2 = W2 * A1;
     for (int c = 0; c < Z2.cols(); c++)
@@ -341,7 +325,6 @@ int main(int argc, char *argv[])
     X_train = X_train / 255.0;
 
     int categories = Y_train.maxCoeff() + 1;
-    DUMP_VAR(categories);
 
     Eigen::MatrixXf X = X_train.transpose();
 
@@ -357,7 +340,7 @@ int main(int argc, char *argv[])
 
     float alpha = 0.1f;
 
-    for (int generations = 0; generations < num_generations; generations++)
+    for (int generation = 0; generation < num_generations; generation++)
     {
         std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> fp = forward_prop(W1, b1, W2, b2, X);
         std::tie(Z1, A1, Z2, A2) = fp;
@@ -366,6 +349,7 @@ int main(int argc, char *argv[])
         std::tie(dW1, db1, dW2, db2) = bp;
 
         update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha);
+
         Eigen::VectorXf prediction = get_predictions(A2);
         DUMP_VAR(prediction);
     }
