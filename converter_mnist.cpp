@@ -219,7 +219,15 @@ Eigen::MatrixXf deriv_ReLU(Eigen::MatrixXf &Z)
 
 Eigen::MatrixXf Softmax(Eigen::MatrixXf &Z)
 {
-    return Z.array().exp() / Z.array().exp().sum();
+    Eigen::MatrixXf e = Z.array().exp();
+    Eigen::MatrixXf s = e.colwise().sum();
+    // DUMP_VAR(Z);
+    // DUMP_VAR(e);
+    for (int c = 0; c < e.cols(); c++)
+    {
+        e.col(c) = e.col(c) / s(c);
+    }
+    return e;
 }
 
 std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> forward_prop(Eigen::MatrixXf &W1, Eigen::VectorXf &b1, Eigen::MatrixXf &W2, Eigen::VectorXf &b2, Eigen::MatrixXf &X)
