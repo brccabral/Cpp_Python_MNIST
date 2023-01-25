@@ -71,7 +71,6 @@ def read_mnist_db(
         n_items = num_items
 
     for item_id in range(n_items):
-        print(item_id)
         pixels = image_file.read(rows * cols)
         label = ord(label_file.read(1))
 
@@ -109,6 +108,24 @@ def init_params(
     return (W1, b1, W2, b2)
 
 
+def ReLU(Z: np.ndarray) -> np.ndarray:
+    return np.maximum(Z, 0)
+
+
+def softmax(Z: np.array) -> np.array:
+    return np.exp(Z) / sum(np.exp(Z))
+
+
+def forward_prop(
+    W1: np.ndarray, b1: np.ndarray, W2: np.ndarray, b2: np.ndarray, X: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    Z1 = W1.dot(X) + b1  # W1 10,784 ||| X 784,60000 ||| W.X 10,60000
+    A1 = ReLU(Z1)
+    Z2 = W2.dot(A1) + b2
+    A2 = softmax(Z2)
+    return Z1, A1, Z2, A2
+
+
 def main(argc: int, argv: list[str]):
 
     np.random.seed(int(time.time()))
@@ -135,6 +152,12 @@ def main(argc: int, argv: list[str]):
     X = X_train.T
 
     W1, b1, W2, b2 = init_params(categories, X_train.shape[1])
+
+    correct_prediction = 0
+    acc = 0.0
+
+    for generation in range(num_generations):
+        Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X)
 
 
 if __name__ == "__main__":
