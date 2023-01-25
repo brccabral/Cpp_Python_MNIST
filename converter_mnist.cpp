@@ -96,7 +96,7 @@ Eigen::MatrixXf to_matrix(std::vector<MNIST_Image> *dataset)
     {
         for (int j = 0; j < cols - 1; j++)
         {
-            mat(i, j) = atof(&dataset->at(i)._pixels[j]);
+            mat(i, j) = (unsigned char)dataset->at(i)._pixels[j];
         }
         mat(i, cols - 1) = float(dataset->at(i)._label);
     }
