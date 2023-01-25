@@ -330,7 +330,6 @@ int main(int argc, char *argv[])
     dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str(), save_img);
 
     Eigen::MatrixXf mat = to_matrix(&dataset);
-    int cols = mat.cols();
 
     Eigen::MatrixXf X_train = mat.leftCols(mat.cols() - 1); // n,784 = 28*28
     Eigen::VectorXf Y_train = mat.rightCols(1);             // n,1
