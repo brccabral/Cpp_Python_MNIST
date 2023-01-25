@@ -287,7 +287,7 @@ std::tuple<Eigen::MatrixXf, float, Eigen::MatrixXf, float> back_prop(Eigen::Matr
     float db2 = dZ2.sum() / y_size;
 
     Eigen::MatrixXf dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
-    Eigen::MatrixXf dW1 = dZ1 * X.transpose();
+    Eigen::MatrixXf dW1 = dZ1 * X.transpose() / y_size;
     float db1 = dZ1.sum() / y_size;
 
     return std::make_tuple(dW1, db1, dW2, db2);
