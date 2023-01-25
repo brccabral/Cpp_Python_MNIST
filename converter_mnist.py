@@ -89,7 +89,7 @@ def read_mnist_db(
 
 
 def get_pixels_as_int_list(image: MNIST_Image) -> list[float]:
-    return list(map(float, image.pixels))
+    return [image._label] + list(map(float, image.pixels))
 
 
 def to_numpy(dataset: list[MNIST_Image]) -> np.ndarray:
@@ -99,8 +99,6 @@ def to_numpy(dataset: list[MNIST_Image]) -> np.ndarray:
 def init_params(
     categories: int, num_features: int
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    print(categories)
-    print(num_features)
     W1 = np.random.rand(categories, num_features) - 0.5
     b1 = np.random.rand(categories, 1) - 0.5
     W2 = np.random.rand(categories, categories) - 0.5
@@ -119,10 +117,10 @@ def softmax(Z: np.array) -> np.array:
 def forward_prop(
     W1: np.ndarray, b1: np.ndarray, W2: np.ndarray, b2: np.ndarray, X: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    Z1 = W1.dot(X) + b1  # W1 10,784 ||| X 784,60000 ||| W.X 10,60000
-    A1 = ReLU(Z1)
-    Z2 = W2.dot(A1) + b2
-    A2 = softmax(Z2)
+    Z1: np.ndarray = W1.dot(X) + b1  # W1 10,784 ||| X 784,60000 ||| W.X 10,60000
+    A1: np.ndarray = ReLU(Z1)
+    Z2: np.ndarray = W2.dot(A1) + b2
+    A2: np.ndarray = softmax(Z2)
     return Z1, A1, Z2, A2
 
 
@@ -143,11 +141,12 @@ def main(argc: int, argv: list[str]):
     dataset = read_mnist_db(img_path, label_path, max_items, save_dir, save_img)
     mat = to_numpy(dataset)
 
-    X_train = mat[:-1]
-    Y_train = mat[-1]
+    X_train = mat[:, 1:]
+    Y_train: np.ndarray = mat[:, 0]
     X_train /= 255.0
+    Y_train = Y_train.astype(int)
 
-    categories = int(np.max(Y_train)) + 1
+    categories = np.max(Y_train) + 1
 
     X = X_train.T
 
