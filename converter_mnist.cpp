@@ -362,12 +362,13 @@ int main(int argc, char *argv[])
 
         update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha);
 
-        Eigen::VectorXf prediction = get_predictions(A2);
-
-        correct_prediction = get_correct_prediction(prediction, Y_train);
-        acc = get_accuracy(correct_prediction, Y_train.rows());
         if (generation % 50 == 0)
+        {
+            Eigen::VectorXf prediction = get_predictions(A2);
+            correct_prediction = get_correct_prediction(prediction, Y_train);
+            acc = get_accuracy(correct_prediction, Y_train.rows());
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
+        }
     }
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
