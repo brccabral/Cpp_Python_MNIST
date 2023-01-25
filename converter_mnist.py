@@ -89,6 +89,14 @@ def read_mnist_db(
     return dataset
 
 
+def get_pixels_as_int_list(image: MNIST_Image):
+    return list(map(int, image.pixels))
+
+
+def to_numpy(dataset: list[MNIST_Image]):
+    return np.asarray(list(map(get_pixels_as_int_list, dataset)))
+
+
 def main(argc: int, argv: list[str]):
 
     np.random.seed(int(time.time()))
@@ -104,6 +112,8 @@ def main(argc: int, argv: list[str]):
     label_path = base_dir + "/train-labels.idx1-ubyte"
 
     dataset = read_mnist_db(img_path, label_path, max_items, save_dir, save_img)
+    mat = to_numpy(dataset)
+    print(mat.shape)
 
 
 if __name__ == "__main__":
