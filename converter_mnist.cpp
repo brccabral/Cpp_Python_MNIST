@@ -352,6 +352,8 @@ int main(int argc, char *argv[])
     float db1, db2;
 
     float alpha = 0.1f;
+    int correct_prediction = 0;
+    float acc = 0.0f;
 
     for (int generation = 0; generation < num_generations; generation++)
     {
@@ -365,11 +367,12 @@ int main(int argc, char *argv[])
 
         Eigen::VectorXf prediction = get_predictions(A2);
 
-        int correct_prediction = get_correct_prediction(prediction, Y_train);
-        float acc = get_accuracy(correct_prediction, Y_train.rows());
+        correct_prediction = get_correct_prediction(prediction, Y_train);
+        acc = get_accuracy(correct_prediction, Y_train.rows());
         if (generation % 50 == 0)
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
     }
+    printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
     for (auto &d : dataset)
     {
