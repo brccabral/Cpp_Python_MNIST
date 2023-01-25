@@ -212,38 +212,47 @@ Eigen::MatrixXf Softmax(Eigen::MatrixXf &Z)
     return e;
 }
 
-std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> forward_prop(Eigen::MatrixXf &W1, Eigen::VectorXf &b1, Eigen::MatrixXf &W2, Eigen::VectorXf &b2, Eigen::MatrixXf &X)
+void forward_prop(Eigen::MatrixXf &W1,
+                  Eigen::VectorXf &b1,
+                  Eigen::MatrixXf &W2,
+                  Eigen::VectorXf &b2,
+                  Eigen::MatrixXf &X,
+                  Eigen::MatrixXf &Z1,
+                  Eigen::MatrixXf &A1,
+                  Eigen::MatrixXf &Z2,
+                  Eigen::MatrixXf &A2)
 {
-    Eigen::MatrixXf Z1 = W1 * X;
+    Z1 = W1 * X;
     for (int c = 0; c < Z1.cols(); c++)
     {
         Z1.col(c) = Z1.col(c) - b1;
     }
-    Eigen::MatrixXf A1 = ReLU(Z1);
+    A1 = ReLU(Z1);
 
-    Eigen::MatrixXf Z2 = W2 * A1;
+    Z2 = W2 * A1;
     for (int c = 0; c < Z2.cols(); c++)
     {
         Z2.col(c) = Z2.col(c) - b2;
     }
-    Eigen::MatrixXf A2 = Softmax(Z2);
-
-    return std::make_tuple(Z1, A1, Z2, A2);
+    A2 = Softmax(Z2);
 }
 
-std::tuple<Eigen::MatrixXf, Eigen::VectorXf, Eigen::MatrixXf, Eigen::VectorXf> init_params(int categories, int num_features)
+void init_params(int categories,
+                 int num_features,
+                 Eigen::MatrixXf &W1,
+                 Eigen::VectorXf &b1,
+                 Eigen::MatrixXf &W2,
+                 Eigen::VectorXf &b2)
 {
     // Random generates [-1:1]. Numpy is [0:1]
-    Eigen::MatrixXf W1 = Eigen::MatrixXf::Random(categories, num_features);
+    W1 = Eigen::MatrixXf::Random(categories, num_features);
     W1 = W1.array() / 2.0f;
-    Eigen::VectorXf b1 = Eigen::VectorXf::Random(categories);
+    b1 = Eigen::VectorXf::Random(categories);
     b1 = b1.array() / 2.0f;
-    Eigen::MatrixXf W2 = Eigen::MatrixXf::Random(categories, categories);
+    W2 = Eigen::MatrixXf::Random(categories, categories);
     W2 = W2.array() / 2.0f;
-    Eigen::VectorXf b2 = Eigen::VectorXf::Random(categories, 1);
+    b2 = Eigen::VectorXf::Random(categories, 1);
     b2 = b2.array() / 2.0f;
-
-    return std::make_tuple(W1, b1, W2, b2);
 }
 
 Eigen::MatrixXf one_hot_encode(Eigen::VectorXf &Z)
@@ -257,20 +266,28 @@ Eigen::MatrixXf one_hot_encode(Eigen::VectorXf &Z)
     return o.transpose();
 }
 
-std::tuple<Eigen::MatrixXf, float, Eigen::MatrixXf, float> back_prop(Eigen::MatrixXf &Z1, Eigen::MatrixXf &A1, Eigen::MatrixXf &Z2, Eigen::MatrixXf &A2, Eigen::MatrixXf &W2, Eigen::MatrixXf &X, Eigen::VectorXf &Y)
+void back_prop(Eigen::MatrixXf &Z1,
+               Eigen::MatrixXf &A1,
+               Eigen::MatrixXf &Z2,
+               Eigen::MatrixXf &A2,
+               Eigen::MatrixXf &W2,
+               Eigen::MatrixXf &X,
+               Eigen::VectorXf &Y,
+               Eigen::MatrixXf &dW1,
+               float &db1,
+               Eigen::MatrixXf &dW2,
+               float &db2,
+               Eigen::MatrixXf &one_hot_Y)
 {
     int y_size = Y.rows();
-    Eigen::MatrixXf one_hot_Y = one_hot_encode(Y);
 
     Eigen::MatrixXf dZ2 = A2 - one_hot_Y;
-    Eigen::MatrixXf dW2 = dZ2 * A1.transpose() / y_size;
-    float db2 = dZ2.sum() / y_size;
+    dW2 = dZ2 * A1.transpose() / y_size;
+    db2 = dZ2.sum() / y_size;
 
     Eigen::MatrixXf dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
-    Eigen::MatrixXf dW1 = dZ1 * X.transpose() / y_size;
-    float db1 = dZ1.sum() / y_size;
-
-    return std::make_tuple(dW1, db1, dW2, db2);
+    dW1 = dZ1 * X.transpose() / y_size;
+    db1 = dZ1.sum() / y_size;
 }
 
 Eigen::VectorXf get_predictions(Eigen::MatrixXf &P)
@@ -298,7 +315,15 @@ float get_accuracy(int correct_prediction, int size)
     return 1.0f * correct_prediction / size;
 }
 
-void update_params(Eigen::MatrixXf &W1, Eigen::VectorXf &b1, Eigen::MatrixXf &W2, Eigen::VectorXf &b2, Eigen::MatrixXf &dW1, float db1, Eigen::MatrixXf &dW2, float db2, float alpha)
+void update_params(Eigen::MatrixXf &W1,
+                   Eigen::VectorXf &b1,
+                   Eigen::MatrixXf &W2,
+                   Eigen::VectorXf &b2,
+                   Eigen::MatrixXf &dW1,
+                   float &db1,
+                   Eigen::MatrixXf &dW2,
+                   float &db2,
+                   float &alpha)
 {
     W1 = W1 - dW1 * alpha;
     b1 = b1.array() - db1 * alpha;
@@ -342,8 +367,8 @@ int main(int argc, char *argv[])
     Eigen::MatrixXf W1, W2;
     Eigen::VectorXf b1, b2;
 
-    std::tuple<Eigen::MatrixXf, Eigen::VectorXf, Eigen::MatrixXf, Eigen::VectorXf> ip = init_params(categories, X_train.cols());
-    std::tie(W1, b1, W2, b2) = ip;
+    init_params(categories, X_train.cols(), W1, b1, W2, b2);
+    Eigen::MatrixXf one_hot_Y = one_hot_encode(Y_train);
 
     Eigen::MatrixXf Z1, A1, Z2, A2;
     Eigen::MatrixXf dW1, dW2;
@@ -354,11 +379,9 @@ int main(int argc, char *argv[])
 
     for (int generation = 0; generation < num_generations; generation++)
     {
-        std::tuple<Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf, Eigen::MatrixXf> fp = forward_prop(W1, b1, W2, b2, X);
-        std::tie(Z1, A1, Z2, A2) = fp;
+        forward_prop(W1, b1, W2, b2, X, Z1, A1, Z2, A2);
 
-        std::tuple<Eigen::MatrixXf, float, Eigen::MatrixXf, float> bp = back_prop(Z1, A1, Z2, A2, W2, X, Y_train);
-        std::tie(dW1, db1, dW2, db2) = bp;
+        back_prop(Z1, A1, Z2, A2, W2, X, Y_train, dW1, db1, dW2, db2, one_hot_Y);
 
         update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha);
 
