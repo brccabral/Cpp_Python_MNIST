@@ -318,6 +318,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    std::srand((unsigned int) time(0));
+
     int num_generations = atoi(argv[1]);
     int max_items = atoi(argv[2]);
     bool save_img = (bool)atoi(argv[3]);
