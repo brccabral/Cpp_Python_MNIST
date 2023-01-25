@@ -370,6 +370,9 @@ int main(int argc, char *argv[])
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
         }
     }
+    Eigen::VectorXf prediction = get_predictions(A2);
+    correct_prediction = get_correct_prediction(prediction, Y_train);
+    acc = get_accuracy(correct_prediction, Y_train.rows());
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
     for (auto &d : dataset)
