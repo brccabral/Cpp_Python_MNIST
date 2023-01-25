@@ -283,6 +283,18 @@ std::tuple<Eigen::MatrixXf, float, Eigen::MatrixXf, float> back_prop(Eigen::Matr
     return std::make_tuple(dW1, db1, dW2, db2);
 }
 
+Eigen::VectorXf get_predictions(Eigen::MatrixXf &P)
+{
+    Eigen::VectorXf p = Eigen::VectorXf::Zero(P.cols()).array() - 1;
+    Eigen::Index maxIndex;
+    for (int c = 0; c < P.cols(); c++)
+    {
+        P.col(c).maxCoeff(&maxIndex);
+        p(c) = maxIndex;
+    }
+    return p;
+}
+
 void update_params(Eigen::MatrixXf &W1, Eigen::VectorXf &b1, Eigen::MatrixXf &W2, Eigen::VectorXf &b2, Eigen::MatrixXf &dW1, float db1, Eigen::MatrixXf &dW2, float db2, float alpha)
 {
     W1 = W1 - dW1 * alpha;
@@ -343,6 +355,8 @@ int main(int argc, char *argv[])
         std::tie(dW1, db1, dW2, db2) = bp;
 
         update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha);
+        Eigen::VectorXf prediction = get_predictions(A2);
+        DUMP_VAR(prediction);
     }
 
     for (auto &d : dataset)
