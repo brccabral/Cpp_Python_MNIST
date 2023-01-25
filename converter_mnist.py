@@ -144,9 +144,9 @@ def back_prop(
     W2: np.ndarray,
     X: np.ndarray,
     Y: np.ndarray,
+    one_hot_Y: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     m = Y.size
-    one_hot_Y = one_hot(Y)
     dZ2 = A2 - one_hot_Y
     dW2 = 1 / m * dZ2.dot(A1.T)
     db2 = 1 / m * np.sum(dZ2)
@@ -213,13 +213,14 @@ def main(argc: int, argv: list[str]):
     X = X_train.T
 
     W1, b1, W2, b2 = init_params(categories, X_train.shape[1])
+    one_hot_Y = one_hot(Y_train)
 
     correct_prediction = 0
     acc = 0.0
 
     for generation in range(num_generations):
         Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X)
-        dW1, db1, dW2, db2 = back_prop(Z1, A1, Z2, A2, W2, X, Y_train)
+        dW1, db1, dW2, db2 = back_prop(Z1, A1, Z2, A2, W2, X, Y_train, one_hot_Y)
         W1, b1, W2, b2 = update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha)
         if generation % 50 == 0:
             predictions = get_predictions(A2)
