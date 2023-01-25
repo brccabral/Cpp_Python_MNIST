@@ -1,3 +1,4 @@
+from statistics import correlation
 import sys
 import time
 import numpy as np
@@ -174,6 +175,18 @@ def update_params(
     return W1, b1, W2, b2
 
 
+def get_predictions(A2: np.ndarray) -> np.ndarray:
+    return np.argmax(A2, 0)
+
+
+def get_correct_prediction(predictions: np.ndarray, Y: np.ndarray) -> float:
+    return np.sum(predictions == Y)
+
+
+def get_accuracy(correct_prediction: int, size: int):
+    return 1.0 * correct_prediction / size
+
+
 def main(argc: int, argv: list[str]):
 
     np.random.seed(int(time.time()))
@@ -209,6 +222,14 @@ def main(argc: int, argv: list[str]):
         Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X)
         dW1, db1, dW2, db2 = back_prop(Z1, A1, Z2, A2, W2, X, Y_train)
         W1, b1, W2, b2 = update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha)
+        if generation % 50 == 0:
+            predictions = get_predictions(A2)
+            correct_prediction = get_correct_prediction(predictions, Y_train)
+            acc = get_accuracy(correct_prediction, Y_train.size)
+            print(f"Generation: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc}")
+    print(
+        f"Final\tCorrect {correct_prediction}\tAccuracy: {get_accuracy(get_correct_prediction(get_predictions(A2), Y_train), Y_train.size)}"
+    )
 
 
 if __name__ == "__main__":
