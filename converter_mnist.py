@@ -1,86 +1,114 @@
-# converter_mnist.py
-# raw binary MNIST to Keras text file
-
-# target format:
-# 0 0 1 0 0 0 0 0 0 0 ** 0 0 152 27 .. 0
-# 0 1 0 0 0 0 0 0 0 0 ** 0 0 38 122 .. 0
-#   10 vals at [0-9]    784 vals at [11-795]
-# dummy ** seperator at [10]
-
-
+import sys
+import time
+import numpy as np
 from PIL import Image
 
 
-def generate(img_bin_file, lbl_bin_file, result_file, save_location, n_images):
+class MNIST_Image:
+    def __init__(
+        self, rows: int, cols: int, label: int, pixels: list[bytes], item_id: int
+    ):
+        self._rows = rows
+        self._cols = cols
+        self._label = label
+        self.pixels = pixels
+        self._db_item_id = item_id
 
-    img_bf = open(img_bin_file, "rb")  # binary image pixels
-    lbl_bf = open(lbl_bin_file, "rb")  # binary labels
-    res_tf = open(result_file, "w")  # result text file
+    def save_as_png(self, save_dir: str):
+        img = Image.frombytes("L", (self._rows, self._cols), self.pixels)
+        img.save(f"{save_dir}/{self._db_item_id}_{self._label}.png")
 
-    # header info are in 'big endian', used in old CPUs (bytes are in reverse order)
-    img_magic = int.from_bytes(img_bf.read(4), "big")  # check if 2051
-    number_of_images = int.from_bytes(img_bf.read(4), "big")
-    img_rows = int.from_bytes(img_bf.read(4), "big")
-    img_cols = int.from_bytes(img_bf.read(4), "big")
-    print(
-        f"Image Magic {img_magic} Number of images {number_of_images} Image Size {img_rows}x{img_cols}"
-    )
+    def save_as_csv(self, save_dir: str):
+        if self._db_item_id == 0:
+            outfile = open(f"{save_dir}/python_csv.txt", "w")
+        else:
+            outfile = open(f"{save_dir}/python_csv.txt", "a")
 
-    label_magic = int.from_bytes(lbl_bf.read(4), "big")  # check if 2049
-    number_of_items = int.from_bytes(lbl_bf.read(4), "big")
-    print(f"Label Magic {label_magic} Number of items {number_of_items}")
-
-    encoded = [0] * 10  # make one-hot vector
-    for image in range(n_images):  # number images requested
-        # digit label first
-        lbl = ord(lbl_bf.read(1))  # get label like '3' (one byte)
-        encoded[lbl] = 1
-        for encode in range(10):
-            res_tf.write(str(encoded[encode]))
-            res_tf.write(" ")  # like 0 0 0 1 0 0 0 0 0 0
-        encoded[lbl] = 0
-
-        res_tf.write("** ")  # arbitrary for readibility
-
-        img_bytes = img_bf.read(img_rows * img_cols)
-        img = Image.frombytes("L", (img_rows, img_cols), img_bytes)
-        img.save(f"{save_location}/{image}_{lbl}.png")
-
-        # now do the image pixels
-        for value in range(img_rows * img_cols):  # get 784 vals for each image file
-            val = img_bytes[value]
-            res_tf.write(str(val))
-            if value != 783:
-                res_tf.write(" ")  # avoid trailing space
-        res_tf.write("\n")  # next image
-
-    img_bf.close()
-    lbl_bf.close()
-    # close the binary files
-    res_tf.close()  # close the result text file
+        outfile.write(str(self._label))
+        outfile.write(",")
+        outfile.write(",".join(list(map(str, self.pixels))))
+        outfile.write("\n")
+        outfile.close()
 
 
-def main():
-    # change target file names, uncomment as necessary
+def read_mnist_db(
+    img_path: str, label_path: str, max_items: int, save_dir: str, save_img: bool
+) -> list[MNIST_Image]:
+    dataset: list[MNIST_Image] = []
 
-    # make training data
-    generate(
-        "./MNIST/train-images.idx3-ubyte",
-        "./MNIST/train-labels.idx1-ubyte",
-        "./MNIST/mnist_train_keras.txt",
-        "./MNIST/train",
-        n_images=10,
-    )  # first n images
+    image_file = open(img_path, "rb")
+    if not image_file:
+        print("Failed open image file")
+        return dataset
 
-    # make test data
-    generate(
-        "./MNIST/t10k-images.idx3-ubyte",
-        "./MNIST/t10k-labels.idx1-ubyte",
-        "./MNIST/mnist_test_keras.txt",
-        "./MNIST/test",
-        n_images=5,
-    )  # first n images
+    label_file = open(label_path, "rb")
+    if not label_file:
+        print("Failed open label file")
+        return dataset
+
+    magic = int.from_bytes(image_file.read(4), "big")
+    if magic != 2051:
+        print(f"Incorrect image file magic {magic}")
+        return dataset
+
+    num_items = int.from_bytes(image_file.read(4), "big")
+    rows = int.from_bytes(image_file.read(4), "big")
+    cols = int.from_bytes(image_file.read(4), "big")
+
+    magic = int.from_bytes(label_file.read(4), "big")
+    if magic != 2049:
+        print(f"Incorrect image file magic {magic}")
+        return dataset
+
+    num_labels = int.from_bytes(label_file.read(4), "big")
+
+    if num_items != num_labels:
+        print("image file nums should equal to label num")
+        return dataset
+
+    n_items = max_items
+    if max_items > num_items:
+        n_items = num_items
+
+    for item_id in range(n_items):
+        print(item_id)
+        pixels = image_file.read(rows * cols)
+        label = ord(label_file.read(1))
+
+        m_image = MNIST_Image(rows, cols, label, pixels, item_id)
+
+        if save_img:
+            m_image.save_as_png(save_dir)
+
+        m_image.save_as_csv(save_dir)
+
+        dataset.append(m_image)
+
+    image_file.close()
+    label_file.close()
+    return dataset
+
+
+def main(argc: int, argv: list[str]):
+
+    np.random.seed(int(time.time()))
+
+    num_generations = int(argv[1])
+    max_items = int(argv[2])
+    save_img = int(argv[3])
+    alpha = float(argv[4])
+
+    base_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST"
+    save_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST/train"
+    img_path = base_dir + "/train-images.idx3-ubyte"
+    label_path = base_dir + "/train-labels.idx1-ubyte"
+
+    dataset = read_mnist_db(img_path, label_path, max_items, save_dir, save_img)
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 5:
+        print(len(sys.argv))
+        print("Wrong parameters: converter_mnist GENERATIONS MAX_ITEMS SAVE_IMG ALPHA")
+        exit(1)
+    main(len(sys.argv), sys.argv)
