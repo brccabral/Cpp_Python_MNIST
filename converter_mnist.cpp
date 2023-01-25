@@ -49,10 +49,10 @@ public:
         std::string filename = save_dir + "/" + std::to_string(_db_item_id) + "_" + std::to_string(_label) + ".png";
         cv::imwrite(filename, image_tmp);
     }
-    void save_as_csv(std::string save_dir, bool append)
+    void save_as_csv(std::string save_dir)
     {
         std::ofstream outfile;
-        if (append)
+        if (_db_item_id == 0)
             outfile.open(save_dir + "/res.txt", std::ios_base::app);
         else
             outfile.open(save_dir + "/res.txt");
@@ -175,14 +175,10 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *l
 
         MNIST_Image m_image(rows, cols, int(label), pixels, item_id);
 
-        std::string sLabel = std::to_string(int(label));
-
         if (save_img)
             m_image.save_as_png(save_dir);
-        if (item_id == 0)
-            m_image.save_as_csv(save_dir, false);
-        else
-            m_image.save_as_csv(save_dir, true);
+
+        m_image.save_as_csv(save_dir);
 
         dataset.push_back(m_image);
     }
@@ -318,7 +314,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    std::srand((unsigned int) time(0));
+    std::srand((unsigned int)time(0));
 
     int num_generations = atoi(argv[1]);
     int max_items = atoi(argv[2]);
