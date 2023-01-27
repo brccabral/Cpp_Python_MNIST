@@ -3,3 +3,4 @@ MNIST
 .vscode
 build
 eigen3
+config.ini

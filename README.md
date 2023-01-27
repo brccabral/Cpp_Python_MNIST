@@ -10,6 +10,8 @@ C++ code needs `Eigen` library as math library (matrices algebra) https://eigen.
 
 C++ code needs `OpenCV` libraries to save images on disk https://docs.opencv.org/4.6.0/d7/d9f/tutorial_linux_install.html. I used `OpenCV 4.6.0`.  
 
+C++ code needs `SimpleIni` include files to parse and use `config.ini` https://github.com/brofield/simpleini/. I used `SimpleInit 4.19`.
+
 C++ code to read MNIST database was adapted from https://stackoverflow.com/questions/12993941/how-can-i-read-the-mnist-dataset-with-c  
 
 Python code uses `numpy` as math library (matrices algebra) https://numpy.org/. I used `numpy 9.4.0`.  

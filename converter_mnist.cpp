@@ -4,10 +4,12 @@
 #include <opencv2/opencv.hpp>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/unsupported/Eigen/MatrixFunctions>
+#include <SimpleIni/SimpleIni.h>
 
 #ifdef DEBUG
-#define DUMP_VAR(x) std::cout << #x "\n" \
-                              << x << std::endl
+#define DUMP_VAR(x) std::cout << "---\n" \
+                              << #x "\n" \
+                              << x << "\n---" << std::endl
 #else
 #define DUMP_VAR(x)
 #endif
@@ -53,9 +55,9 @@ public:
     {
         std::ofstream outfile;
         if (_db_item_id == 0)
-            outfile.open(save_dir + "/res.txt", std::ios_base::app);
-        else
             outfile.open(save_dir + "/res.txt");
+        else
+            outfile.open(save_dir + "/res.txt", std::ios_base::app);
 
         outfile << _label;
         for (int p = 0; p < _rows * _cols; p++)
@@ -333,23 +335,30 @@ void update_params(Eigen::MatrixXf &W1,
 
 int main(int argc, char *argv[])
 {
-    if (argc != 5)
-    {
-        std::cout << "Wrong parameters: converter_mnist GENERATIONS MAX_ITEMS SAVE_IMG ALPHA" << std::endl;
-        return EXIT_FAILURE;
-    }
-
     std::srand((unsigned int)time(0));
 
-    int num_generations = atoi(argv[1]);
-    int max_items = atoi(argv[2]);
-    bool save_img = (bool)atoi(argv[3]);
-    float alpha = atof(argv[4]);
+    CSimpleIniA ini;
+    ini.SetUnicode();
 
-    std::string base_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST";
-    std::string save_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST/train";
-    std::string img_path = base_dir + "/train-images.idx3-ubyte";
-    std::string label_path = base_dir + "/train-labels.idx1-ubyte";
+    SI_Error rc = ini.LoadFile("../../config.ini");
+    if (rc < 0)
+    {
+        std::cout << "Error loading config.ini" << std::endl;
+        return EXIT_FAILURE;
+    };
+    SI_ASSERT(rc == SI_OK);
+
+    int num_generations = ini.GetLongValue("MNIST", "GENERATIONS", 5);
+    int max_items = ini.GetLongValue("MNIST", "MAX_ITEMS", 15);
+    int save_img = ini.GetBoolValue("MNIST", "SAVE_IMG", false);
+    float alpha = ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
+
+    std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST");
+    std::string save_dir = base_dir + "/train";
+    std::string img_filename = ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images.idx3-ubyte");
+    std::string img_path = base_dir + "/" + img_filename;
+    std::string label_filename = ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels.idx1-ubyte");
+    std::string label_path = base_dir + "/" + label_filename;
 
     std::vector<MNIST_Image> dataset;
     dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str(), save_img);
