@@ -61,14 +61,18 @@ public:
     void save_as_csv(std::string save_dir)
     {
         std::ofstream outfile;
-        outfile.open(save_dir + "/" + _csv_filename, std::ios_base::app);
+        if (_db_item_id == 0)
+            outfile.open(save_dir + "/" + _csv_filename);
+        else
+            outfile.open(save_dir + "/" + _csv_filename, std::ios_base::app);
 
         outfile << _label;
         for (int p = 0; p < _rows * _cols; p++)
         {
             outfile << ',' << std::to_string((unsigned char)_pixels[p]);
         }
-        outfile << std::endl;
+        outfile << "\n";
+        outfile.close();
     }
 };
 
