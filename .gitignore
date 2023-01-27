@@ -2,5 +2,4 @@ MNIST
 .venv
 .vscode
 build
-eigen3
 config.ini
