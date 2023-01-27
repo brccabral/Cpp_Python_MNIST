@@ -68,6 +68,14 @@ public:
     }
 };
 
+void save_dataset_as_png(std::vector<MNIST_Image> dataset, std::string save_dir)
+{
+    for (MNIST_Image img : dataset)
+    {
+        img.save_as_png(save_dir);
+    }
+};
+
 std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
 {
     outs << m._label;
@@ -104,7 +112,7 @@ uint32_t swap_endian(uint32_t val)
     return (val << 16) | (val >> 16);
 }
 
-std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *label_filename, const int max_items, const char *save_dir, bool save_img)
+std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *label_filename, const int max_items, const char *save_dir)
 {
     std::vector<MNIST_Image> dataset;
 
@@ -176,9 +184,6 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *l
         label_file.read(&label, 1);
 
         MNIST_Image m_image(rows, cols, int(label), pixels, item_id);
-
-        if (save_img)
-            m_image.save_as_png(save_dir);
 
         m_image.save_as_csv(save_dir);
 
@@ -350,7 +355,7 @@ int main(int argc, char *argv[])
 
     int num_generations = ini.GetLongValue("MNIST", "GENERATIONS", 5);
     int max_items = ini.GetLongValue("MNIST", "MAX_ITEMS", 15);
-    int save_img = ini.GetBoolValue("MNIST", "SAVE_IMG", false);
+    bool save_img = ini.GetBoolValue("MNIST", "SAVE_IMG", false);
     float alpha = ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
 
     std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST");
@@ -361,7 +366,12 @@ int main(int argc, char *argv[])
     std::string label_path = base_dir + "/" + label_filename;
 
     std::vector<MNIST_Image> dataset;
-    dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str(), save_img);
+    dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str());
+
+    if (save_img)
+    {
+        save_dataset_as_png(dataset, save_dir);
+    }
 
     Eigen::MatrixXf mat = to_matrix(&dataset);
 

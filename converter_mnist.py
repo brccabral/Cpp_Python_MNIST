@@ -31,8 +31,13 @@ class MNIST_Image:
         outfile.close()
 
 
+def save_dataset_as_png(dataset: list[MNIST_Image], save_dir: str):
+    for img in dataset:
+        img.save_as_png(save_dir)
+
+
 def read_mnist_db(
-    img_path: str, label_path: str, max_items: int, save_dir: str, save_img: bool
+    img_path: str, label_path: str, max_items: int, save_dir: str
 ) -> list[MNIST_Image]:
     dataset: list[MNIST_Image] = []
 
@@ -75,9 +80,6 @@ def read_mnist_db(
         label = ord(label_file.read(1))
 
         m_image = MNIST_Image(rows, cols, label, pixels, item_id)
-
-        if save_img:
-            m_image.save_as_png(save_dir)
 
         m_image.save_as_csv(save_dir)
 
@@ -205,7 +207,11 @@ def main():
     label_filename = ini["MNIST"].get("TRAIN_LABEL_FILE", "train-labels.idx1-ubyte")
     label_path = base_dir + "/" + label_filename
 
-    dataset = read_mnist_db(img_path, label_path, max_items, save_dir, save_img)
+    dataset = read_mnist_db(img_path, label_path, max_items, save_dir)
+
+    if save_img:
+        save_dataset_as_png(dataset, save_dir)
+
     mat = to_numpy(dataset)
 
     X_train = mat[:, 1:]
