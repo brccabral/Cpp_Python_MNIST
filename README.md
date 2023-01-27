@@ -8,7 +8,7 @@ Files are in `idx` format
 
 C++ code needs `Eigen` library as math library (matrices algebra) https://eigen.tuxfamily.org/. I used `Eigen 3.4.0`.  
 
-C++ code needs `OpenCV` libraries to save images on disk https://docs.opencv.org/4.6.0/d7/d9f/tutorial_linux_install.html. I used `OpenCV 4.6.0`.  
+C++ code needs `OpenCV` libraries to save images on disk https://docs.opencv.org/4.6.0/d7/d9f/tutorial_linux_install.html. I used `OpenCV 4.6.0`. There is no need to compile all opencv shared libraries, only `opencv_core`, `opencv_imgcodecs` and `opencv_imgproc` (dependency of _imgcodecs_).  
 
 C++ code needs `SimpleIni` include files to parse and use `config.ini` https://github.com/brofield/simpleini/. I used `SimpleInit 4.19`.
 
