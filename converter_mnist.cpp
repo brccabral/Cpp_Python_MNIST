@@ -31,9 +31,11 @@ public:
     int _label;
     char *_pixels;
     int _db_item_id;
+    std::string _csv_filename;
 
 public:
-    MNIST_Image(uint32_t rows, uint32_t cols, int label, char *pixels, int item_id) : _rows(rows), _cols(cols), _label(label), _db_item_id(item_id)
+    MNIST_Image(uint32_t rows, uint32_t cols, int label, char *pixels, int item_id, std::string csv_filename)
+        : _rows(rows), _cols(cols), _label(label), _db_item_id(item_id), _csv_filename(csv_filename)
     {
         _pixels = new char[rows * cols];
         for (int i = 0; i < rows * cols; i++)
@@ -54,10 +56,7 @@ public:
     void save_as_csv(std::string save_dir)
     {
         std::ofstream outfile;
-        if (_db_item_id == 0)
-            outfile.open(save_dir + "/res.txt");
-        else
-            outfile.open(save_dir + "/res.txt", std::ios_base::app);
+        outfile.open(save_dir + "/" + _csv_filename, std::ios_base::app);
 
         outfile << _label;
         for (int p = 0; p < _rows * _cols; p++)
@@ -73,6 +72,14 @@ void save_dataset_as_png(std::vector<MNIST_Image> dataset, std::string save_dir)
     for (MNIST_Image img : dataset)
     {
         img.save_as_png(save_dir);
+    }
+};
+
+void save_dataset_as_csv(std::vector<MNIST_Image> dataset, std::string save_dir)
+{
+    for (MNIST_Image img : dataset)
+    {
+        img.save_as_csv(save_dir);
     }
 };
 
@@ -112,7 +119,11 @@ uint32_t swap_endian(uint32_t val)
     return (val << 16) | (val >> 16);
 }
 
-std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *label_filename, const int max_items, const char *save_dir)
+std::vector<MNIST_Image> read_mnist_db(const char *image_filename,
+                                       const char *label_filename,
+                                       const int max_items,
+                                       const char *save_dir,
+                                       const std::string csv_filename)
 {
     std::vector<MNIST_Image> dataset;
 
@@ -183,9 +194,7 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename, const char *l
         // read label
         label_file.read(&label, 1);
 
-        MNIST_Image m_image(rows, cols, int(label), pixels, item_id);
-
-        m_image.save_as_csv(save_dir);
+        MNIST_Image m_image(rows, cols, int(label), pixels, item_id, csv_filename);
 
         dataset.push_back(m_image);
     }
@@ -366,12 +375,12 @@ int main(int argc, char *argv[])
     std::string label_path = base_dir + "/" + label_filename;
 
     std::vector<MNIST_Image> dataset;
-    dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str());
+    dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str(), "train.csv");
 
     if (save_img)
-    {
         save_dataset_as_png(dataset, save_dir);
-    }
+
+    save_dataset_as_csv(dataset, save_dir);
 
     Eigen::MatrixXf mat = to_matrix(&dataset);
 

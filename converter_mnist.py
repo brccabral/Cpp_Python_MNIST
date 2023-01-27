@@ -6,13 +6,20 @@ from PIL import Image
 
 class MNIST_Image:
     def __init__(
-        self, rows: int, cols: int, label: int, pixels: list[bytes], item_id: int
+        self,
+        rows: int,
+        cols: int,
+        label: int,
+        pixels: list[bytes],
+        item_id: int,
+        csv_filename: str,
     ):
         self._rows = rows
         self._cols = cols
         self._label = label
         self.pixels = pixels
         self._db_item_id = item_id
+        self._csv_filename = csv_filename
 
     def save_as_png(self, save_dir: str):
         img = Image.frombytes("L", (self._rows, self._cols), self.pixels)
@@ -20,9 +27,9 @@ class MNIST_Image:
 
     def save_as_csv(self, save_dir: str):
         if self._db_item_id == 0:
-            outfile = open(f"{save_dir}/python_csv.txt", "w")
+            outfile = open(f"{save_dir}/{self._csv_filename}", "w")
         else:
-            outfile = open(f"{save_dir}/python_csv.txt", "a")
+            outfile = open(f"{save_dir}/{self._csv_filename}", "a")
 
         outfile.write(str(self._label))
         outfile.write(",")
@@ -36,8 +43,13 @@ def save_dataset_as_png(dataset: list[MNIST_Image], save_dir: str):
         img.save_as_png(save_dir)
 
 
+def save_dataset_as_csv(dataset: list[MNIST_Image], save_dir: str):
+    for img in dataset:
+        img.save_as_csv(save_dir)
+
+
 def read_mnist_db(
-    img_path: str, label_path: str, max_items: int, save_dir: str
+    img_path: str, label_path: str, max_items: int, save_dir: str, csv_filename: str
 ) -> list[MNIST_Image]:
     dataset: list[MNIST_Image] = []
 
@@ -79,7 +91,7 @@ def read_mnist_db(
         pixels = image_file.read(rows * cols)
         label = ord(label_file.read(1))
 
-        m_image = MNIST_Image(rows, cols, label, pixels, item_id)
+        m_image = MNIST_Image(rows, cols, label, pixels, item_id, csv_filename)
 
         m_image.save_as_csv(save_dir)
 
@@ -207,10 +219,12 @@ def main():
     label_filename = ini["MNIST"].get("TRAIN_LABEL_FILE", "train-labels.idx1-ubyte")
     label_path = base_dir + "/" + label_filename
 
-    dataset = read_mnist_db(img_path, label_path, max_items, save_dir)
+    dataset = read_mnist_db(img_path, label_path, max_items, save_dir, "train.csv")
 
     if save_img:
         save_dataset_as_png(dataset, save_dir)
+
+    save_dataset_as_csv(dataset, save_dir)
 
     mat = to_numpy(dataset)
 
