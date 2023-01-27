@@ -14,9 +14,9 @@ C++ code needs `SimpleIni` include files to parse and use `config.ini` https://g
 
 C++ code to read MNIST database was adapted from https://stackoverflow.com/questions/12993941/how-can-i-read-the-mnist-dataset-with-c  
 
-Python code uses `numpy` as math library (matrices algebra) https://numpy.org/. I used `numpy 9.4.0`.  
+Python code uses `numpy` as math library (matrices algebra) https://numpy.org/. I used `numpy 1.24.1`.  
 
-Python code uses `pillow` to save images to disk https://pillow.readthedocs.io/en/stable/. I used `numpy 1.24.1`.  
+Python code uses `pillow` to save images to disk https://pillow.readthedocs.io/en/stable/. I used `pillow 9.4.0`.  
 
 ```
 pip install pillow==9.4.0
