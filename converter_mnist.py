@@ -1,4 +1,4 @@
-import sys
+import configparser
 import time
 import numpy as np
 from PIL import Image
@@ -186,19 +186,24 @@ def get_accuracy(correct_prediction: int, size: int):
     return 1.0 * correct_prediction / size
 
 
-def main(argc: int, argv: list[str]):
+def main():
 
     np.random.seed(int(time.time()))
 
-    num_generations = int(argv[1])
-    max_items = int(argv[2])
-    save_img = int(argv[3])
-    alpha = float(argv[4])
+    ini = configparser.ConfigParser()
+    ini.read("config.ini")
 
-    base_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST"
-    save_dir = "/media/brccabral/Data/CPP_Projects/CPP_Python_MNIST/MNIST/train"
-    img_path = base_dir + "/train-images.idx3-ubyte"
-    label_path = base_dir + "/train-labels.idx1-ubyte"
+    num_generations = int(ini["MNIST"].get("GENERATIONS", 5))
+    max_items = int(ini["MNIST"].get("MAX_ITEMS", 5))
+    save_img = bool(ini["MNIST"].get("SAVE_IMG", 5))
+    alpha = float(ini["MNIST"].get("ALPHA", 5))
+
+    base_dir = ini["MNIST"].get("BASE_DIR", "MNIST")
+    save_dir = base_dir + "/train"
+    img_filename = ini["MNIST"].get("TRAIN_IMAGE_FILE", "train-images.idx3-ubyte")
+    img_path = base_dir + "/" + img_filename
+    label_filename = ini["MNIST"].get("TRAIN_LABEL_FILE", "train-labels.idx1-ubyte")
+    label_path = base_dir + "/" + label_filename
 
     dataset = read_mnist_db(img_path, label_path, max_items, save_dir, save_img)
     mat = to_numpy(dataset)
@@ -235,8 +240,4 @@ def main(argc: int, argv: list[str]):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        print(len(sys.argv))
-        print("Wrong parameters: converter_mnist GENERATIONS MAX_ITEMS SAVE_IMG ALPHA")
-        exit(1)
-    main(len(sys.argv), sys.argv)
+    main()
