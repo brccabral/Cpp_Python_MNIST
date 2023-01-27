@@ -3,6 +3,11 @@ import time
 import numpy as np
 from PIL import Image
 
+TRAIN_IMAGE_MAGIC = 2051
+TRAIN_LABEL_MAGIC = 2049
+TEST_IMAGE_MAGIC = 2051
+TEST_LABEL_MAGIC = 2049
+
 
 class MNIST_Image:
     def __init__(
@@ -49,7 +54,13 @@ def save_dataset_as_csv(dataset: list[MNIST_Image], save_dir: str):
 
 
 def read_mnist_db(
-    img_path: str, label_path: str, max_items: int, save_dir: str, csv_filename: str
+    img_path: str,
+    label_path: str,
+    max_items: int,
+    save_dir: str,
+    csv_filename: str,
+    image_magic: int,
+    label_magic: int,
 ) -> list[MNIST_Image]:
     dataset: list[MNIST_Image] = []
 
@@ -64,7 +75,7 @@ def read_mnist_db(
         return dataset
 
     magic = int.from_bytes(image_file.read(4), "big")
-    if magic != 2051:
+    if magic != image_magic:
         print(f"Incorrect image file magic {magic}")
         return dataset
 
@@ -73,7 +84,7 @@ def read_mnist_db(
     cols = int.from_bytes(image_file.read(4), "big")
 
     magic = int.from_bytes(label_file.read(4), "big")
-    if magic != 2049:
+    if magic != label_magic:
         print(f"Incorrect image file magic {magic}")
         return dataset
 
@@ -219,14 +230,22 @@ def main():
     label_filename = ini["MNIST"].get("TRAIN_LABEL_FILE", "train-labels.idx1-ubyte")
     label_path = base_dir + "/" + label_filename
 
-    dataset = read_mnist_db(img_path, label_path, max_items, save_dir, "train.csv")
+    train_dataset = read_mnist_db(
+        img_path,
+        label_path,
+        max_items,
+        save_dir,
+        "train.csv",
+        TRAIN_IMAGE_MAGIC,
+        TRAIN_LABEL_MAGIC,
+    )
 
     if save_img:
-        save_dataset_as_png(dataset, save_dir)
+        save_dataset_as_png(train_dataset, save_dir)
 
-    save_dataset_as_csv(dataset, save_dir)
+    save_dataset_as_csv(train_dataset, save_dir)
 
-    mat = to_numpy(dataset)
+    mat = to_numpy(train_dataset)
 
     X_train = mat[:, 1:]
     Y_train: np.ndarray = mat[:, 0]
@@ -256,6 +275,36 @@ def main():
             )
     print(
         f"Final\tCorrect {correct_prediction}\tAccuracy: {get_accuracy(get_correct_prediction(get_predictions(A2), Y_train), Y_train.size)}"
+    )
+
+    save_dir = base_dir + "/test"
+    img_filename = ini["MNIST"].get("TEST_IMAGE_FILE", "t10k-images.idx3-ubyte")
+    img_path = base_dir + "/" + img_filename
+    label_filename = ini["MNIST"].get("TEST_LABEL_FILE", "t10k-labels.idx1-ubyte")
+    label_path = base_dir + "/" + label_filename
+
+    test_dataset = read_mnist_db(
+        img_path,
+        label_path,
+        max_items,
+        save_dir,
+        "test.csv",
+        TEST_IMAGE_MAGIC,
+        TEST_LABEL_MAGIC,
+    )
+
+    if save_img:
+        save_dataset_as_png(test_dataset, save_dir)
+
+    save_dataset_as_csv(test_dataset, save_dir)
+
+    Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X)
+
+    predictions = get_predictions(A2)
+    correct_prediction = get_correct_prediction(predictions, Y_train)
+    acc = get_accuracy(correct_prediction, Y_train.size)
+    print(
+        f"Test: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc}"
     )
 
 

@@ -14,6 +14,11 @@
 #define DUMP_VAR(x)
 #endif
 
+#define TRAIN_IMAGE_MAGIC 2051
+#define TRAIN_LABEL_MAGIC 2049
+#define TEST_IMAGE_MAGIC 2051
+#define TEST_LABEL_MAGIC 2049
+
 float get_float_matrix(Eigen::MatrixXf &M, int r, int c)
 {
     return M(r, c);
@@ -98,9 +103,6 @@ Eigen::MatrixXf to_matrix(std::vector<MNIST_Image> *dataset)
     int rows = dataset->size();
     int cols = dataset->at(0)._rows * dataset->at(0)._cols + 1;
 
-    DUMP_VAR(rows);
-    DUMP_VAR(cols);
-
     Eigen::MatrixXf mat(rows, cols);
     for (int i = 0; i < rows; i++)
     {
@@ -123,7 +125,9 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename,
                                        const char *label_filename,
                                        const int max_items,
                                        const char *save_dir,
-                                       const std::string csv_filename)
+                                       const std::string csv_filename,
+                                       int image_magic,
+                                       int label_magic)
 {
     std::vector<MNIST_Image> dataset;
 
@@ -150,7 +154,7 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename,
 
     image_file.read(reinterpret_cast<char *>(&magic), sizeof(magic));
     magic = swap_endian(magic);
-    if (magic != 2051)
+    if (magic != image_magic)
     {
         std::cout << "Incorrect image file magic: " << magic << std::endl;
         return dataset;
@@ -165,7 +169,7 @@ std::vector<MNIST_Image> read_mnist_db(const char *image_filename,
 
     label_file.read(reinterpret_cast<char *>(&magic), sizeof(magic));
     magic = swap_endian(magic);
-    if (magic != 2049)
+    if (magic != label_magic)
     {
         std::cout << "Incorrect image file magic: " << magic << std::endl;
         return dataset;
@@ -374,15 +378,15 @@ int main(int argc, char *argv[])
     std::string label_filename = ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels.idx1-ubyte");
     std::string label_path = base_dir + "/" + label_filename;
 
-    std::vector<MNIST_Image> dataset;
-    dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str(), "train.csv");
+    std::vector<MNIST_Image> train_dataset;
+    train_dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str(), "train.csv", TRAIN_IMAGE_MAGIC, TRAIN_LABEL_MAGIC);
 
     if (save_img)
-        save_dataset_as_png(dataset, save_dir);
+        save_dataset_as_png(train_dataset, save_dir);
 
-    save_dataset_as_csv(dataset, save_dir);
+    save_dataset_as_csv(train_dataset, save_dir);
 
-    Eigen::MatrixXf mat = to_matrix(&dataset);
+    Eigen::MatrixXf mat = to_matrix(&train_dataset);
 
     Eigen::MatrixXf X_train = mat.leftCols(mat.cols() - 1); // n,784 = 28*28
     Eigen::VectorXf Y_train = mat.rightCols(1);             // n,1
@@ -426,7 +430,33 @@ int main(int argc, char *argv[])
     acc = get_accuracy(correct_prediction, Y_train.rows());
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
-    for (auto &d : dataset)
+    save_dir = base_dir + "/test";
+    img_filename = ini.GetValue("MNIST", "TEST_IMAGE_FILE", "t10k-images.idx3-ubyte");
+    img_path = base_dir + "/" + img_filename;
+    label_filename = ini.GetValue("MNIST", "TEST_LABEL_FILE", "t10k-labels.idx1-ubyte");
+    label_path = base_dir + "/" + label_filename;
+
+    std::vector<MNIST_Image> test_dataset;
+    test_dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str(), "test.csv", TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
+
+    if (save_img)
+        save_dataset_as_png(test_dataset, save_dir);
+
+    save_dataset_as_csv(test_dataset, save_dir);
+
+    forward_prop(W1, b1, W2, b2, X, Z1, A1, Z2, A2);
+
+    prediction = get_predictions(A2);
+    correct_prediction = get_correct_prediction(prediction, Y_train);
+    acc = get_accuracy(correct_prediction, Y_train.rows());
+    printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
+
+    for (auto &d : train_dataset)
+    {
+        delete[] d._pixels;
+    }
+
+    for (auto &d : test_dataset)
     {
         delete[] d._pixels;
     }
