@@ -105,12 +105,17 @@ class MNIST_Dataset:
         return np.asarray([img.get_pixels_as_int_list() for img in self._images])
 
 
+class NeuralNet:
+    def __init__(self):
+        pass
+
+
 def init_params(
-    categories: int, num_features: int
+    hidden_layer_size: int, categories: int, num_features: int
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    W1 = np.random.rand(categories, num_features) - 0.5
-    b1 = np.random.rand(categories, 1) - 0.5
-    W2 = np.random.rand(categories, categories) - 0.5
+    W1 = np.random.rand(hidden_layer_size, num_features) - 0.5
+    b1 = np.random.rand(hidden_layer_size, 1) - 0.5
+    W2 = np.random.rand(categories, hidden_layer_size) - 0.5
     b2 = np.random.rand(categories, 1) - 0.5
     return (W1, b1, W2, b2)
 
@@ -206,6 +211,7 @@ def main():
     max_items = int(ini["MNIST"].get("MAX_ITEMS", 5))
     save_img = bool(ini["MNIST"].get("SAVE_IMG", 5))
     alpha = float(ini["MNIST"].get("ALPHA", 5))
+    hidden_layer_size = int(ini["MNIST"].get("HIDDEN_LAYER_SIZE", 10))
 
     base_dir = ini["MNIST"].get("BASE_DIR", "MNIST")
     save_dir = base_dir + "/train"
@@ -238,7 +244,7 @@ def main():
 
     X = X_train.T
 
-    W1, b1, W2, b2 = init_params(categories, X_train.shape[1])
+    W1, b1, W2, b2 = init_params(hidden_layer_size, categories, X_train.shape[1])
     one_hot_Y = one_hot(Y_train)
 
     correct_prediction = 0

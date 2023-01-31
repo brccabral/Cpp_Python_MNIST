@@ -280,7 +280,8 @@ void forward_prop(Eigen::MatrixXf &W1,
     A2 = Softmax(Z2);
 }
 
-void init_params(int categories,
+void init_params(int hidden_layer_size,
+                 int categories,
                  int num_features,
                  Eigen::MatrixXf &W1,
                  Eigen::VectorXf &b1,
@@ -288,11 +289,11 @@ void init_params(int categories,
                  Eigen::VectorXf &b2)
 {
     // Random generates [-1:1]. Numpy is [0:1]
-    W1 = Eigen::MatrixXf::Random(categories, num_features);
+    W1 = Eigen::MatrixXf::Random(hidden_layer_size, num_features);
     W1 = W1.array() / 2.0f;
-    b1 = Eigen::VectorXf::Random(categories);
+    b1 = Eigen::VectorXf::Random(hidden_layer_size);
     b1 = b1.array() / 2.0f;
-    W2 = Eigen::MatrixXf::Random(categories, categories);
+    W2 = Eigen::MatrixXf::Random(categories, hidden_layer_size);
     W2 = W2.array() / 2.0f;
     b2 = Eigen::VectorXf::Random(categories, 1);
     b2 = b2.array() / 2.0f;
@@ -393,6 +394,7 @@ int main(int argc, char *argv[])
     int max_items = ini.GetLongValue("MNIST", "MAX_ITEMS", 15);
     bool save_img = ini.GetBoolValue("MNIST", "SAVE_IMG", false);
     float alpha = ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
+    int hidden_layer_size = ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
 
     std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST");
     std::string save_dir = base_dir + "/train";
@@ -422,7 +424,7 @@ int main(int argc, char *argv[])
     Eigen::MatrixXf W1, W2;
     Eigen::VectorXf b1, b2;
 
-    init_params(categories, X_train.cols(), W1, b1, W2, b2);
+    init_params(hidden_layer_size, categories, X_train.cols(), W1, b1, W2, b2);
     Eigen::MatrixXf one_hot_Y = one_hot_encode(Y_train);
 
     Eigen::MatrixXf Z1, A1, Z2, A2;
