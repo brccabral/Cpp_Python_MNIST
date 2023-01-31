@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <stdexcept>
 #include <opencv2/opencv.hpp>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/unsupported/Eigen/MatrixFunctions>
@@ -28,6 +29,13 @@ float get_float_vector(Eigen::VectorXf &V, int r)
 {
     return V(r);
 }
+
+uint32_t swap_endian(uint32_t val)
+{
+    val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
+    return (val << 16) | (val >> 16);
+}
+
 class MNIST_Image
 {
 public:
@@ -36,11 +44,10 @@ public:
     int _label;
     char *_pixels;
     int _db_item_id;
-    std::string _csv_filename;
 
 public:
-    MNIST_Image(uint32_t rows, uint32_t cols, int label, char *pixels, int item_id, std::string csv_filename)
-        : _rows(rows), _cols(cols), _label(label), _db_item_id(item_id), _csv_filename(csv_filename)
+    MNIST_Image(uint32_t rows, uint32_t cols, int label, char *pixels, int item_id)
+        : _rows(rows), _cols(cols), _label(label), _db_item_id(item_id)
     {
         _pixels = new char[rows * cols];
         for (int i = 0; i < rows * cols; i++)
@@ -58,13 +65,13 @@ public:
         std::string filename = save_dir + "/" + std::to_string(_db_item_id) + "_" + std::to_string(_label) + ".png";
         cv::imwrite(filename, image_tmp);
     }
-    void save_as_csv(std::string save_dir)
+    void save_as_csv(std::string save_filename)
     {
         std::ofstream outfile;
         if (_db_item_id == 0)
-            outfile.open(save_dir + "/" + _csv_filename);
+            outfile.open(save_filename);
         else
-            outfile.open(save_dir + "/" + _csv_filename, std::ios_base::app);
+            outfile.open(save_filename, std::ios_base::app);
 
         outfile << _label;
         for (int p = 0; p < _rows * _cols; p++)
@@ -76,19 +83,142 @@ public:
     }
 };
 
-void save_dataset_as_png(std::vector<MNIST_Image> dataset, std::string save_dir)
+class MNIST_Dataset
 {
-    for (MNIST_Image img : dataset)
-    {
-        img.save_as_png(save_dir);
-    }
-};
+private:
+    std::vector<MNIST_Image> _images;
+    const char *_image_filename;
+    const char *_label_filename;
+    int _image_magic;
+    int _label_magic;
 
-void save_dataset_as_csv(std::vector<MNIST_Image> dataset, std::string save_dir)
-{
-    for (MNIST_Image img : dataset)
+public:
+    MNIST_Dataset(const char *image_filename,
+                  const char *label_filename,
+                  int image_magic,
+                  int label_magic)
+        : _image_filename(image_filename), _label_filename(label_filename), _image_magic(image_magic), _label_magic(label_magic)
     {
-        img.save_as_csv(save_dir);
+    }
+    ~MNIST_Dataset()
+    {
+        for (auto &img : _images)
+        {
+            delete[] img._pixels;
+        }
+    }
+
+    void save_dataset_as_png(std::string save_dir)
+    {
+        for (MNIST_Image img : _images)
+        {
+            img.save_as_png(save_dir);
+        }
+    };
+
+    void save_dataset_as_csv(std::string save_dir)
+    {
+        for (MNIST_Image img : _images)
+        {
+            img.save_as_csv(save_dir);
+        }
+    };
+
+    Eigen::MatrixXf to_matrix()
+    {
+        int rows = _images.size();
+        int cols = _images.at(0)._rows * _images.at(0)._cols + 1;
+
+        Eigen::MatrixXf mat(rows, cols);
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols - 1; j++)
+            {
+                mat(i, j) = (unsigned char)_images.at(i)._pixels[j];
+            }
+            mat(i, cols - 1) = float(_images.at(i)._label);
+        }
+        return mat;
+    }
+
+    void read_mnist_db(const int max_items)
+    {
+        // Open files
+        std::ifstream image_file(_image_filename, std::ios::in | std::ios::binary);
+        if (!image_file.is_open())
+            throw std::invalid_argument("Failed open image file.");
+
+        std::ifstream label_file(_label_filename, std::ios::in | std::ios::binary);
+        if (!label_file.is_open())
+        {
+            image_file.close();
+            throw std::invalid_argument("Failed open label file.");
+        }
+
+        // Read the magic and the meta data
+        uint32_t magic;
+        uint32_t num_items;
+        uint32_t num_labels;
+        uint32_t rows;
+        uint32_t cols;
+
+        image_file.read(reinterpret_cast<char *>(&magic), sizeof(magic));
+        magic = swap_endian(magic);
+        if (magic != _image_magic)
+        {
+            image_file.close();
+            label_file.close();
+            throw std::invalid_argument("Incorrect image file magic " + magic);
+        }
+        image_file.read(reinterpret_cast<char *>(&num_items), sizeof(num_items));
+        num_items = swap_endian(num_items);
+        image_file.read(reinterpret_cast<char *>(&rows), sizeof(rows));
+        rows = swap_endian(rows);
+        image_file.read(reinterpret_cast<char *>(&cols), sizeof(cols));
+        cols = swap_endian(cols);
+
+        label_file.read(reinterpret_cast<char *>(&magic), sizeof(magic));
+        magic = swap_endian(magic);
+        if (magic != _label_magic)
+        {
+            image_file.close();
+            label_file.close();
+            throw std::invalid_argument("Incorrect label file magic " + magic);
+        }
+
+        label_file.read(reinterpret_cast<char *>(&num_labels), sizeof(num_labels));
+        num_labels = swap_endian(num_labels);
+        if (num_items != num_labels)
+        {
+            image_file.close();
+            label_file.close();
+            throw std::invalid_argument("image file nums should equal to label num");
+        }
+
+        int n_items = max_items;
+        if (max_items > num_items)
+        {
+            n_items = num_items;
+        }
+
+        char label;
+        char *pixels = new char[rows * cols];
+
+        for (int item_id = 0; item_id < n_items; ++item_id)
+        {
+            // read image pixel
+            image_file.read(pixels, rows * cols);
+            // read label
+            label_file.read(&label, 1);
+
+            MNIST_Image m_image(rows, cols, int(label), pixels, item_id);
+
+            _images.push_back(m_image);
+        }
+
+        delete[] pixels;
+        image_file.close();
+        label_file.close();
     }
 };
 
@@ -101,117 +231,6 @@ std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
     }
     return outs;
 };
-
-Eigen::MatrixXf to_matrix(std::vector<MNIST_Image> *dataset)
-{
-    int rows = dataset->size();
-    int cols = dataset->at(0)._rows * dataset->at(0)._cols + 1;
-
-    Eigen::MatrixXf mat(rows, cols);
-    for (int i = 0; i < rows; i++)
-    {
-        for (int j = 0; j < cols - 1; j++)
-        {
-            mat(i, j) = (unsigned char)dataset->at(i)._pixels[j];
-        }
-        mat(i, cols - 1) = float(dataset->at(i)._label);
-    }
-    return mat;
-}
-
-uint32_t swap_endian(uint32_t val)
-{
-    val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
-    return (val << 16) | (val >> 16);
-}
-
-std::vector<MNIST_Image> read_mnist_db(const char *image_filename,
-                                       const char *label_filename,
-                                       const int max_items,
-                                       const char *save_dir,
-                                       const std::string csv_filename,
-                                       int image_magic,
-                                       int label_magic)
-{
-    std::vector<MNIST_Image> dataset;
-
-    // Open files
-    std::ifstream image_file(image_filename, std::ios::in | std::ios::binary);
-    if (!image_file.is_open())
-    {
-        std::cout << "Failed open image file. " << std::endl;
-        return dataset;
-    }
-    std::ifstream label_file(label_filename, std::ios::in | std::ios::binary);
-    if (!label_file.is_open())
-    {
-        std::cout << "Failed open label file. " << std::endl;
-        return dataset;
-    }
-
-    // Read the magic and the meta data
-    uint32_t magic;
-    uint32_t num_items;
-    uint32_t num_labels;
-    uint32_t rows;
-    uint32_t cols;
-
-    image_file.read(reinterpret_cast<char *>(&magic), sizeof(magic));
-    magic = swap_endian(magic);
-    if (magic != image_magic)
-    {
-        std::cout << "Incorrect image file magic: " << magic << std::endl;
-        return dataset;
-    }
-
-    image_file.read(reinterpret_cast<char *>(&num_items), sizeof(num_items));
-    num_items = swap_endian(num_items);
-    image_file.read(reinterpret_cast<char *>(&rows), sizeof(rows));
-    rows = swap_endian(rows);
-    image_file.read(reinterpret_cast<char *>(&cols), sizeof(cols));
-    cols = swap_endian(cols);
-
-    label_file.read(reinterpret_cast<char *>(&magic), sizeof(magic));
-    magic = swap_endian(magic);
-    if (magic != label_magic)
-    {
-        std::cout << "Incorrect image file magic: " << magic << std::endl;
-        return dataset;
-    }
-    label_file.read(reinterpret_cast<char *>(&num_labels), sizeof(num_labels));
-    num_labels = swap_endian(num_labels);
-    if (num_items != num_labels)
-    {
-        std::cout << "image file nums should equal to label num" << std::endl;
-        return dataset;
-    }
-
-    int n_items = max_items;
-    if (max_items > num_items)
-    {
-        n_items = num_items;
-    }
-
-    char label;
-    char *pixels = new char[rows * cols];
-
-    for (int item_id = 0; item_id < n_items; ++item_id)
-    {
-        // read image pixel
-        image_file.read(pixels, rows * cols);
-        // read label
-        label_file.read(&label, 1);
-
-        MNIST_Image m_image(rows, cols, int(label), pixels, item_id, csv_filename);
-
-        dataset.push_back(m_image);
-    }
-
-    delete[] pixels;
-    image_file.close();
-    label_file.close();
-    return dataset;
-}
 
 Eigen::MatrixXf ReLU(Eigen::MatrixXf &Z)
 {
@@ -382,15 +401,15 @@ int main(int argc, char *argv[])
     std::string label_filename = ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels.idx1-ubyte");
     std::string label_path = base_dir + "/" + label_filename;
 
-    std::vector<MNIST_Image> train_dataset;
-    train_dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str(), "train.csv", TRAIN_IMAGE_MAGIC, TRAIN_LABEL_MAGIC);
+    MNIST_Dataset train_dataset(img_path.c_str(), label_path.c_str(), TRAIN_IMAGE_MAGIC, TRAIN_LABEL_MAGIC);
+    train_dataset.read_mnist_db(max_items);
 
     if (save_img)
-        save_dataset_as_png(train_dataset, save_dir);
+        train_dataset.save_dataset_as_png(save_dir);
 
-    save_dataset_as_csv(train_dataset, save_dir);
+    train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 
-    Eigen::MatrixXf mat = to_matrix(&train_dataset);
+    Eigen::MatrixXf mat = train_dataset.to_matrix();
 
     Eigen::MatrixXf X_train = mat.leftCols(mat.cols() - 1); // n,784 = 28*28
     Eigen::VectorXf Y_train = mat.rightCols(1);             // n,1
@@ -440,13 +459,13 @@ int main(int argc, char *argv[])
     label_filename = ini.GetValue("MNIST", "TEST_LABEL_FILE", "t10k-labels.idx1-ubyte");
     label_path = base_dir + "/" + label_filename;
 
-    std::vector<MNIST_Image> test_dataset;
-    test_dataset = read_mnist_db(img_path.c_str(), label_path.c_str(), max_items, save_dir.c_str(), "test.csv", TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
+    MNIST_Dataset test_dataset(img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
+    test_dataset.read_mnist_db(max_items);
 
     if (save_img)
-        save_dataset_as_png(test_dataset, save_dir);
+        test_dataset.save_dataset_as_png(save_dir);
 
-    save_dataset_as_csv(test_dataset, save_dir);
+    test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
 
     forward_prop(W1, b1, W2, b2, X, Z1, A1, Z2, A2);
 
@@ -454,14 +473,4 @@ int main(int argc, char *argv[])
     correct_prediction = get_correct_prediction(prediction, Y_train);
     acc = get_accuracy(correct_prediction, Y_train.rows());
     printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
-
-    for (auto &d : train_dataset)
-    {
-        delete[] d._pixels;
-    }
-
-    for (auto &d : test_dataset)
-    {
-        delete[] d._pixels;
-    }
 }
