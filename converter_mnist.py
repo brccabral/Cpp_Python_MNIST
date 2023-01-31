@@ -17,108 +17,92 @@ class MNIST_Image:
         label: int,
         pixels: list[bytes],
         item_id: int,
-        csv_filename: str,
     ):
         self._rows = rows
         self._cols = cols
         self._label = label
-        self.pixels = pixels
+        self._pixels = pixels
         self._db_item_id = item_id
-        self._csv_filename = csv_filename
 
     def save_as_png(self, save_dir: str):
-        img = Image.frombytes("L", (self._rows, self._cols), self.pixels)
+        img = Image.frombytes("L", (self._rows, self._cols), self._pixels)
         img.save(f"{save_dir}/{self._db_item_id}_{self._label}.png")
 
-    def save_as_csv(self, save_dir: str):
+    def save_as_csv(self, save_filename):
         if self._db_item_id == 0:
-            outfile = open(f"{save_dir}/{self._csv_filename}", "w")
+            outfile = open(f"{save_filename}", "w")
         else:
-            outfile = open(f"{save_dir}/{self._csv_filename}", "a")
+            outfile = open(f"{save_filename}", "a")
 
         outfile.write(str(self._label))
         outfile.write(",")
-        outfile.write(",".join(list(map(str, self.pixels))))
+        outfile.write(",".join(list(map(str, self._pixels))))
         outfile.write("\n")
         outfile.close()
 
-
-def save_dataset_as_png(dataset: list[MNIST_Image], save_dir: str):
-    for img in dataset:
-        img.save_as_png(save_dir)
+    def get_pixels_as_int_list(self) -> list[float]:
+        return [self._label] + list(map(float, self._pixels))
 
 
-def save_dataset_as_csv(dataset: list[MNIST_Image], save_dir: str):
-    for img in dataset:
-        img.save_as_csv(save_dir)
+class MNIST_Dataset:
+    def __init__(self, image_filename, label_filename, image_magic, label_magic):
+        self._images: list[MNIST_Image] = []
+        self._image_filename = image_filename
+        self._label_filename = label_filename
+        self._image_magic = image_magic
+        self._label_magic = label_magic
 
+    def save_dataset_as_png(self, save_dir: str):
+        for img in self._images:
+            img.save_as_png(save_dir)
 
-def read_mnist_db(
-    img_path: str,
-    label_path: str,
-    max_items: int,
-    save_dir: str,
-    csv_filename: str,
-    image_magic: int,
-    label_magic: int,
-) -> list[MNIST_Image]:
-    dataset: list[MNIST_Image] = []
+    def save_dataset_as_csv(self, save_dir: str):
+        for img in self._images:
+            img.save_as_csv(save_dir)
 
-    image_file = open(img_path, "rb")
-    if not image_file:
-        print("Failed open image file")
-        return dataset
+    def read_mnist_db(self, max_items: int) -> list[MNIST_Image]:
+        image_file = open(self._image_filename, "rb")
+        if not image_file:
+            raise Exception("Failed open image file")
 
-    label_file = open(label_path, "rb")
-    if not label_file:
-        print("Failed open label file")
-        return dataset
+        label_file = open(self._label_filename, "rb")
+        if not label_file:
+            raise Exception("Failed open label file")
 
-    magic = int.from_bytes(image_file.read(4), "big")
-    if magic != image_magic:
-        print(f"Incorrect image file magic {magic}")
-        return dataset
+        magic = int.from_bytes(image_file.read(4), "big")
+        if magic != self._image_magic:
+            raise Exception(f"Incorrect image file magic {magic}")
 
-    num_items = int.from_bytes(image_file.read(4), "big")
-    rows = int.from_bytes(image_file.read(4), "big")
-    cols = int.from_bytes(image_file.read(4), "big")
+        num_items = int.from_bytes(image_file.read(4), "big")
+        rows = int.from_bytes(image_file.read(4), "big")
+        cols = int.from_bytes(image_file.read(4), "big")
 
-    magic = int.from_bytes(label_file.read(4), "big")
-    if magic != label_magic:
-        print(f"Incorrect image file magic {magic}")
-        return dataset
+        magic = int.from_bytes(label_file.read(4), "big")
+        if magic != self._label_magic:
+            raise Exception(f"Incorrect image file magic {magic}")
 
-    num_labels = int.from_bytes(label_file.read(4), "big")
+        num_labels = int.from_bytes(label_file.read(4), "big")
 
-    if num_items != num_labels:
-        print("image file nums should equal to label num")
-        return dataset
+        if num_items != num_labels:
+            raise Exception("image file nums should equal to label num")
 
-    n_items = max_items
-    if max_items > num_items:
-        n_items = num_items
+        n_items = max_items
+        if max_items > num_items:
+            n_items = num_items
 
-    for item_id in range(n_items):
-        pixels = image_file.read(rows * cols)
-        label = ord(label_file.read(1))
+        for item_id in range(n_items):
+            pixels = image_file.read(rows * cols)
+            label = ord(label_file.read(1))
 
-        m_image = MNIST_Image(rows, cols, label, pixels, item_id, csv_filename)
+            m_image = MNIST_Image(rows, cols, label, pixels, item_id)
 
-        m_image.save_as_csv(save_dir)
+            self._images.append(m_image)
 
-        dataset.append(m_image)
+        image_file.close()
+        label_file.close()
 
-    image_file.close()
-    label_file.close()
-    return dataset
-
-
-def get_pixels_as_int_list(image: MNIST_Image) -> list[float]:
-    return [image._label] + list(map(float, image.pixels))
-
-
-def to_numpy(dataset: list[MNIST_Image]) -> np.ndarray:
-    return np.asarray(list(map(get_pixels_as_int_list, dataset)))
+    def to_numpy(self) -> np.ndarray:
+        return np.asarray([img.get_pixels_as_int_list() for img in self._images])
 
 
 def init_params(
@@ -230,22 +214,20 @@ def main():
     label_filename = ini["MNIST"].get("TRAIN_LABEL_FILE", "train-labels.idx1-ubyte")
     label_path = base_dir + "/" + label_filename
 
-    train_dataset = read_mnist_db(
+    train_dataset = MNIST_Dataset(
         img_path,
         label_path,
-        max_items,
-        save_dir,
-        "train.csv",
         TRAIN_IMAGE_MAGIC,
         TRAIN_LABEL_MAGIC,
     )
+    train_dataset.read_mnist_db(max_items)
 
     if save_img:
-        save_dataset_as_png(train_dataset, save_dir)
+        train_dataset.save_dataset_as_png(save_dir)
 
-    save_dataset_as_csv(train_dataset, save_dir)
+    train_dataset.save_dataset_as_csv(save_dir + "/train.csv")
 
-    mat = to_numpy(train_dataset)
+    mat = train_dataset.to_numpy()
 
     X_train = mat[:, 1:]
     Y_train: np.ndarray = mat[:, 0]
@@ -283,29 +265,24 @@ def main():
     label_filename = ini["MNIST"].get("TEST_LABEL_FILE", "t10k-labels.idx1-ubyte")
     label_path = base_dir + "/" + label_filename
 
-    test_dataset = read_mnist_db(
+    test_dataset = MNIST_Dataset(
         img_path,
         label_path,
-        max_items,
-        save_dir,
-        "test.csv",
         TEST_IMAGE_MAGIC,
         TEST_LABEL_MAGIC,
     )
 
     if save_img:
-        save_dataset_as_png(test_dataset, save_dir)
+        test_dataset.save_dataset_as_png(save_dir)
 
-    save_dataset_as_csv(test_dataset, save_dir)
+    test_dataset.save_dataset_as_csv(save_dir + "/test.csv")
 
     Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X)
 
     predictions = get_predictions(A2)
     correct_prediction = get_correct_prediction(predictions, Y_train)
     acc = get_accuracy(correct_prediction, Y_train.size)
-    print(
-        f"Test: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc}"
-    )
+    print(f"Test: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc}")
 
 
 if __name__ == "__main__":
