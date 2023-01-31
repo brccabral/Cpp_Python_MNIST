@@ -106,98 +106,72 @@ class MNIST_Dataset:
 
 
 class NeuralNet:
-    def __init__(self):
-        pass
+    def __init__(self, hidden_layer_size: int, categories: int, num_features: int):
+        self.W1 = np.random.rand(hidden_layer_size, num_features) - 0.5
+        self.b1 = np.random.rand(hidden_layer_size, 1) - 0.5
+        self.W2 = np.random.rand(categories, hidden_layer_size) - 0.5
+        self.b2 = np.random.rand(categories, 1) - 0.5
 
+    @staticmethod
+    def ReLU(Z: np.ndarray) -> np.ndarray:
+        return np.maximum(Z, 0)
 
-def init_params(
-    hidden_layer_size: int, categories: int, num_features: int
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    W1 = np.random.rand(hidden_layer_size, num_features) - 0.5
-    b1 = np.random.rand(hidden_layer_size, 1) - 0.5
-    W2 = np.random.rand(categories, hidden_layer_size) - 0.5
-    b2 = np.random.rand(categories, 1) - 0.5
-    return (W1, b1, W2, b2)
+    @staticmethod
+    def softmax(Z: np.array) -> np.array:
+        return np.exp(Z) / sum(np.exp(Z))
 
+    def forward_prop(self, X: np.ndarray) -> np.ndarray:
+        self.Z1: np.ndarray = (
+            self.W1.dot(X) + self.b1
+        )  # W1 10,784 ||| X 784,60000 ||| W.X 10,60000
+        self.A1: np.ndarray = NeuralNet.ReLU(self.Z1)
+        self.Z2: np.ndarray = self.W2.dot(self.A1) + self.b2
+        self.A2: np.ndarray = NeuralNet.softmax(self.Z2)
+        return self.A2
 
-def ReLU(Z: np.ndarray) -> np.ndarray:
-    return np.maximum(Z, 0)
+    @staticmethod
+    def one_hot(Y: np.ndarray) -> np.ndarray:
+        one_hot_Y = np.zeros((Y.size, Y.max() + 1))  # create matrix with correct size
+        # np.arange(Y.size) - will return a list from 0 to Y.size
+        # Y - will contain the column index to set the value of 1
+        one_hot_Y[np.arange(Y.size), Y] = 1
+        return one_hot_Y.T  # transpose
 
+    @staticmethod
+    def deriv_ReLU(Z: np.ndarray) -> np.ndarray:
+        return Z > 0
 
-def softmax(Z: np.array) -> np.array:
-    return np.exp(Z) / sum(np.exp(Z))
+    def back_prop(
+        self,
+        X: np.ndarray,
+        Y: np.ndarray,
+        one_hot_Y: np.ndarray,
+        alpha: float,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        m = Y.size
+        dZ2 = self.A2 - one_hot_Y
+        dW2 = 1 / m * dZ2.dot(self.A1.T)
+        db2 = 1 / m * np.sum(dZ2)
+        dZ1: np.ndarray = self.W2.T.dot(dZ2) * NeuralNet.deriv_ReLU(self.Z1)
+        dW1 = 1 / m * dZ1.dot(X.T)
+        db1 = 1 / m * np.sum(dZ1)
 
+        self.W1 = self.W1 - alpha * dW1
+        self.b1 = self.b1 - alpha * db1
+        self.W2 = self.W2 - alpha * dW2
+        self.b2 = self.b2 - alpha * db2
 
-def forward_prop(
-    W1: np.ndarray, b1: np.ndarray, W2: np.ndarray, b2: np.ndarray, X: np.ndarray
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    Z1: np.ndarray = W1.dot(X) + b1  # W1 10,784 ||| X 784,60000 ||| W.X 10,60000
-    A1: np.ndarray = ReLU(Z1)
-    Z2: np.ndarray = W2.dot(A1) + b2
-    A2: np.ndarray = softmax(Z2)
-    return Z1, A1, Z2, A2
+    @staticmethod
+    def get_predictions(A2: np.ndarray) -> np.ndarray:
+        return np.argmax(A2, 0)
 
+    @staticmethod
+    def get_correct_prediction(predictions: np.ndarray, Y: np.ndarray) -> float:
+        return np.sum(predictions == Y)
 
-def one_hot(Y: np.ndarray) -> np.ndarray:
-    one_hot_Y = np.zeros((Y.size, Y.max() + 1))  # create matrix with correct size
-    # np.arange(Y.size) - will return a list from 0 to Y.size
-    # Y - will contain the column index to set the value of 1
-    one_hot_Y[np.arange(Y.size), Y] = 1
-    return one_hot_Y.T  # transpose
-
-
-def deriv_ReLU(Z: np.ndarray) -> np.ndarray:
-    return Z > 0
-
-
-def back_prop(
-    Z1: np.ndarray,
-    A1: np.ndarray,
-    Z2: np.ndarray,
-    A2: np.ndarray,
-    W2: np.ndarray,
-    X: np.ndarray,
-    Y: np.ndarray,
-    one_hot_Y: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    m = Y.size
-    dZ2 = A2 - one_hot_Y
-    dW2 = 1 / m * dZ2.dot(A1.T)
-    db2 = 1 / m * np.sum(dZ2)
-    dZ1: np.ndarray = W2.T.dot(dZ2) * deriv_ReLU(Z1)
-    dW1 = 1 / m * dZ1.dot(X.T)
-    db1 = 1 / m * np.sum(dZ1)
-    return dW1, db1, dW2, db2
-
-
-def update_params(
-    W1: np.ndarray,
-    b1: np.ndarray,
-    W2: np.ndarray,
-    b2: np.ndarray,
-    dW1: np.ndarray,
-    db1: np.ndarray,
-    dW2: np.ndarray,
-    db2: np.ndarray,
-    alpha: float,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    W1 = W1 - alpha * dW1
-    b1 = b1 - alpha * db1
-    W2 = W2 - alpha * dW2
-    b2 = b2 - alpha * db2
-    return W1, b1, W2, b2
-
-
-def get_predictions(A2: np.ndarray) -> np.ndarray:
-    return np.argmax(A2, 0)
-
-
-def get_correct_prediction(predictions: np.ndarray, Y: np.ndarray) -> float:
-    return np.sum(predictions == Y)
-
-
-def get_accuracy(correct_prediction: int, size: int):
-    return 1.0 * correct_prediction / size
+    @staticmethod
+    def get_accuracy(correct_prediction: int, size: int):
+        return 1.0 * correct_prediction / size
 
 
 def main():
@@ -244,26 +218,26 @@ def main():
 
     X_train_T = X_train.T
 
-    W1, b1, W2, b2 = init_params(hidden_layer_size, categories, X_train.shape[1])
-    one_hot_Y = one_hot(Y_train)
+    neural_net = NeuralNet(hidden_layer_size, categories, X_train.shape[1])
+    one_hot_Y = NeuralNet.one_hot(Y_train)
 
     correct_prediction = 0
     acc = 0.0
 
     for generation in range(num_generations):
-        Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X_train_T)
-        dW1, db1, dW2, db2 = back_prop(Z1, A1, Z2, A2, W2, X_train_T, Y_train, one_hot_Y)
-        W1, b1, W2, b2 = update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha)
+        output = neural_net.forward_prop(X_train_T)
 
         if generation % 50 == 0:
-            predictions = get_predictions(A2)
-            correct_prediction = get_correct_prediction(predictions, Y_train)
-            acc = get_accuracy(correct_prediction, Y_train.size)
+            predictions = NeuralNet.get_predictions(output)
+            correct_prediction = NeuralNet.get_correct_prediction(predictions, Y_train)
+            acc = NeuralNet.get_accuracy(correct_prediction, Y_train.size)
             print(
                 f"Generation: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc}"
             )
+
+        neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha)
     print(
-        f"Final\tCorrect {correct_prediction}\tAccuracy: {get_accuracy(get_correct_prediction(get_predictions(A2), Y_train), Y_train.size)}"
+        f"Final\tCorrect {correct_prediction}\tAccuracy: {NeuralNet.get_accuracy(NeuralNet.get_correct_prediction(NeuralNet.get_predictions(output), Y_train), Y_train.size)}"
     )
 
     save_dir = base_dir + "/test"
@@ -293,11 +267,11 @@ def main():
 
     X_test_T = X_test.T
 
-    Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X_test_T)
+    output = neural_net.forward_prop(X_test_T)
 
-    predictions = get_predictions(A2)
-    correct_prediction = get_correct_prediction(predictions, Y_test)
-    acc = get_accuracy(correct_prediction, Y_test.size)
+    predictions = NeuralNet.get_predictions(output)
+    correct_prediction = NeuralNet.get_correct_prediction(predictions, Y_test)
+    acc = NeuralNet.get_accuracy(correct_prediction, Y_test.size)
     print(f"Test: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc}")
 
 
