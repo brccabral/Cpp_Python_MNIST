@@ -233,16 +233,16 @@ def main():
 
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv")
 
-    mat = train_dataset.to_numpy()
+    train_mat = train_dataset.to_numpy()
 
-    X_train = mat[:, 1:]
-    Y_train: np.ndarray = mat[:, 0]
+    X_train = train_mat[:, 1:]
+    Y_train: np.ndarray = train_mat[:, 0]
     X_train /= 255.0
     Y_train = Y_train.astype(int)
 
     categories = np.max(Y_train) + 1
 
-    X = X_train.T
+    X_train_T = X_train.T
 
     W1, b1, W2, b2 = init_params(hidden_layer_size, categories, X_train.shape[1])
     one_hot_Y = one_hot(Y_train)
@@ -251,9 +251,10 @@ def main():
     acc = 0.0
 
     for generation in range(num_generations):
-        Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X)
-        dW1, db1, dW2, db2 = back_prop(Z1, A1, Z2, A2, W2, X, Y_train, one_hot_Y)
+        Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X_train_T)
+        dW1, db1, dW2, db2 = back_prop(Z1, A1, Z2, A2, W2, X_train_T, Y_train, one_hot_Y)
         W1, b1, W2, b2 = update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha)
+
         if generation % 50 == 0:
             predictions = get_predictions(A2)
             correct_prediction = get_correct_prediction(predictions, Y_train)
@@ -277,17 +278,26 @@ def main():
         TEST_IMAGE_MAGIC,
         TEST_LABEL_MAGIC,
     )
+    test_dataset.read_mnist_db(max_items)
 
     if save_img:
         test_dataset.save_dataset_as_png(save_dir)
 
     test_dataset.save_dataset_as_csv(save_dir + "/test.csv")
 
-    Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X)
+    test_mat = test_dataset.to_numpy()
+    X_test = test_mat[:, 1:]
+    Y_test: np.ndarray = test_mat[:, 0]
+    X_test /= 255.0
+    Y_test = Y_test.astype(int)
+
+    X_test_T = X_test.T
+
+    Z1, A1, Z2, A2 = forward_prop(W1, b1, W2, b2, X_test_T)
 
     predictions = get_predictions(A2)
-    correct_prediction = get_correct_prediction(predictions, Y_train)
-    acc = get_accuracy(correct_prediction, Y_train.size)
+    correct_prediction = get_correct_prediction(predictions, Y_test)
+    acc = get_accuracy(correct_prediction, Y_test.size)
     print(f"Test: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc}")
 
 

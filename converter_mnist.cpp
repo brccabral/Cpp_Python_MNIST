@@ -411,15 +411,15 @@ int main(int argc, char *argv[])
 
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 
-    Eigen::MatrixXf mat = train_dataset.to_matrix();
+    Eigen::MatrixXf train_mat = train_dataset.to_matrix();
 
-    Eigen::MatrixXf X_train = mat.leftCols(mat.cols() - 1); // n,784 = 28*28
-    Eigen::VectorXf Y_train = mat.rightCols(1);             // n,1
+    Eigen::MatrixXf X_train = train_mat.leftCols(train_mat.cols() - 1); // n,784 = 28*28
+    Eigen::VectorXf Y_train = train_mat.rightCols(1);             // n,1
     X_train = X_train / 255.0;
 
     int categories = Y_train.maxCoeff() + 1;
 
-    Eigen::MatrixXf X = X_train.transpose();
+    Eigen::MatrixXf X_train_T = X_train.transpose();
 
     Eigen::MatrixXf W1, W2;
     Eigen::VectorXf b1, b2;
@@ -436,10 +436,8 @@ int main(int argc, char *argv[])
 
     for (int generation = 0; generation < num_generations; generation++)
     {
-        forward_prop(W1, b1, W2, b2, X, Z1, A1, Z2, A2);
-
-        back_prop(Z1, A1, Z2, A2, W2, X, Y_train, dW1, db1, dW2, db2, one_hot_Y);
-
+        forward_prop(W1, b1, W2, b2, X_train_T, Z1, A1, Z2, A2);
+        back_prop(Z1, A1, Z2, A2, W2, X_train_T, Y_train, dW1, db1, dW2, db2, one_hot_Y);
         update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha);
 
         if (generation % 50 == 0)
@@ -469,10 +467,18 @@ int main(int argc, char *argv[])
 
     test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
 
-    forward_prop(W1, b1, W2, b2, X, Z1, A1, Z2, A2);
+    Eigen::MatrixXf test_mat = test_dataset.to_matrix();
+
+    Eigen::MatrixXf X_test = test_mat.leftCols(test_mat.cols() - 1); // n,784 = 28*28
+    Eigen::VectorXf Y_test = test_mat.rightCols(1);             // n,1
+    X_test = X_test / 255.0;
+
+    Eigen::MatrixXf X_test_T = X_test.transpose();
+
+    forward_prop(W1, b1, W2, b2, X_test_T, Z1, A1, Z2, A2);
 
     prediction = get_predictions(A2);
-    correct_prediction = get_correct_prediction(prediction, Y_train);
-    acc = get_accuracy(correct_prediction, Y_train.rows());
+    correct_prediction = get_correct_prediction(prediction, Y_test);
+    acc = get_accuracy(correct_prediction, Y_test.rows());
     printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 }
