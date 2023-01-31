@@ -232,148 +232,143 @@ std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
     return outs;
 };
 
-Eigen::MatrixXf ReLU(Eigen::MatrixXf &Z)
+class NeuralNet
 {
-    return Z.cwiseMax(0);
-}
+private:
+    // layers
+    Eigen::MatrixXf W1;
+    Eigen::VectorXf b1;
+    Eigen::MatrixXf W2;
+    Eigen::VectorXf b2;
 
-Eigen::MatrixXf deriv_ReLU(Eigen::MatrixXf &Z)
-{
-    Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> b2 = (Z.array() > 0);
-    return b2.unaryExpr([](const bool x)
-                        { return x ? 1.0f : 0.0f; });
-}
+    // back prop
+    Eigen::MatrixXf Z1;
+    Eigen::MatrixXf A1;
+    Eigen::MatrixXf Z2;
+    Eigen::MatrixXf A2;
 
-Eigen::MatrixXf Softmax(Eigen::MatrixXf &Z)
-{
-    Eigen::MatrixXf e = Z.array().exp();
-    Eigen::MatrixXf s = e.colwise().sum();
-    for (int c = 0; c < e.cols(); c++)
+    // gradients
+    Eigen::MatrixXf dW1;
+    float db1;
+    Eigen::MatrixXf dW2;
+    float db2;
+
+public:
+    NeuralNet(int hidden_layer_size,
+              int categories,
+              int num_features)
     {
-        e.col(c) = e.col(c) / s(c);
+        // Random generates [-1:1]. Numpy is [0:1]
+        W1 = Eigen::MatrixXf::Random(hidden_layer_size, num_features);
+        W1 = W1.array() / 2.0f;
+        b1 = Eigen::VectorXf::Random(hidden_layer_size);
+        b1 = b1.array() / 2.0f;
+        W2 = Eigen::MatrixXf::Random(categories, hidden_layer_size);
+        W2 = W2.array() / 2.0f;
+        b2 = Eigen::VectorXf::Random(categories, 1);
+        b2 = b2.array() / 2.0f;
     }
-    return e;
-}
 
-void forward_prop(Eigen::MatrixXf &W1,
-                  Eigen::VectorXf &b1,
-                  Eigen::MatrixXf &W2,
-                  Eigen::VectorXf &b2,
-                  Eigen::MatrixXf &X,
-                  Eigen::MatrixXf &Z1,
-                  Eigen::MatrixXf &A1,
-                  Eigen::MatrixXf &Z2,
-                  Eigen::MatrixXf &A2)
-{
-    Z1 = W1 * X;
-    for (int c = 0; c < Z1.cols(); c++)
+    static Eigen::MatrixXf ReLU(Eigen::MatrixXf &Z)
     {
-        Z1.col(c) = Z1.col(c) - b1;
+        return Z.cwiseMax(0);
     }
-    A1 = ReLU(Z1);
 
-    Z2 = W2 * A1;
-    for (int c = 0; c < Z2.cols(); c++)
+    static Eigen::MatrixXf Softmax(Eigen::MatrixXf &Z)
     {
-        Z2.col(c) = Z2.col(c) - b2;
+        Eigen::MatrixXf e = Z.array().exp();
+        Eigen::MatrixXf s = e.colwise().sum();
+        for (int c = 0; c < e.cols(); c++)
+        {
+            e.col(c) = e.col(c) / s(c);
+        }
+        return e;
     }
-    A2 = Softmax(Z2);
-}
 
-void init_params(int hidden_layer_size,
-                 int categories,
-                 int num_features,
-                 Eigen::MatrixXf &W1,
-                 Eigen::VectorXf &b1,
-                 Eigen::MatrixXf &W2,
-                 Eigen::VectorXf &b2)
-{
-    // Random generates [-1:1]. Numpy is [0:1]
-    W1 = Eigen::MatrixXf::Random(hidden_layer_size, num_features);
-    W1 = W1.array() / 2.0f;
-    b1 = Eigen::VectorXf::Random(hidden_layer_size);
-    b1 = b1.array() / 2.0f;
-    W2 = Eigen::MatrixXf::Random(categories, hidden_layer_size);
-    W2 = W2.array() / 2.0f;
-    b2 = Eigen::VectorXf::Random(categories, 1);
-    b2 = b2.array() / 2.0f;
-}
-
-Eigen::MatrixXf one_hot_encode(Eigen::VectorXf &Z)
-{
-    Eigen::MatrixXf o = Eigen::MatrixXf::Zero(Z.rows(), Z.maxCoeff() + 1);
-
-    for (int r = 0; r < Z.rows() - 1; r++)
+    Eigen::MatrixXf forward_prop(Eigen::MatrixXf &X)
     {
-        o(r, int(Z(r))) = 1;
+        Z1 = W1 * X;
+        for (int c = 0; c < Z1.cols(); c++)
+        {
+            Z1.col(c) = Z1.col(c) - b1;
+        }
+        A1 = ReLU(Z1);
+
+        Z2 = W2 * A1;
+        for (int c = 0; c < Z2.cols(); c++)
+        {
+            Z2.col(c) = Z2.col(c) - b2;
+        }
+        A2 = Softmax(Z2);
+
+        return A2;
     }
-    return o.transpose();
-}
 
-void back_prop(Eigen::MatrixXf &Z1,
-               Eigen::MatrixXf &A1,
-               Eigen::MatrixXf &Z2,
-               Eigen::MatrixXf &A2,
-               Eigen::MatrixXf &W2,
-               Eigen::MatrixXf &X,
-               Eigen::VectorXf &Y,
-               Eigen::MatrixXf &dW1,
-               float &db1,
-               Eigen::MatrixXf &dW2,
-               float &db2,
-               Eigen::MatrixXf &one_hot_Y)
-{
-    int y_size = Y.rows();
-
-    Eigen::MatrixXf dZ2 = A2 - one_hot_Y;
-    dW2 = dZ2 * A1.transpose() / y_size;
-    db2 = dZ2.sum() / y_size;
-
-    Eigen::MatrixXf dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
-    dW1 = dZ1 * X.transpose() / y_size;
-    db1 = dZ1.sum() / y_size;
-}
-
-Eigen::VectorXf get_predictions(Eigen::MatrixXf &P)
-{
-    Eigen::VectorXf p = Eigen::VectorXf::Zero(P.cols()).array() - 1;
-    Eigen::Index maxIndex;
-    for (int c = 0; c < P.cols(); c++)
+    static Eigen::MatrixXf one_hot_encode(Eigen::VectorXf &Z)
     {
-        P.col(c).maxCoeff(&maxIndex);
-        p(c) = maxIndex;
+        Eigen::MatrixXf o = Eigen::MatrixXf::Zero(Z.rows(), Z.maxCoeff() + 1);
+
+        for (int r = 0; r < Z.rows() - 1; r++)
+        {
+            o(r, int(Z(r))) = 1;
+        }
+        return o.transpose();
     }
-    return p;
-}
 
-int get_correct_prediction(Eigen::VectorXf &p, Eigen::VectorXf &y)
-{
-    Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> e = p.cwiseEqual(y);
-    Eigen::VectorXi e_int = e.unaryExpr([](const bool x)
-                                        { return x ? 1 : 0; });
-    return e_int.sum();
-}
+    static Eigen::MatrixXf deriv_ReLU(Eigen::MatrixXf &Z)
+    {
+        Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> b2 = (Z.array() > 0);
+        return b2.unaryExpr([](const bool x)
+                            { return x ? 1.0f : 0.0f; });
+    }
 
-float get_accuracy(int correct_prediction, int size)
-{
-    return 1.0f * correct_prediction / size;
-}
+    void back_prop(
+        Eigen::MatrixXf &X,
+        Eigen::VectorXf &Y,
+        Eigen::MatrixXf &one_hot_Y,
+        float alpha)
+    {
+        int y_size = Y.rows();
 
-void update_params(Eigen::MatrixXf &W1,
-                   Eigen::VectorXf &b1,
-                   Eigen::MatrixXf &W2,
-                   Eigen::VectorXf &b2,
-                   Eigen::MatrixXf &dW1,
-                   float &db1,
-                   Eigen::MatrixXf &dW2,
-                   float &db2,
-                   float &alpha)
-{
-    W1 = W1 - dW1 * alpha;
-    b1 = b1.array() - db1 * alpha;
-    W2 = W2 - dW2 * alpha;
-    b2 = b2.array() - db2 * alpha;
-}
+        Eigen::MatrixXf dZ2 = A2 - one_hot_Y;
+        dW2 = dZ2 * A1.transpose() / y_size;
+        db2 = dZ2.sum() / y_size;
+
+        Eigen::MatrixXf dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
+        dW1 = dZ1 * X.transpose() / y_size;
+        db1 = dZ1.sum() / y_size;
+
+        W1 = W1 - dW1 * alpha;
+        b1 = b1.array() - db1 * alpha;
+        W2 = W2 - dW2 * alpha;
+        b2 = b2.array() - db2 * alpha;
+    }
+
+    static Eigen::VectorXf get_predictions(Eigen::MatrixXf &P)
+    {
+        Eigen::VectorXf p = Eigen::VectorXf::Zero(P.cols()).array() - 1;
+        Eigen::Index maxIndex;
+        for (int c = 0; c < P.cols(); c++)
+        {
+            P.col(c).maxCoeff(&maxIndex);
+            p(c) = maxIndex;
+        }
+        return p;
+    }
+
+    static int get_correct_prediction(Eigen::VectorXf &p, Eigen::VectorXf &y)
+    {
+        Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> e = p.cwiseEqual(y);
+        Eigen::VectorXi e_int = e.unaryExpr([](const bool x)
+                                            { return x ? 1 : 0; });
+        return e_int.sum();
+    }
+
+    static float get_accuracy(int correct_prediction, int size)
+    {
+        return 1.0f * correct_prediction / size;
+    }
+};
 
 int main(int argc, char *argv[])
 {
@@ -414,43 +409,38 @@ int main(int argc, char *argv[])
     Eigen::MatrixXf train_mat = train_dataset.to_matrix();
 
     Eigen::MatrixXf X_train = train_mat.leftCols(train_mat.cols() - 1); // n,784 = 28*28
-    Eigen::VectorXf Y_train = train_mat.rightCols(1);             // n,1
+    Eigen::VectorXf Y_train = train_mat.rightCols(1);                   // n,1
     X_train = X_train / 255.0;
 
     int categories = Y_train.maxCoeff() + 1;
 
     Eigen::MatrixXf X_train_T = X_train.transpose();
 
-    Eigen::MatrixXf W1, W2;
-    Eigen::VectorXf b1, b2;
+    NeuralNet neural_net(hidden_layer_size, categories, X_train.cols());
+    Eigen::MatrixXf one_hot_Y = NeuralNet::one_hot_encode(Y_train);
 
-    init_params(hidden_layer_size, categories, X_train.cols(), W1, b1, W2, b2);
-    Eigen::MatrixXf one_hot_Y = one_hot_encode(Y_train);
-
-    Eigen::MatrixXf Z1, A1, Z2, A2;
-    Eigen::MatrixXf dW1, dW2;
-    float db1, db2;
+    Eigen::MatrixXf output;
 
     int correct_prediction = 0;
     float acc = 0.0f;
 
     for (int generation = 0; generation < num_generations; generation++)
     {
-        forward_prop(W1, b1, W2, b2, X_train_T, Z1, A1, Z2, A2);
-        back_prop(Z1, A1, Z2, A2, W2, X_train_T, Y_train, dW1, db1, dW2, db2, one_hot_Y);
-        update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha);
+        output = neural_net.forward_prop(X_train_T);
 
         if (generation % 50 == 0)
         {
-            Eigen::VectorXf prediction = get_predictions(A2);
-            correct_prediction = get_correct_prediction(prediction, Y_train);
-            acc = get_accuracy(correct_prediction, Y_train.rows());
+            Eigen::VectorXf prediction = NeuralNet::get_predictions(output);
+            correct_prediction = NeuralNet::get_correct_prediction(prediction, Y_train);
+            acc = NeuralNet::get_accuracy(correct_prediction, Y_train.rows());
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
         }
+
+        neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha);
     }
-    Eigen::VectorXf prediction = get_predictions(A2);
-    correct_prediction = get_correct_prediction(prediction, Y_train);
-    acc = get_accuracy(correct_prediction, Y_train.rows());
+    Eigen::VectorXf prediction = NeuralNet::get_predictions(output);
+    correct_prediction = NeuralNet::get_correct_prediction(prediction, Y_train);
+    acc = NeuralNet::get_accuracy(correct_prediction, Y_train.rows());
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
     save_dir = base_dir + "/test";
@@ -470,15 +460,15 @@ int main(int argc, char *argv[])
     Eigen::MatrixXf test_mat = test_dataset.to_matrix();
 
     Eigen::MatrixXf X_test = test_mat.leftCols(test_mat.cols() - 1); // n,784 = 28*28
-    Eigen::VectorXf Y_test = test_mat.rightCols(1);             // n,1
+    Eigen::VectorXf Y_test = test_mat.rightCols(1);                  // n,1
     X_test = X_test / 255.0;
 
     Eigen::MatrixXf X_test_T = X_test.transpose();
 
-    forward_prop(W1, b1, W2, b2, X_test_T, Z1, A1, Z2, A2);
+    output = neural_net.forward_prop(X_test_T);
 
-    prediction = get_predictions(A2);
-    correct_prediction = get_correct_prediction(prediction, Y_test);
-    acc = get_accuracy(correct_prediction, Y_test.rows());
+    prediction = NeuralNet::get_predictions(output);
+    correct_prediction = NeuralNet::get_correct_prediction(prediction, Y_test);
+    acc = NeuralNet::get_accuracy(correct_prediction, Y_test.rows());
     printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 }
