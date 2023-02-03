@@ -3,3 +3,4 @@ MNIST_data
 .vscode
 build
 config.ini
+__pycache__
