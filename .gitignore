@@ -4,11 +4,7 @@ MNIST_data/
 build/
 config.ini
 __pycache__/
-lib*
+libtorch/
+lib*.so*
+lib*.a
 !libopencv*
-ATen/
-c10/
-caffe2/
-pybind11/
-torch/
-sleef.h

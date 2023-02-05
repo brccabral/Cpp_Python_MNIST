@@ -8,6 +8,7 @@ project( MNISTCpp VERSION 0.0.1 )
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS YES CACHE BOOL "Export all symbols")
 option(BUILD_SHARED_LIBS "SHARED or STATIC" OFF)
+set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/libtorch CACHE STRING "Path to libtorch")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -DDEBUG -D_DEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
@@ -18,6 +19,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 include(GNUInstallDirs)
 
 include_directories( ${CMAKE_SOURCE_DIR}/include )
+find_package(Torch REQUIRED)
 link_directories( ${CMAKE_SOURCE_DIR}/lib )
 
 
@@ -49,6 +51,9 @@ add_executable(converter_mnist converter_mnist.cpp )
 target_link_libraries(converter_mnist mnist;neuralnet)
 set_target_properties(converter_mnist PROPERTIES VERSION ${PROJECT_VERSION})
 
+add_executable(mnist_torch mnist_torch.cpp )
+target_link_libraries(mnist_torch "mnist;${TORCH_LIBRARIES}")
+
 install(TARGETS neuralnet mnist
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -72,4 +77,7 @@ message("BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 message("CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 message("CMAKE_INSTALL_LIBDIR: ${CMAKE_INSTALL_LIBDIR}")
 message("CMAKE_INSTALL_INCLUDEDIR: ${CMAKE_INSTALL_INCLUDEDIR}")
+message("CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+message("TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
+message("TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
 message("")

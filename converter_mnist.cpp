@@ -1,5 +1,4 @@
 #include <SimpleIni/SimpleIni.h>
-#include <MNIST/MNIST_Image.hpp>
 #include <MNIST/MNIST_Dataset.hpp>
 #include <NeuralNet/NeuralNet.hpp>
 
