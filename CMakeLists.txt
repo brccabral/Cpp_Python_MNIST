@@ -4,7 +4,7 @@
 # cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 ../..
 
 cmake_minimum_required(VERSION 3.14)
-project( MNISTCpp )
+project( MNISTCpp VERSION 0.0.1 )
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS YES CACHE BOOL "Export all symbols")
 option(BUILD_SHARED_LIBS "SHARED or STATIC" OFF)
@@ -12,8 +12,8 @@ option(BUILD_SHARED_LIBS "SHARED or STATIC" OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -DDEBUG -D_DEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
-project(neuralnet VERSION 0.0.1 DESCRIPTION "custom neural net")
-project(mnist VERSION 0.0.1 DESCRIPTION "mnist parser")
+# project(neuralnet VERSION 0.0.1 DESCRIPTION "custom neural net")
+# project(mnist VERSION 0.0.1 DESCRIPTION "mnist parser")
 
 include(GNUInstallDirs)
 
@@ -58,9 +58,13 @@ install(TARGETS neuralnet mnist
 install(FILES ${CMAKE_BINARY_DIR}/neuralnet.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 install(FILES ${CMAKE_BINARY_DIR}/mnist.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 message("")
 message("Generated with config types: ${CMAKE_CONFIGURATION_TYPES}")
+message("PROJECT_NAME: ${PROJECT_NAME}")
+message("PROJECT_VERSION: ${PROJECT_VERSION}")
 message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message("CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 message("CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
