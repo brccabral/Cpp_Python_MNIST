@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     std::cout << y_tensor.sizes() << std::endl;
     torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
 
-    x_tensor.requires_grad_(true);
+    x_tensor.set_requires_grad(true);
 
     Net net(X_train.cols(), hidden_layer_size, categories);
     net->train();

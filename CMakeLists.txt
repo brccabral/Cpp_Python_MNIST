@@ -54,6 +54,9 @@ target_link_libraries(mnist_torch "mnist;${TORCH_LIBRARIES}")
 add_executable(mnist_example mnist_example.cpp )
 target_link_libraries(mnist_example "mnist;${TORCH_LIBRARIES}")
 
+add_executable(mnist_batches mnist_batches.cpp )
+target_link_libraries(mnist_batches "mnist;${TORCH_LIBRARIES}")
+
 install(TARGETS neuralnet mnist
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
