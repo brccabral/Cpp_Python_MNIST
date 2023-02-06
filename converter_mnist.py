@@ -54,7 +54,7 @@ def main():
 
     X_train_T = X_train.T
 
-    neural_net = NeuralNet(hidden_layer_size, categories, X_train.shape[1])
+    neural_net = NeuralNet(X_train.shape[1], hidden_layer_size, categories)
     one_hot_Y = NeuralNet.one_hot(Y_train)
 
     correct_prediction = 0

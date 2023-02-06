@@ -2,7 +2,7 @@ import numpy as np
 
 
 class NeuralNet:
-    def __init__(self, hidden_layer_size: int, categories: int, num_features: int):
+    def __init__(self, num_features: int, hidden_layer_size: int, categories: int):
         self.W1 = np.random.rand(hidden_layer_size, num_features) - 0.5
         self.b1 = np.random.rand(hidden_layer_size, 1) - 0.5
         self.W2 = np.random.rand(categories, hidden_layer_size) - 0.5

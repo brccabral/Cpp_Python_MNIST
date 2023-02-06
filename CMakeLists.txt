@@ -10,9 +10,6 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS YES CACHE BOOL "Export all symbols")
 option(BUILD_SHARED_LIBS "SHARED or STATIC" OFF)
 set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/libtorch CACHE STRING "Path to libtorch")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -DDEBUG -D_DEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-
 # project(neuralnet VERSION 0.0.1 DESCRIPTION "custom neural net")
 # project(mnist VERSION 0.0.1 DESCRIPTION "mnist parser")
 
@@ -54,6 +51,9 @@ set_target_properties(converter_mnist PROPERTIES VERSION ${PROJECT_VERSION})
 add_executable(mnist_torch mnist_torch.cpp )
 target_link_libraries(mnist_torch "mnist;${TORCH_LIBRARIES}")
 
+add_executable(mnist_example mnist_example.cpp )
+target_link_libraries(mnist_example "mnist;${TORCH_LIBRARIES}")
+
 install(TARGETS neuralnet mnist
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -65,6 +65,9 @@ install(FILES ${CMAKE_BINARY_DIR}/mnist.pc DESTINATION ${CMAKE_INSTALL_DATAROOTD
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG -D_DEBUG" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
 message("")
 message("Generated with config types: ${CMAKE_CONFIGURATION_TYPES}")

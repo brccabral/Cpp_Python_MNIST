@@ -1,9 +1,9 @@
 #include <NeuralNet/NeuralNet.hpp>
 #include <eigen3/unsupported/Eigen/MatrixFunctions>
 
-NeuralNet::NeuralNet(int hidden_layer_size,
-                     int categories,
-                     int num_features)
+NeuralNet::NeuralNet(int num_features,
+                     int hidden_layer_size,
+                     int categories)
 {
     // Random generates [-1:1]. Numpy is [0:1]
     W1 = Eigen::MatrixXf::Random(hidden_layer_size, num_features);
