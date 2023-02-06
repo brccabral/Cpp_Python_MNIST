@@ -1,6 +1,7 @@
 #include <SimpleIni/SimpleIni.h>
 #include <MNIST/MNIST_Dataset.hpp>
 #include <torch/torch.h>
+#include <TorchNet/torchnet.hpp>
 
 #define TRAIN_IMAGE_MAGIC 2051
 #define TRAIN_LABEL_MAGIC 2049
@@ -47,13 +48,101 @@ int main(int argc, char *argv[])
 
     Eigen::MatrixXf X_train = train_mat.leftCols(train_mat.cols() - 1); // n,784 = 28*28
     Eigen::VectorXf Y_train = train_mat.rightCols(1);                   // n,1
+    // Eigen::VectorXi Y_train_int = Y_train.unaryExpr([](const float x)
+    //                                                 { return int(x); });
     X_train = X_train / 255.0;
 
     int categories = Y_train.maxCoeff() + 1;
 
-    Eigen::MatrixXf X_train_T = X_train.transpose();
+    torch::Tensor x_tensor = torch::from_blob(X_train.data(),
+                                              {X_train.rows(), X_train.cols()},
+                                              torch::requires_grad())
+                                 .clone();
+    torch::Tensor y_tensor = torch::from_blob(Y_train.data(),
+                                              Y_train.rows())
+                                 .clone();
+    torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
 
-    torch::Tensor inputElement = torch::from_blob(X_train_T.data(), {X_train_T.rows(), X_train_T.cols()}).clone();
+    Net net = Net(X_train.cols(), hidden_layer_size, categories);\
+
+    torch::optim::SGD optimizer(net->parameters(), /*lr=*/alpha);
+
+    int correct_prediction = 0;
+    float acc = 0.0f;
+    torch::Tensor values, indices, prediction, correct_bool;
+    std::tuple<torch::Tensor, torch::Tensor> tm;
+
+    net->train();
+    for (int generation = 0; generation < num_generations; generation++)
+    {
+        optimizer.zero_grad();
+        torch::Tensor prediction = net->forward(x_tensor);
+        torch::Tensor loss = torch::nll_loss(prediction, y_tensor_i);
+        loss.backward();
+        optimizer.step();
+        
+        if (generation % 50 == 0)
+        {
+            tm = torch::max(prediction, 1);
+            std::tie(values, indices) = tm;
+
+            correct_bool = y_tensor_i == indices;
+            correct_prediction = correct_bool.sum().item<int>();
+            
+            acc = 1.0f * correct_prediction / Y_train.rows();
+            printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
+        }
+    }
+    prediction = net->forward(x_tensor);
+    
+    tm = torch::max(prediction, 1);
+    std::tie(values, indices) = tm;
+
+    correct_bool = y_tensor_i == indices;
+    correct_prediction = correct_bool.sum().item<int>();
+    
+    acc = 1.0f * correct_prediction / Y_train.rows();
+    printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
+
+
+    net->eval();
+    MNIST_Dataset test_dataset(img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
+    test_dataset.read_mnist_db(max_items);
+
+    if (save_img)
+        test_dataset.save_dataset_as_png(save_dir);
+
+    test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
+
+    Eigen::MatrixXf test_mat = test_dataset.to_matrix();
+
+    Eigen::MatrixXf X_test = test_mat.leftCols(test_mat.cols() - 1); // n,784 = 28*28
+    Eigen::VectorXf Y_test = test_mat.rightCols(1);                  // n,1
+    // Eigen::VectorXi Y_test_int = Y_test.unaryExpr([](const float x)
+    //                                                 { return int(x); });
+    X_test = X_test / 255.0;
+
+    x_tensor = torch::from_blob(X_test.data(),
+                                {X_test.rows(), X_test.cols()},
+                                torch::requires_grad())
+                   .clone();
+    y_tensor = torch::from_blob(Y_test.data(),
+                                Y_test.rows())
+                   .clone();
+    y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
+
+    prediction = net->forward(x_tensor);
+    
+    tm = torch::max(prediction, 1);
+    std::tie(values, indices) = tm;
+
+    correct_bool = y_tensor_i == indices;
+    correct_prediction = correct_bool.sum().item<int>();
+    
+    acc = 1.0f * correct_prediction / Y_train.rows();
+    printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
+
+
 
     return EXIT_SUCCESS;
 }

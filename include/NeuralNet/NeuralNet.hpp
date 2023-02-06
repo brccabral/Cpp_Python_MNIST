@@ -24,9 +24,9 @@ private:
     float db2;
 
 public:
-    NeuralNet(int hidden_layer_size,
-              int categories,
-              int num_features);
+    NeuralNet(int num_features,
+              int hidden_layer_size,
+              int categories);
 
     static Eigen::MatrixXf ReLU(Eigen::MatrixXf &Z);
 

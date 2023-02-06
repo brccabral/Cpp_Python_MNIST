@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 
     Eigen::MatrixXf X_train_T = X_train.transpose();
 
-    NeuralNet neural_net(hidden_layer_size, categories, X_train.cols());
+    NeuralNet neural_net(X_train.cols(), hidden_layer_size, categories);
     Eigen::MatrixXf one_hot_Y = NeuralNet::one_hot_encode(Y_train);
 
     Eigen::MatrixXf output;
@@ -80,13 +80,15 @@ int main(int argc, char *argv[])
     int correct_prediction = 0;
     float acc = 0.0f;
 
+    Eigen::VectorXf prediction;
+
     for (int generation = 0; generation < num_generations; generation++)
     {
         output = neural_net.forward_prop(X_train_T);
 
         if (generation % 50 == 0)
         {
-            Eigen::VectorXf prediction = NeuralNet::get_predictions(output);
+            prediction = NeuralNet::get_predictions(output);
             correct_prediction = NeuralNet::get_correct_prediction(prediction, Y_train);
             acc = NeuralNet::get_accuracy(correct_prediction, Y_train.rows());
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
@@ -94,7 +96,7 @@ int main(int argc, char *argv[])
 
         neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha);
     }
-    Eigen::VectorXf prediction = NeuralNet::get_predictions(output);
+    prediction = NeuralNet::get_predictions(output);
     correct_prediction = NeuralNet::get_correct_prediction(prediction, Y_train);
     acc = NeuralNet::get_accuracy(correct_prediction, Y_train.rows());
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
