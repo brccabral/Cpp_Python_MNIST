@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
     Eigen::MatrixXf X_train = train_mat.leftCols(train_mat.cols() - 1); // n,784 = 28*28
     Eigen::VectorXf Y_train = train_mat.rightCols(1);                   // n,1
-    // X_train = X_train / 255.0;
+    X_train = X_train / 255.0;
 
     int categories = Y_train.maxCoeff() + 1;
 
@@ -138,6 +138,7 @@ int main(int argc, char *argv[])
 
     Eigen::MatrixXf X_test = test_mat.leftCols(test_mat.cols() - 1); // n,784 = 28*28
     Eigen::VectorXf Y_test = test_mat.rightCols(1);                  // n,1
+    X_test = X_test / 255.0;
 
     x_tensor = eigenMatrixToTorchTensor(X_test);
     y_tensor = eigenVectorToTorchTensor(Y_test);
