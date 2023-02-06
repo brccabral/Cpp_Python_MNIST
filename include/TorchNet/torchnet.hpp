@@ -21,6 +21,7 @@ struct NetImpl : torch::nn::Module
 
     torch::Tensor forward(torch::Tensor x)
     {
+        // x = torch::relu(fc1->forward(x.reshape({x.size(0), 784})));
         x = torch::relu(fc1->forward(x));
         x = torch::dropout(x, /*p=*/0.5, /*train=*/is_training());
         x = torch::relu(fc2->forward(x));
