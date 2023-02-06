@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
                                  .clone();
     torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
 
-    Net net = Net(X_train.cols(), hidden_layer_size, categories);\
+    Net net(X_train.cols(), hidden_layer_size, categories);
 
     torch::optim::SGD optimizer(net->parameters(), /*lr=*/alpha);
 
