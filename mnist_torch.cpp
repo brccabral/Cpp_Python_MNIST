@@ -8,6 +8,29 @@
 #define TEST_IMAGE_MAGIC 2051
 #define TEST_LABEL_MAGIC 2049
 
+torch::Tensor eigenMatrixToTorchTensor(Eigen::MatrixXf e){
+    auto t = torch::empty({e.cols(),e.rows()});
+    float *data = t.data_ptr<float>();
+
+    Eigen::Map<Eigen::MatrixXf> ef(data, t.size(1), t.size(0));
+    ef = e.cast<float>();
+    t.requires_grad_(true);
+    return t.transpose(0,1);
+}
+
+torch::Tensor eigenVectorToTorchTensor(Eigen::VectorXf e){
+    auto t = torch::rand({e.rows()});
+    float *data = t.data_ptr<float>();
+
+    Eigen::Map<Eigen::VectorXf> ef(data, t.size(0), 1);
+    ef = e.cast<float>();
+
+    t.requires_grad_(true);
+    return t;
+}
+
+
+
 int main(int argc, char *argv[])
 {
     std::srand((unsigned int)time(0));
@@ -67,19 +90,22 @@ int main(int argc, char *argv[])
     //                                           Y_train.rows(), at::kLong)
     //                              .clone();
     
-    torch::Tensor x_tensor = torch::zeros({X_train.rows(), X_train.cols()});
-    torch::Tensor y_tensor = torch::zeros(Y_train.rows());
+    // torch::Tensor x_tensor = torch::empty({X_train.rows(), X_train.cols()});
+    // torch::Tensor y_tensor = torch::empty(Y_train.rows());
 
-    for(int r = 0 ; r < X_train.rows(); r++){
-        for(int c = 0 ; c < X_train.cols(); c++){
-            x_tensor.index_put_({r, c}, X_train(r, c));
-        }
-        y_tensor.index_put_({r}, Y_train(r));
+    // for(int r = 0 ; r < X_train.rows(); r++){
+    //     for(int c = 0 ; c < X_train.cols(); c++){
+    //         x_tensor.index_put_({r, c}, X_train(r, c));
+    //     }
+    //     y_tensor.index_put_({r}, Y_train(r));
 
-        if (r % 1000 == 0)
-            std::cout << "Row " << r << std::endl;
-    }
-    torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
+    //     if (r % 1000 == 0)
+    //         std::cout << "Row " << r << std::endl;
+    // }
+    // torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
+
+    torch::Tensor x_tensor = eigenMatrixToTorchTensor(X_train);
+    torch::Tensor y_tensor = eigenVectorToTorchTensor(Y_train);
 
     std::cout << x_tensor.sizes() << std::endl;
     std::cout << x_tensor.index({0}) << std::endl;
