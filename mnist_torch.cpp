@@ -14,7 +14,6 @@ torch::Tensor eigenMatrixToTorchTensor(Eigen::MatrixXf e){
 
     Eigen::Map<Eigen::MatrixXf> ef(data, t.size(1), t.size(0));
     ef = e.cast<float>();
-    t.requires_grad_(true);
     return t.transpose(0,1);
 }
 
@@ -24,8 +23,6 @@ torch::Tensor eigenVectorToTorchTensor(Eigen::VectorXf e){
 
     Eigen::Map<Eigen::VectorXf> ef(data, t.size(0), 1);
     ef = e.cast<float>();
-
-    t.requires_grad_(true);
     return t;
 }
 
@@ -102,15 +99,17 @@ int main(int argc, char *argv[])
     //     if (r % 1000 == 0)
     //         std::cout << "Row " << r << std::endl;
     // }
-    // torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
 
     torch::Tensor x_tensor = eigenMatrixToTorchTensor(X_train);
     torch::Tensor y_tensor = eigenVectorToTorchTensor(Y_train);
 
     std::cout << x_tensor.sizes() << std::endl;
-    std::cout << x_tensor.index({0}) << std::endl;
+    // std::cout << x_tensor.index({0}) << std::endl;
     std::cout << y_tensor.sizes() << std::endl;
-    std::cout << y_tensor.index({0}) << std::endl;
+    // std::cout << y_tensor.index({0}) << std::endl;
+    torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
+
+    x_tensor.requires_grad_(true);
 
     Net net(X_train.cols(), hidden_layer_size, categories);
     net->train();
@@ -125,7 +124,7 @@ int main(int argc, char *argv[])
     {
         optimizer.zero_grad();
         torch::Tensor prediction = net->forward(x_tensor);
-        torch::Tensor loss = torch::nll_loss(prediction, y_tensor);
+        torch::Tensor loss = torch::nll_loss(prediction, y_tensor_i);
         loss.backward();
         optimizer.step();
         
@@ -134,7 +133,7 @@ int main(int argc, char *argv[])
             tm = torch::max(prediction, 1);
             std::tie(values, indices) = tm;
 
-            correct_bool = y_tensor == indices;
+            correct_bool = y_tensor_i == indices;
             correct_prediction = correct_bool.sum().item<int>();
             
             acc = 1.0f * correct_prediction / Y_train.rows();
@@ -153,21 +152,21 @@ int main(int argc, char *argv[])
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
 
-    // net->eval();
-    // MNIST_Dataset test_dataset(img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
-    // test_dataset.read_mnist_db(max_items);
+    net->eval();
+    MNIST_Dataset test_dataset(img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
+    test_dataset.read_mnist_db(max_items);
 
-    // if (save_img)
-    //     test_dataset.save_dataset_as_png(save_dir);
+    if (save_img)
+        test_dataset.save_dataset_as_png(save_dir);
 
-    // test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
+    test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
 
-    // Eigen::MatrixXf test_mat = test_dataset.to_matrix();
+    Eigen::MatrixXf test_mat = test_dataset.to_matrix();
 
-    // Eigen::MatrixXf X_test = test_mat.leftCols(test_mat.cols() - 1); // n,784 = 28*28
-    // Eigen::VectorXf Y_test = test_mat.rightCols(1);                  // n,1
-    // // Eigen::VectorXi Y_test_int = Y_test.unaryExpr([](const float x)
-    // //                                                 { return int(x); });
+    Eigen::MatrixXf X_test = test_mat.leftCols(test_mat.cols() - 1); // n,784 = 28*28
+    Eigen::VectorXf Y_test = test_mat.rightCols(1);                  // n,1
+    // Eigen::VectorXi Y_test_int = Y_test.unaryExpr([](const float x)
+    //                                                 { return int(x); });
     // X_test = X_test / 255.0;
 
     // x_tensor = torch::from_blob(X_test.data(),
@@ -177,20 +176,21 @@ int main(int argc, char *argv[])
     // y_tensor = torch::from_blob(Y_test.data(),
     //                             Y_test.rows())
     //                .clone();
-    // y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
 
-    // prediction = net->forward(x_tensor);
+    x_tensor = eigenMatrixToTorchTensor(X_test);
+    y_tensor = eigenVectorToTorchTensor(Y_test);
+    y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
+
+    prediction = net->forward(x_tensor);
     
-    // tm = torch::max(prediction, 1);
-    // std::tie(values, indices) = tm;
+    tm = torch::max(prediction, 1);
+    std::tie(values, indices) = tm;
 
-    // correct_bool = y_tensor_i == indices;
-    // correct_prediction = correct_bool.sum().item<int>();
+    correct_bool = y_tensor_i == indices;
+    correct_prediction = correct_bool.sum().item<int>();
     
-    // acc = 1.0f * correct_prediction / Y_train.rows();
-    // printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
-
-
+    acc = 1.0f * correct_prediction / Y_train.rows();
+    printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
     return EXIT_SUCCESS;
 }
