@@ -27,10 +27,36 @@ struct Net : torch::nn::Module
     torch::nn::Linear fc1{nullptr}, fc2{nullptr}, fc3{nullptr};
 };
 
+// Define a new Module.
+struct Net2 : torch::nn::Module
+{
+    Net2()
+    {
+        // Construct and register two Linear submodules.
+        fc1 = register_module("fc1", torch::nn::Linear(784, 10));
+        fc3 = register_module("fc3", torch::nn::Linear(10, 10));
+    }
+
+    // Implement the Net's algorithm.
+    torch::Tensor forward(torch::Tensor x)
+    {
+        // Use one of many tensor manipulation functions.
+        x = torch::relu(fc1->forward(x.reshape({x.size(0), 784})));
+        x = torch::log_softmax(fc3->forward(x), /*dim=*/1);
+        return x;
+    }
+
+    // Use one of many "standard library" modules.
+    torch::nn::Linear fc1{nullptr}, fc2{nullptr}, fc3{nullptr};
+};
+
 int main()
 {
     // Create a new Net.
-    auto net = std::make_shared<Net>();
+    // auto net = std::make_shared<Net>();
+    // torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.01);
+    auto net = std::make_shared<Net2>();
+    torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.1);
 
     int batch_size = 64;
     // Create a multi-threaded data loader for the MNIST dataset.
@@ -39,7 +65,6 @@ int main()
         /*batch_size=*/batch_size);
 
     // Instantiate an SGD optimization algorithm to update our Net's parameters.
-    torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.01);
 
     std::tuple<torch::Tensor, torch::Tensor> tm;
     torch::Tensor prediction, values, indices, correct_bool;
