@@ -2,7 +2,7 @@
 
 This project aims to demonstrate a simple Neural Network using only math libraries (`numpy` for Python and `Eigen` for C++). It is not intent to use in production code.  
 
-Download MNIST database from http://yann.lecun.com/exdb/mnist/  
+Download MNIST database from http://yann.lecun.com/exdb/mnist/ (**`HTTP`** only, in Firefox need to tweak `https` settings)  
 Files: train images, train labels, test images, test labels  
 Files are in `idx` format  
 

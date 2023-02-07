@@ -61,7 +61,7 @@ int main()
     int batch_size = 64;
     // Create a multi-threaded data loader for the MNIST dataset.
     auto data_loader = torch::data::make_data_loader(
-        torch::data::datasets::MNIST("../../MNIST_data").map(torch::data::transforms::Stack<>()),
+        torch::data::datasets::MNIST("../../MNIST_data/MNIST/raw").map(torch::data::transforms::Stack<>()),
         /*batch_size=*/batch_size);
 
     // Instantiate an SGD optimization algorithm to update our Net's parameters.
@@ -106,7 +106,7 @@ int main()
         }
     }
 
-    auto test_dataset = torch::data::datasets::MNIST("../../MNIST_data", torch::data::datasets::MNIST::Mode::kTest);
+    auto test_dataset = torch::data::datasets::MNIST("../../MNIST_data/MNIST/raw", torch::data::datasets::MNIST::Mode::kTest);
     c10::optional<size_t> test_size = test_dataset.size();
     int size = int(test_size.value());
     std::cout << size << std::endl;

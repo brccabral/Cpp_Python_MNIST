@@ -8,6 +8,7 @@
 #define TEST_IMAGE_MAGIC 2051
 #define TEST_LABEL_MAGIC 2049
 
+// https://discuss.pytorch.org/t/data-transfer-between-libtorch-c-and-eigen/54156/6
 torch::Tensor eigenMatrixToTorchTensor(Eigen::MatrixXf e)
 {
     auto t = torch::empty({e.cols(), e.rows()});
@@ -48,12 +49,12 @@ int main(int argc, char *argv[])
     bool save_img = ini.GetBoolValue("MNIST", "SAVE_IMG", false);
     float alpha = ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
     int hidden_layer_size = ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
-
     std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST");
+
     std::string save_dir = base_dir + "/train";
-    std::string img_filename = ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images.idx3-ubyte");
+    std::string img_filename = ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images-idx3-ubyte");
     std::string img_path = base_dir + "/" + img_filename;
-    std::string label_filename = ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels.idx1-ubyte");
+    std::string label_filename = ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels-idx1-ubyte");
     std::string label_path = base_dir + "/" + label_filename;
 
     std::cout << "Reading dataset file" << std::endl;
@@ -125,6 +126,12 @@ int main(int argc, char *argv[])
     acc = 1.0f * correct_prediction / Y_train.rows();
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
+    save_dir = base_dir + "/test";
+    img_filename = ini.GetValue("MNIST", "TEST_IMAGE_FILE", "t10k-images-idx3-ubyte");
+    img_path = base_dir + "/" + img_filename;
+    label_filename = ini.GetValue("MNIST", "TEST_LABEL_FILE", "t10k-labels-idx1-ubyte");
+    label_path = base_dir + "/" + label_filename;
+
     net->eval();
     MNIST_Dataset test_dataset(img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
     test_dataset.read_mnist_db(max_items);
@@ -152,7 +159,7 @@ int main(int argc, char *argv[])
     correct_bool = y_tensor_i == indices;
     correct_prediction = correct_bool.sum().item<int>();
 
-    acc = 1.0f * correct_prediction / Y_train.rows();
+    acc = 1.0f * correct_prediction / Y_test.rows();
     printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
     return EXIT_SUCCESS;

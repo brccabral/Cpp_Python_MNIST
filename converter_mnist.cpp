@@ -49,9 +49,9 @@ int main(int argc, char *argv[])
 
     std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST");
     std::string save_dir = base_dir + "/train";
-    std::string img_filename = ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images.idx3-ubyte");
+    std::string img_filename = ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images-idx3-ubyte");
     std::string img_path = base_dir + "/" + img_filename;
-    std::string label_filename = ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels.idx1-ubyte");
+    std::string label_filename = ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels-idx1-ubyte");
     std::string label_path = base_dir + "/" + label_filename;
 
     MNIST_Dataset train_dataset(img_path.c_str(), label_path.c_str(), TRAIN_IMAGE_MAGIC, TRAIN_LABEL_MAGIC);
@@ -102,9 +102,9 @@ int main(int argc, char *argv[])
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
     save_dir = base_dir + "/test";
-    img_filename = ini.GetValue("MNIST", "TEST_IMAGE_FILE", "t10k-images.idx3-ubyte");
+    img_filename = ini.GetValue("MNIST", "TEST_IMAGE_FILE", "t10k-images-idx3-ubyte");
     img_path = base_dir + "/" + img_filename;
-    label_filename = ini.GetValue("MNIST", "TEST_LABEL_FILE", "t10k-labels.idx1-ubyte");
+    label_filename = ini.GetValue("MNIST", "TEST_LABEL_FILE", "t10k-labels-idx1-ubyte");
     label_path = base_dir + "/" + label_filename;
 
     MNIST_Dataset test_dataset(img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);

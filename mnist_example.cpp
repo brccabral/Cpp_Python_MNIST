@@ -33,7 +33,7 @@ struct Net : torch::nn::Module
 
 int main()
 {
-    auto dataset = torch::data::datasets::MNIST("../../MNIST_data");
+    auto dataset = torch::data::datasets::MNIST("../../MNIST_data/MNIST/raw");
     c10::optional<size_t> train_size = dataset.size();
     int size = int(train_size.value());
     std::cout << size << std::endl;
@@ -90,7 +90,7 @@ int main()
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
 
-    auto test_dataset = torch::data::datasets::MNIST("../../MNIST_data", torch::data::datasets::MNIST::Mode::kTest);
+    auto test_dataset = torch::data::datasets::MNIST("../../MNIST_data/MNIST/raw", torch::data::datasets::MNIST::Mode::kTest);
     c10::optional<size_t> test_size = test_dataset.size();
     size = int(test_size.value());
     std::cout << size << std::endl;
