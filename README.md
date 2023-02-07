@@ -28,3 +28,21 @@ Python code to read MNIST database was adapted from https://jamesmccaffrey.wordp
 Python code for the Neural Network was adapted from a tutorial from Samson Zhang [Building a neural network FROM SCRATCH (no Tensorflow/Pytorch, just numpy & math)](https://www.youtube.com/watch?v=w8yWXqWQYmU)  
 
 C++ code for the Neural Network is an adaptation from myself based on the Python code.  
+
+C++ Libtorch
+- Download `libtorch` : PyTorch C++ library C++ ABI  
+    - I downloaded CPU version 1.13.0, GPU is 1.8 GB compacted. Also, to use GPU need to install CUDA libs 7 GB.  
+    - https://pytorch.org/get-started/locally/  
+    - libtorch-cxx11-abi-shared-with-deps-1.13.0+cpu.zip  
+    - do NOT download the "pre-cxx11 ABI"  
+    - the CXX_FLAGS needs to have "-D_GLIBCXX_USE_CXX11_ABI=1", not 0  
+    - Unzip to this workspace (`./workspace/libtorch`), or somewhere in your path (`/usr/local` or `$HOME/.local`)
+
+Python PyTorch
+
+Install pytorch from offical website https://pytorch.org/get-started/locally/  
+For this project I used `torch==1.13.1`, `torchvision==0.14.1`, `torchaudio==0.13.1`, but this project doesn't have any example of `torchvision` or `torchaudio`.
+
+```shell
+pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
+```
