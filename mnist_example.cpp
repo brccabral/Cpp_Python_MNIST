@@ -34,12 +34,13 @@ struct Net : torch::nn::Module
 int main()
 {
     auto dataset = torch::data::datasets::MNIST("../../MNIST_data");
-    c10::optional<size_t> size = dataset.size();
-    std::cout << int(size.value()) << std::endl;
+    c10::optional<size_t> train_size = dataset.size();
+    int size = int(train_size.value());
+    std::cout << size << std::endl;
 
-    torch::Tensor x_tensor = torch::zeros({60000, 784});
-    torch::Tensor y_tensor = torch::zeros(60000);
-    for(int b = 0 ; b < 60000; b++){
+    torch::Tensor x_tensor = torch::empty({size, 784});
+    torch::Tensor y_tensor = torch::empty(size);
+    for(int b = 0 ; b < size; b++){
         x_tensor.index_put_({b}, dataset.get(b).data.reshape({784}));
         y_tensor.index_put_({b}, dataset.get(b).target);
     }
@@ -61,7 +62,7 @@ int main()
     for (int generation = 0; generation < 500; generation++)
     {
         optimizer.zero_grad();
-        torch::Tensor prediction = net2.forward(x_tensor);
+        prediction = net2.forward(x_tensor);
         torch::Tensor loss = torch::nll_loss(prediction, y_tensor_i);
         loss.backward();
         optimizer.step();
@@ -73,10 +74,50 @@ int main()
             correct_bool = y_tensor_i == indices;
             correct_prediction = correct_bool.sum().item<int>();
 
-            acc = 1.0f * correct_prediction / 60000;
+            acc = 1.0f * correct_prediction / size;
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
         }
     }
+    prediction = net2.forward(x_tensor);
+
+    tm = torch::max(prediction, 1);
+    std::tie(values, indices) = tm;
+
+    correct_bool = y_tensor_i == indices;
+    correct_prediction = correct_bool.sum().item<int>();
+
+    acc = 1.0f * correct_prediction / size;
+    printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
+
+
+    auto test_dataset = torch::data::datasets::MNIST("../../MNIST_data", torch::data::datasets::MNIST::Mode::kTest);
+    c10::optional<size_t> test_size = test_dataset.size();
+    size = int(test_size.value());
+    std::cout << size << std::endl;
+
+    x_tensor = torch::empty({size, 784});
+    y_tensor = torch::empty(size);
+    for(int b = 0 ; b < size; b++){
+        x_tensor.index_put_({b}, test_dataset.get(b).data.reshape({784}));
+        y_tensor.index_put_({b}, test_dataset.get(b).target);
+    }
+    y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
+    x_tensor.set_requires_grad(true);
+
+    std::cout << x_tensor.sizes() << std::endl;
+    std::cout << y_tensor_i.sizes() << std::endl;
+
+    net2.eval();
+    prediction = net2.forward(x_tensor);
+
+    tm = torch::max(prediction, 1);
+    std::tie(values, indices) = tm;
+
+    correct_bool = y_tensor_i == indices;
+    correct_prediction = correct_bool.sum().item<int>();
+
+    acc = 1.0f * correct_prediction / size;
+    printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
     return EXIT_SUCCESS;
 }
