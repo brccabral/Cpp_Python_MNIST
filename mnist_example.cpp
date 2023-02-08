@@ -53,7 +53,7 @@ int main()
     Net net2 = Net();
     net2.train();
 
-    torch::optim::SGD optimizer(net2.parameters(), /*lr=*/0.01);
+    torch::optim::SGD optimizer(net2.parameters(), /*lr=*/0.1);
     std::tuple<torch::Tensor, torch::Tensor> tm;
     torch::Tensor values, indices, prediction, correct_bool;
     int correct_prediction = 0;

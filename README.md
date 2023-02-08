@@ -41,7 +41,7 @@ C++ Libtorch
 Python PyTorch
 
 Install pytorch from offical website https://pytorch.org/get-started/locally/  
-For this project I used `torch==1.13.1`, `torchvision==0.14.1`, `torchaudio==0.13.1`, but this project doesn't have any example of `torchvision` or `torchaudio`.
+For this project I used `torch==1.13.1`, `torchvision==0.14.1`, `torchaudio==0.13.1`, but this project doesn't have any example of `torchaudio`, and `torchvision` is just to load the MNIST dataset.
 
 ```shell
 pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
