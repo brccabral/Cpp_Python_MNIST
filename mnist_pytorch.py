@@ -63,7 +63,7 @@ class NeuralNetwork(nn.Module):
             nn.Linear(64, 32),
             nn.ReLU(),
             nn.Linear(32, 10),
-            nn.LogSoftmax(1)
+            nn.LogSoftmax(1),
         )
 
     def forward(self, x):
@@ -72,12 +72,28 @@ class NeuralNetwork(nn.Module):
         return logits
 
 
-model = NeuralNetwork().to(device)
+class NeuralNetwork2(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.flatten = nn.Flatten()
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(28 * 28, 10), nn.ReLU(), nn.Linear(10, 10), nn.LogSoftmax(1)
+        )
+
+    def forward(self, x):
+        x = self.flatten(x)
+        logits = self.linear_relu_stack(x)
+        return logits
+
+
+# model = NeuralNetwork().to(device)
+model = NeuralNetwork2().to(device)
 print(model)
 
 # %%
 loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+# optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
 
 # %%
