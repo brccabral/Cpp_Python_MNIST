@@ -44,9 +44,9 @@ set_target_properties(mnist PROPERTIES PUBLIC_HEADER "${MNIST_PUBLIC_HEADERS}")
 configure_file(mnist.pc.in mnist.pc @ONLY)
 
 
-add_executable(converter_mnist converter_mnist.cpp )
-target_link_libraries(converter_mnist mnist;neuralnet)
-set_target_properties(converter_mnist PROPERTIES VERSION ${PROJECT_VERSION})
+add_executable(mnist_math mnist_math.cpp )
+target_link_libraries(mnist_math mnist;neuralnet)
+set_target_properties(mnist_math PROPERTIES VERSION ${PROJECT_VERSION})
 
 add_executable(mnist_torch mnist_torch.cpp )
 target_link_libraries(mnist_torch "mnist;${TORCH_LIBRARIES}")
