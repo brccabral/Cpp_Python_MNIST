@@ -1,147 +1,133 @@
-# https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
-# %%
+import configparser
+import time
+import numpy as np
+from MNIST.mnist_dataset import MNIST_Dataset
+from TorchNet.torchnet import Net
 import torch
-from torch import nn
-from torch.utils.data import DataLoader
-from torchvision import datasets
-from torchvision.transforms import ToTensor
 
-# %%
-# Download training data from open datasets.
-training_data = datasets.MNIST(
-    root="MNIST_data",
-    train=True,
-    download=False,
-    transform=ToTensor(),
-)
-
-# %%
-# Download test data from open datasets.
-test_data = datasets.MNIST(
-    root="MNIST_data",
-    train=False,
-    download=False,
-    transform=ToTensor(),
-)
-
-# %%
-batch_size = 64
-
-# Create data loaders.
-train_dataloader = DataLoader(training_data, batch_size=batch_size)
-test_dataloader = DataLoader(test_data, batch_size=batch_size)
-
-# %%
-print(len(train_dataloader))
-print(len(test_dataloader))
-for X, y in train_dataloader:
-    print(f"Shape of X [N, C, H, W]: {X.shape}")
-    print(f"Shape of y: {y.shape} {y.dtype}")
-    break
-
-# %%
-# Get cpu or gpu device for training.
-device = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps"
-    if torch.backends.mps.is_available()
-    else "cpu"
-)
-print(f"Using {device} device")
+TRAIN_IMAGE_MAGIC = 2051
+TRAIN_LABEL_MAGIC = 2049
+TEST_IMAGE_MAGIC = 2051
+TEST_LABEL_MAGIC = 2049
 
 
-# %%
-# Define model
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.flatten = nn.Flatten()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(28 * 28, 64),
-            nn.ReLU(),
-            nn.Linear(64, 32),
-            nn.ReLU(),
-            nn.Linear(32, 10),
-            nn.LogSoftmax(1),
-        )
+def main():
 
-    def forward(self, x):
-        x = self.flatten(x)
-        logits = self.linear_relu_stack(x)
-        return logits
+    np.random.seed(int(time.time()))
 
+    ini = configparser.ConfigParser()
+    ini.read("config.ini")
 
-class NeuralNetwork2(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.flatten = nn.Flatten()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(28 * 28, 10), nn.ReLU(), nn.Linear(10, 10), nn.LogSoftmax(1)
-        )
+    num_generations = int(ini["MNIST"].get("GENERATIONS", 5))
+    max_items = int(ini["MNIST"].get("MAX_ITEMS", 5))
+    save_img = bool(ini["MNIST"].get("SAVE_IMG", 0))
+    alpha = float(ini["MNIST"].get("ALPHA", 0.1))
+    hidden_layer_size = int(ini["MNIST"].get("HIDDEN_LAYER_SIZE", 10))
 
-    def forward(self, x):
-        x = self.flatten(x)
-        logits = self.linear_relu_stack(x)
-        return logits
+    base_dir = ini["MNIST"].get("BASE_DIR", "MNIST")
+    save_dir = base_dir + "/train"
+    img_filename = ini["MNIST"].get("TRAIN_IMAGE_FILE", "train-images.idx3-ubyte")
+    img_path = base_dir + "/" + img_filename
+    label_filename = ini["MNIST"].get("TRAIN_LABEL_FILE", "train-labels.idx1-ubyte")
+    label_path = base_dir + "/" + label_filename
 
+    train_dataset = MNIST_Dataset(
+        img_path,
+        label_path,
+        TRAIN_IMAGE_MAGIC,
+        TRAIN_LABEL_MAGIC,
+    )
+    train_dataset.read_mnist_db(max_items)
 
-# model = NeuralNetwork().to(device)
-model = NeuralNetwork2().to(device)
-print(model)
+    if save_img:
+        train_dataset.save_dataset_as_png(save_dir)
 
-# %%
-loss_fn = nn.CrossEntropyLoss()
-# optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+    train_dataset.save_dataset_as_csv(save_dir + "/train.csv")
 
+    train_mat = train_dataset.to_numpy()
 
-# %%
-def train(dataloader, model, loss_fn, optimizer):
-    size = len(dataloader.dataset)
-    model.train()
-    for batch, (X, y) in enumerate(dataloader):
-        X, y = X.to(device), y.to(device)
+    X_train = train_mat[:, 1:]
+    Y_train: np.ndarray = train_mat[:, 0]
+    X_train /= 255.0
+    Y_train = Y_train.astype(int)
 
-        # Compute prediction error
-        pred = model(X)
-        loss = loss_fn(pred, y)
+    categories = int(np.max(Y_train) + 1)
 
-        # Backpropagation
+    X_tensor_train = torch.tensor(X_train)
+    X_tensor_train.requires_grad_(True)
+    X_tensor_train = X_tensor_train.type(torch.float32)
+
+    Y_tensor_train = torch.tensor(Y_train)
+    # Y_tensor_train = Y_tensor_train.type(torch.long)
+
+    print(f'{X_tensor_train.shape=}')
+    print(f'{Y_tensor_train.shape=}')
+
+    neural_net = Net(X_train.shape[1], hidden_layer_size, categories)
+
+    optimizer = torch.optim.SGD(neural_net.parameters(), lr=alpha)
+    loss_fn = torch.nn.CrossEntropyLoss()
+
+    correct_prediction = 0
+    acc = 0.0
+
+    for generation in range(num_generations):
         optimizer.zero_grad()
+        output = neural_net.forward(X_tensor_train)
+        loss = loss_fn.forward(output, Y_tensor_train)
         loss.backward()
         optimizer.step()
 
-        if batch % 100 == 0:
-            loss, current = loss.item(), batch * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+        if generation % 50 == 0:
+            predictions = output.argmax(1) == Y_tensor_train
+            correct_prediction = predictions.type(torch.int).sum().item()
+            acc = 1.0 * correct_prediction / Y_train.size
+            print(
+                f"Generation: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}"
+            )
 
+    output = neural_net.forward(X_tensor_train)
+    predictions = output.argmax(1) == Y_tensor_train
+    correct_prediction = predictions.type(torch.int).sum().item()
+    acc = 1.0 * correct_prediction / Y_train.size
+    print(f"Final\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}")
 
-# %%
-def test(dataloader, model, loss_fn):
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
-    model.eval()
-    test_loss, correct = 0, 0
-    with torch.no_grad():
-        for X, y in dataloader:
-            X, y = X.to(device), y.to(device)
-            pred = model(X)
-            test_loss += loss_fn(pred, y).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-    test_loss /= num_batches
-    correct /= size
-    print(
-        f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
+    save_dir = base_dir + "/test"
+    img_filename = ini["MNIST"].get("TEST_IMAGE_FILE", "t10k-images.idx3-ubyte")
+    img_path = base_dir + "/" + img_filename
+    label_filename = ini["MNIST"].get("TEST_LABEL_FILE", "t10k-labels.idx1-ubyte")
+    label_path = base_dir + "/" + label_filename
+
+    test_dataset = MNIST_Dataset(
+        img_path,
+        label_path,
+        TEST_IMAGE_MAGIC,
+        TEST_LABEL_MAGIC,
     )
+    test_dataset.read_mnist_db(max_items)
+
+    if save_img:
+        test_dataset.save_dataset_as_png(save_dir)
+
+    test_dataset.save_dataset_as_csv(save_dir + "/test.csv")
+
+    test_mat = test_dataset.to_numpy()
+    X_test = test_mat[:, 1:]
+    Y_test: np.ndarray = test_mat[:, 0]
+    X_test /= 255.0
+    Y_test = Y_test.astype(int)
+
+    X_tensor_test = torch.tensor(X_test)
+    X_tensor_test = X_tensor_test.type(torch.float32)
+    Y_tensor_test = torch.tensor(Y_test)
+    # Y_tensor_train = Y_tensor_train.type(torch.long)
+
+    output = neural_net.forward(X_tensor_test)
+    predictions = output.argmax(1) == Y_tensor_test
+    correct_prediction = predictions.type(torch.int).sum().item()
+    acc = 1.0 * correct_prediction / Y_test.size
+    print(f"Test\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}")
 
 
-# %%
-epochs = 10
-for t in range(epochs):
-    print(f"Epoch {t+1}\n-------------------------------")
-    train(train_dataloader, model, loss_fn, optimizer)
-    test(test_dataloader, model, loss_fn)
-print("Done!")
-
-# %%
+if __name__ == "__main__":
+    main()
