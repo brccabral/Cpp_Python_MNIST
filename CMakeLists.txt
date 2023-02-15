@@ -8,7 +8,6 @@ project( MNISTCpp VERSION 0.0.1 )
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS YES CACHE BOOL "Export all symbols")
 option(BUILD_SHARED_LIBS "SHARED or STATIC" OFF)
-set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/libtorch CACHE STRING "Path to libtorch")
 
 # project(neuralnet VERSION 0.0.1 DESCRIPTION "custom neural net")
 # project(mnist VERSION 0.0.1 DESCRIPTION "mnist parser")
@@ -16,8 +15,10 @@ set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/libtorch CACHE STRING "Path to libto
 include(GNUInstallDirs)
 
 include_directories( ${CMAKE_SOURCE_DIR}/include )
+set(Torch_DIR ${PROJECT_SOURCE_DIR}/libtorch/share/cmake/Torch)
 find_package(Torch REQUIRED)
-link_directories( ${CMAKE_SOURCE_DIR}/lib )
+set(OpenCV_DIR ${PROJECT_SOURCE_DIR}/include/opencv/lib/cmake/opencv4 CACHE STRING "Path to OpenCV")
+find_package(OpenCV REQUIRED)
 
 
 add_library(neuralnet ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
@@ -27,7 +28,6 @@ target_include_directories(neuralnet PRIVATE ${PROJECT_SOURCE_DIR}/src)
 set_target_properties(neuralnet PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(neuralnet PROPERTIES SOVERSION ${PROJECT_VERSION})
 set_target_properties(neuralnet PROPERTIES PUBLIC_HEADER ${NEURALNET_PUBLIC_HEADERS})
-configure_file(neuralnet.pc.in neuralnet.pc @ONLY)
 
 
 add_library(mnist ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Image.cpp)
@@ -37,12 +37,10 @@ set(MNIST_PUBLIC_HEADERS
 )
 target_include_directories(mnist PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(mnist PRIVATE ${PROJECT_SOURCE_DIR}/src)
-target_link_libraries(mnist opencv_core;opencv_imgcodecs)
+target_link_libraries(mnist ${OpenCV_LIBRARIES})
 set_target_properties(mnist PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(mnist PROPERTIES SOVERSION ${PROJECT_VERSION})
 set_target_properties(mnist PROPERTIES PUBLIC_HEADER "${MNIST_PUBLIC_HEADERS}")
-configure_file(mnist.pc.in mnist.pc @ONLY)
-
 
 add_executable(mnist_math mnist_math.cpp )
 target_link_libraries(mnist_math mnist;neuralnet)
@@ -57,14 +55,16 @@ target_link_libraries(mnist_example "mnist;${TORCH_LIBRARIES}")
 add_executable(mnist_batches mnist_batches.cpp )
 target_link_libraries(mnist_batches "mnist;${TORCH_LIBRARIES}")
 
-install(TARGETS neuralnet mnist
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-    )
-install(FILES ${CMAKE_BINARY_DIR}/neuralnet.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
-install(FILES ${CMAKE_BINARY_DIR}/mnist.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+# configure_file(neuralnet.pc.in neuralnet.pc @ONLY)
+# configure_file(mnist.pc.in mnist.pc @ONLY)
+# install(TARGETS neuralnet mnist
+#     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+#     RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+#     )
+# install(FILES ${CMAKE_BINARY_DIR}/neuralnet.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+# install(FILES ${CMAKE_BINARY_DIR}/mnist.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
@@ -76,6 +76,7 @@ message("")
 message("Generated with config types: ${CMAKE_CONFIGURATION_TYPES}")
 message("PROJECT_NAME: ${PROJECT_NAME}")
 message("PROJECT_VERSION: ${PROJECT_VERSION}")
+message("PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
 message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message("CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 message("CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
@@ -86,4 +87,8 @@ message("CMAKE_INSTALL_INCLUDEDIR: ${CMAKE_INSTALL_INCLUDEDIR}")
 message("CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 message("TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
 message("TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
+message("TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
+message("OpenCV_DIR ${OpenCV_DIR}")
+message("OpenCV_LIBRARIES ${OpenCV_LIBRARIES}")
+message("OpenCV_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS}")
 message("")
