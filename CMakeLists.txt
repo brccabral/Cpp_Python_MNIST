@@ -14,10 +14,10 @@ option(BUILD_SHARED_LIBS "SHARED or STATIC" OFF)
 
 include(GNUInstallDirs)
 
-include_directories( ${CMAKE_SOURCE_DIR}/include )
-set(Torch_DIR ${PROJECT_SOURCE_DIR}/libtorch/share/cmake/Torch)
+include_directories( "${CMAKE_SOURCE_DIR}/include;${CMAKE_SOURCE_DIR}/dependencies" )
+set(Torch_DIR ${PROJECT_SOURCE_DIR}/dependencies/libtorch/share/cmake/Torch)
 find_package(Torch REQUIRED)
-set(OpenCV_DIR ${PROJECT_SOURCE_DIR}/include/opencv/lib/cmake/opencv4 CACHE STRING "Path to OpenCV")
+set(OpenCV_DIR ${PROJECT_SOURCE_DIR}/dependencies/opencv/lib/cmake/opencv4)
 find_package(OpenCV REQUIRED)
 
 

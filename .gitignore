@@ -8,3 +8,4 @@ libtorch/
 lib*.so*
 lib*.a
 !libopencv*
+dependencies
