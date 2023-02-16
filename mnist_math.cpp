@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     CSimpleIniA ini;
     ini.SetUnicode();
 
-    SI_Error rc = ini.LoadFile("../../config.ini");
+    SI_Error rc = ini.LoadFile("config.ini");
     if (rc < 0)
     {
         std::cout << "Error loading config.ini" << std::endl;
