@@ -50,7 +50,7 @@ class MNIST_Dataset:
 
         for item_id in range(n_items):
             pixels = image_file.read(rows * cols)
-            label = ord(label_file.read(1))
+            label = int.from_bytes(label_file.read(1), "big")
 
             m_image = MNIST_Image(rows, cols, label, pixels, item_id)
 
