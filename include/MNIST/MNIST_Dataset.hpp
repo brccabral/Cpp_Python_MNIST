@@ -27,4 +27,6 @@ public:
     Eigen::MatrixXf to_matrix();
 
     void read_mnist_db(const int max_items);
+    size_t get_images_length();
+    int get_label_from_index(int index);
 };

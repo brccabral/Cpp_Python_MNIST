@@ -126,3 +126,13 @@ void MNIST_Dataset::read_mnist_db(const int max_items)
     image_file.close();
     label_file.close();
 };
+
+size_t MNIST_Dataset::get_images_length()
+{
+    return _images.size();
+}
+
+int MNIST_Dataset::get_label_from_index(int index)
+{
+    return _images.at(index)._label;
+}
