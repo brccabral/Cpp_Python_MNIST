@@ -68,12 +68,12 @@ def main():
             correct_prediction = NeuralNet.get_correct_prediction(predictions, Y_train)
             acc = NeuralNet.get_accuracy(correct_prediction, Y_train.size)
             print(
-                f"Generation: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc}"
+                f"Generation: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}"
             )
 
         neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha)
     print(
-        f"Final\tCorrect {correct_prediction}\tAccuracy: {NeuralNet.get_accuracy(NeuralNet.get_correct_prediction(NeuralNet.get_predictions(output), Y_train), Y_train.size)}"
+        f"Final\tCorrect {correct_prediction}\tAccuracy: {NeuralNet.get_accuracy(NeuralNet.get_correct_prediction(NeuralNet.get_predictions(output), Y_train), Y_train.size):.4f}"
     )
 
     save_dir = base_dir + "/test"
@@ -108,7 +108,7 @@ def main():
     predictions = NeuralNet.get_predictions(output)
     correct_prediction = NeuralNet.get_correct_prediction(predictions, Y_test)
     acc = NeuralNet.get_accuracy(correct_prediction, Y_test.size)
-    print(f"Test: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc}")
+    print(f"Test: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}")
 
 
 if __name__ == "__main__":
