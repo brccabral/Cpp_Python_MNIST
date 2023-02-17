@@ -32,17 +32,17 @@ void MNIST_Dataset::save_dataset_as_csv(std::string save_dir)
 
 Eigen::MatrixXf MNIST_Dataset::to_matrix()
 {
-    int rows = _images.size();
-    int cols = _images.at(0)._rows * _images.at(0)._cols + 1;
+    int number_images = _images.size();
+    int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
 
-    Eigen::MatrixXf mat(rows, cols);
-    for (int i = 0; i < rows; i++)
+    Eigen::MatrixXf mat(number_images, number_pixels + 1);
+    for (int img = 0; img < number_images; img++)
     {
-        for (int j = 0; j < cols - 1; j++)
+        mat(img, 0) = float(_images.at(img)._label);
+        for (int pix = 0; pix < number_pixels; pix++)
         {
-            mat(i, j) = (unsigned char)_images.at(i)._pixels[j];
+            mat(img, pix + 1) = (unsigned char)_images.at(img)._pixels[pix];
         }
-        mat(i, cols - 1) = float(_images.at(i)._label);
     }
     return mat;
 };

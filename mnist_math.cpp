@@ -64,12 +64,12 @@ int main(int argc, char *argv[])
 
     Eigen::MatrixXf train_mat = train_dataset.to_matrix();
 
-    Eigen::MatrixXf X_train = train_mat.leftCols(train_mat.cols() - 1); // n,784 = 28*28
-    Eigen::VectorXf Y_train = train_mat.rightCols(1);                   // n,1
-    X_train = X_train / 255.0;
-
+    Eigen::VectorXf Y_train = train_mat.leftCols(1);                   // n,0
+    Eigen::MatrixXf X_train = train_mat.rightCols(train_mat.cols() - 1); // n,784 = 28*28
+    
     int categories = Y_train.maxCoeff() + 1;
-
+    
+    X_train = X_train / 255.0;
     Eigen::MatrixXf X_train_T = X_train.transpose();
 
     NeuralNet neural_net(X_train.cols(), hidden_layer_size, categories);
@@ -117,8 +117,8 @@ int main(int argc, char *argv[])
 
     Eigen::MatrixXf test_mat = test_dataset.to_matrix();
 
-    Eigen::MatrixXf X_test = test_mat.leftCols(test_mat.cols() - 1); // n,784 = 28*28
-    Eigen::VectorXf Y_test = test_mat.rightCols(1);                  // n,1
+    Eigen::VectorXf Y_test = test_mat.leftCols(1);                  // n,0
+    Eigen::MatrixXf X_test = test_mat.rightCols(test_mat.cols() - 1); // n,784 = 28*28
     X_test = X_test / 255.0;
 
     Eigen::MatrixXf X_test_T = X_test.transpose();
