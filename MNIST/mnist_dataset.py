@@ -60,4 +60,4 @@ class MNIST_Dataset:
         label_file.close()
 
     def to_numpy(self) -> np.ndarray:
-        return np.asarray([img.get_pixels_as_int_list() for img in self._images])
+        return np.asarray([img.get_pixels_as_float_list() for img in self._images])

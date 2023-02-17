@@ -32,5 +32,5 @@ class MNIST_Image:
         outfile.write("\n")
         outfile.close()
 
-    def get_pixels_as_int_list(self) -> list[float]:
+    def get_pixels_as_float_list(self) -> list[float]:
         return [self._label] + list(map(float, self._pixels))
