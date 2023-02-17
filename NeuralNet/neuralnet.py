@@ -17,9 +17,9 @@ class NeuralNet:
         return np.exp(Z) / sum(np.exp(Z))
 
     def forward_prop(self, X: np.ndarray) -> np.ndarray:
-        self.Z1: np.ndarray = (
-            self.W1.dot(X) + self.b1
-        )  # W1 10,784 ||| X 784,60000 ||| W.X 10,60000
+        self.Z1: np.ndarray = self.W1.dot(X) + self.b1
+        # W1 10,784 ||| X 784,60000 ||| W.X 10,60000
+
         self.A1: np.ndarray = NeuralNet.ReLU(self.Z1)
         self.Z2: np.ndarray = self.W2.dot(self.A1) + self.b2
         self.A2: np.ndarray = NeuralNet.softmax(self.Z2)

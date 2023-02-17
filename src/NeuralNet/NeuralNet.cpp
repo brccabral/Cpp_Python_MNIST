@@ -37,14 +37,14 @@ Eigen::MatrixXf NeuralNet::forward_prop(Eigen::MatrixXf &X)
     Z1 = W1 * X;
     for (int c = 0; c < Z1.cols(); c++)
     {
-        Z1.col(c) = Z1.col(c) - b1;
+        Z1.col(c) = Z1.col(c) + b1;
     }
     A1 = ReLU(Z1);
 
     Z2 = W2 * A1;
     for (int c = 0; c < Z2.cols(); c++)
     {
-        Z2.col(c) = Z2.col(c) - b2;
+        Z2.col(c) = Z2.col(c) + b2;
     }
     A2 = Softmax(Z2);
 
