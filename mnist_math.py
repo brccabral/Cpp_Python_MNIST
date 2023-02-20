@@ -25,9 +25,9 @@ def main():
 
     base_dir = ini["MNIST"].get("BASE_DIR", "MNIST")
     save_dir = base_dir + "/train"
-    img_filename = ini["MNIST"].get("TRAIN_IMAGE_FILE", "train-images.idx3-ubyte")
+    img_filename = ini["MNIST"].get("TRAIN_IMAGE_FILE", "train-images-idx3-ubyte")
     img_path = base_dir + "/" + img_filename
-    label_filename = ini["MNIST"].get("TRAIN_LABEL_FILE", "train-labels.idx1-ubyte")
+    label_filename = ini["MNIST"].get("TRAIN_LABEL_FILE", "train-labels-idx1-ubyte")
     label_path = base_dir + "/" + label_filename
 
     train_dataset = MNIST_Dataset(
@@ -77,9 +77,9 @@ def main():
     )
 
     save_dir = base_dir + "/test"
-    img_filename = ini["MNIST"].get("TEST_IMAGE_FILE", "t10k-images.idx3-ubyte")
+    img_filename = ini["MNIST"].get("TEST_IMAGE_FILE", "t10k-images-idx3-ubyte")
     img_path = base_dir + "/" + img_filename
-    label_filename = ini["MNIST"].get("TEST_LABEL_FILE", "t10k-labels.idx1-ubyte")
+    label_filename = ini["MNIST"].get("TEST_LABEL_FILE", "t10k-labels-idx1-ubyte")
     label_path = base_dir + "/" + label_filename
 
     test_dataset = MNIST_Dataset(
