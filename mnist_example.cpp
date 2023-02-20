@@ -1,3 +1,4 @@
+#include <SimpleIni/SimpleIni.h>
 #include <torch/torch.h>
 #include <iostream>
 
@@ -33,7 +34,22 @@ struct Net : torch::nn::Module
 
 int main()
 {
-    auto dataset = torch::data::datasets::MNIST("../../MNIST_data/MNIST/raw");
+    CSimpleIniA ini;
+    ini.SetUnicode();
+
+    SI_Error rc = ini.LoadFile("config.ini");
+    if (rc < 0)
+    {
+        std::cout << "Error loading config.ini" << std::endl;
+        return EXIT_FAILURE;
+    };
+    SI_ASSERT(rc == SI_OK);
+
+    int num_generations = ini.GetLongValue("MNIST", "GENERATIONS", 5);
+
+    std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
+
+    auto dataset = torch::data::datasets::MNIST(base_dir);
     c10::optional<size_t> train_size = dataset.size();
     int size = int(train_size.value());
     std::cout << size << std::endl;
@@ -59,7 +75,7 @@ int main()
     int correct_prediction = 0;
     float acc = 0.0f;
 
-    for (int generation = 0; generation < 500; generation++)
+    for (int generation = 0; generation < num_generations; generation++)
     {
         optimizer.zero_grad();
         prediction = net2.forward(x_tensor);
@@ -90,7 +106,7 @@ int main()
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
 
-    auto test_dataset = torch::data::datasets::MNIST("../../MNIST_data/MNIST/raw", torch::data::datasets::MNIST::Mode::kTest);
+    auto test_dataset = torch::data::datasets::MNIST(base_dir, torch::data::datasets::MNIST::Mode::kTest);
     c10::optional<size_t> test_size = test_dataset.size();
     size = int(test_size.value());
     std::cout << size << std::endl;

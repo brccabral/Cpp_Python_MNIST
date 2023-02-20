@@ -1,3 +1,4 @@
+#include <SimpleIni/SimpleIni.h>
 #include <torch/torch.h>
 #include <iostream>
 
@@ -52,6 +53,19 @@ struct Net2 : torch::nn::Module
 
 int main()
 {
+    CSimpleIniA ini;
+    ini.SetUnicode();
+
+    SI_Error rc = ini.LoadFile("config.ini");
+    if (rc < 0)
+    {
+        std::cout << "Error loading config.ini" << std::endl;
+        return EXIT_FAILURE;
+    };
+    SI_ASSERT(rc == SI_OK);
+
+    std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
+
     // Create a new Net.
     // auto net = std::make_shared<Net>();
     // torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.01);
@@ -61,7 +75,7 @@ int main()
     int batch_size = 64;
     // Create a multi-threaded data loader for the MNIST dataset.
     auto data_loader = torch::data::make_data_loader(
-        torch::data::datasets::MNIST("../../MNIST_data/MNIST/raw").map(torch::data::transforms::Stack<>()),
+        torch::data::datasets::MNIST(base_dir).map(torch::data::transforms::Stack<>()),
         /*batch_size=*/batch_size);
 
     // Instantiate an SGD optimization algorithm to update our Net's parameters.
@@ -106,7 +120,7 @@ int main()
         }
     }
 
-    auto test_dataset = torch::data::datasets::MNIST("../../MNIST_data/MNIST/raw", torch::data::datasets::MNIST::Mode::kTest);
+    auto test_dataset = torch::data::datasets::MNIST(base_dir, torch::data::datasets::MNIST::Mode::kTest);
     c10::optional<size_t> test_size = test_dataset.size();
     int size = int(test_size.value());
     std::cout << size << std::endl;
