@@ -49,7 +49,8 @@ int main(int argc, char *argv[])
     bool save_img = ini.GetBoolValue("MNIST", "SAVE_IMG", false);
     float alpha = ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
     int hidden_layer_size = ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
-    std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST");
+
+    std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
 
     std::string save_dir = base_dir + "/train";
     std::string img_filename = ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images-idx3-ubyte");
@@ -69,8 +70,8 @@ int main(int argc, char *argv[])
     std::cout << "Converting to matrix" << std::endl;
     Eigen::MatrixXf train_mat = train_dataset.to_matrix();
 
-    Eigen::MatrixXf X_train = train_mat.leftCols(train_mat.cols() - 1); // n,784 = 28*28
-    Eigen::VectorXf Y_train = train_mat.rightCols(1);                   // n,1
+    Eigen::VectorXf Y_train = train_mat.leftCols(1);                   // n,0
+    Eigen::MatrixXf X_train = train_mat.rightCols(train_mat.cols() - 1); // n,784 = 28*28
     X_train = X_train / 255.0;
 
     int categories = Y_train.maxCoeff() + 1;
@@ -81,15 +82,16 @@ int main(int argc, char *argv[])
     torch::Tensor y_tensor = eigenVectorToTorchTensor(Y_train);
 
     std::cout << x_tensor.sizes() << std::endl;
+    // std::cout << x_tensor.index({0, torch::indexing::Slice(0,783)}) << std::endl;
     std::cout << y_tensor.sizes() << std::endl;
     torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
 
     x_tensor.set_requires_grad(true);
 
-    Net net(X_train.cols(), hidden_layer_size, categories);
-    net->train();
+    Net net = Net(X_train.cols(), hidden_layer_size, categories);
+    net.train();
 
-    torch::optim::SGD optimizer(net->parameters(), /*lr=*/alpha);
+    torch::optim::SGD optimizer(net.parameters(), /*lr=*/alpha);
     torch::Tensor values, indices, prediction, correct_bool;
     std::tuple<torch::Tensor, torch::Tensor> tm;
     int correct_prediction = 0;
@@ -98,7 +100,7 @@ int main(int argc, char *argv[])
     for (int generation = 0; generation < num_generations; generation++)
     {
         optimizer.zero_grad();
-        torch::Tensor prediction = net->forward(x_tensor);
+        prediction = net.forward(x_tensor);
         torch::Tensor loss = torch::nll_loss(prediction, y_tensor_i);
         loss.backward();
         optimizer.step();
@@ -115,7 +117,7 @@ int main(int argc, char *argv[])
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
         }
     }
-    prediction = net->forward(x_tensor);
+    prediction = net.forward(x_tensor);
 
     tm = torch::max(prediction, 1);
     std::tie(values, indices) = tm;
@@ -132,7 +134,7 @@ int main(int argc, char *argv[])
     label_filename = ini.GetValue("MNIST", "TEST_LABEL_FILE", "t10k-labels-idx1-ubyte");
     label_path = base_dir + "/" + label_filename;
 
-    net->eval();
+    net.eval();
     MNIST_Dataset test_dataset(img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
     test_dataset.read_mnist_db(max_items);
 
@@ -143,15 +145,15 @@ int main(int argc, char *argv[])
 
     Eigen::MatrixXf test_mat = test_dataset.to_matrix();
 
-    Eigen::MatrixXf X_test = test_mat.leftCols(test_mat.cols() - 1); // n,784 = 28*28
-    Eigen::VectorXf Y_test = test_mat.rightCols(1);                  // n,1
+    Eigen::VectorXf Y_test = test_mat.leftCols(1);                  // n,0
+    Eigen::MatrixXf X_test = test_mat.rightCols(test_mat.cols() - 1); // n,784 = 28*28
     X_test = X_test / 255.0;
 
     x_tensor = eigenMatrixToTorchTensor(X_test);
     y_tensor = eigenVectorToTorchTensor(Y_test);
     y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
 
-    prediction = net->forward(x_tensor);
+    prediction = net.forward(x_tensor);
 
     tm = torch::max(prediction, 1);
     std::tie(values, indices) = tm;

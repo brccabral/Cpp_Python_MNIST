@@ -3,13 +3,13 @@
 #include <torch/torch.h>
 
 // https://pytorch.org/cppdocs/frontend.html#end-to-end-example
-struct NetImpl : torch::nn::Module
+struct Net : torch::nn::Module
 {
     torch::nn::Linear fc1{nullptr}, fc2{nullptr}, out{nullptr};
 
     // create one hidden layer having hidden_layer_size,
     // out has categories size
-    NetImpl(int num_features,
+    Net(int num_features,
             int hidden_layer_size,
             int categories)
     {
@@ -28,5 +28,3 @@ struct NetImpl : torch::nn::Module
         return x;
     }
 };
-
-TORCH_MODULE(Net);
