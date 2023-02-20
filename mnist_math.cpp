@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     float alpha = ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
     int hidden_layer_size = ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
 
-    std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST");
+    std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
     std::string save_dir = base_dir + "/train";
     std::string img_filename = ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images-idx3-ubyte");
     std::string img_path = base_dir + "/" + img_filename;

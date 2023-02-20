@@ -64,9 +64,10 @@ def main():
     print(f'{Y_tensor_train.shape=}')
 
     neural_net = Net(X_train.shape[1], hidden_layer_size, categories)
+    neural_net.train()
 
     optimizer = torch.optim.SGD(neural_net.parameters(), lr=alpha)
-    loss_fn = torch.nn.CrossEntropyLoss()
+    loss_fn = torch.nn.NLLLoss()
 
     correct_prediction = 0
     acc = 0.0

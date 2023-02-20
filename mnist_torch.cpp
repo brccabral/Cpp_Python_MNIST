@@ -92,6 +92,8 @@ int main(int argc, char *argv[])
     net.train();
 
     torch::optim::SGD optimizer(net.parameters(), /*lr=*/alpha);
+    torch::nn::NLLLoss loss_fn;
+
     torch::Tensor values, indices, prediction, correct_bool;
     std::tuple<torch::Tensor, torch::Tensor> tm;
     int correct_prediction = 0;
@@ -101,7 +103,7 @@ int main(int argc, char *argv[])
     {
         optimizer.zero_grad();
         prediction = net.forward(x_tensor);
-        torch::Tensor loss = torch::nll_loss(prediction, y_tensor_i);
+        torch::Tensor loss = loss_fn(prediction, y_tensor_i);
         loss.backward();
         optimizer.step();
 
