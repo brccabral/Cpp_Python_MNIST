@@ -21,7 +21,7 @@ torch::Tensor eigenMatrixToTorchTensor(Eigen::MatrixXf e)
 
 torch::Tensor eigenVectorToTorchTensor(Eigen::VectorXf e)
 {
-    auto t = torch::rand({e.rows()});
+    auto t = torch::empty({e.rows()});
     float *data = t.data_ptr<float>();
 
     Eigen::Map<Eigen::VectorXf> ef(data, t.size(0), 1);
@@ -78,15 +78,15 @@ int main(int argc, char *argv[])
 
     std::cout << "Preparing tensors" << std::endl;
 
-    torch::Tensor x_tensor = eigenMatrixToTorchTensor(X_train);
-    torch::Tensor y_tensor = eigenVectorToTorchTensor(Y_train);
+    torch::Tensor x_tensor_train = eigenMatrixToTorchTensor(X_train);
+    torch::Tensor y_tensor_train = eigenVectorToTorchTensor(Y_train);
 
-    std::cout << x_tensor.sizes() << std::endl;
+    std::cout << x_tensor_train.sizes() << std::endl;
     // std::cout << x_tensor.index({0, torch::indexing::Slice(0,783)}) << std::endl;
-    std::cout << y_tensor.sizes() << std::endl;
-    torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
+    std::cout << y_tensor_train.sizes() << std::endl;
+    torch::Tensor y_tensor_i_train = y_tensor_train.toType(c10::ScalarType::Long);
 
-    x_tensor.set_requires_grad(true);
+    x_tensor_train.set_requires_grad(true);
 
     Net net = Net(X_train.cols(), hidden_layer_size, categories);
     net.train();
@@ -94,38 +94,38 @@ int main(int argc, char *argv[])
     torch::optim::SGD optimizer(net.parameters(), /*lr=*/alpha);
     torch::nn::NLLLoss loss_fn;
 
-    torch::Tensor values, indices, prediction, correct_bool;
-    std::tuple<torch::Tensor, torch::Tensor> tm;
+    torch::Tensor values_train, indices_train, prediction_train, correct_bool_train;
+    std::tuple<torch::Tensor, torch::Tensor> tm_train;
     int correct_prediction = 0;
     float acc = 0.0f;
 
     for (int generation = 0; generation < num_generations; generation++)
     {
         optimizer.zero_grad();
-        prediction = net.forward(x_tensor);
-        torch::Tensor loss = loss_fn(prediction, y_tensor_i);
+        prediction_train = net.forward(x_tensor_train);
+        torch::Tensor loss = loss_fn(prediction_train, y_tensor_i_train);
         loss.backward();
         optimizer.step();
 
         if (generation % 50 == 0)
         {
-            tm = torch::max(prediction, 1);
-            std::tie(values, indices) = tm;
+            tm_train = torch::max(prediction_train, 1);
+            std::tie(values_train, indices_train) = tm_train;
 
-            correct_bool = y_tensor_i == indices;
-            correct_prediction = correct_bool.sum().item<int>();
+            correct_bool_train = y_tensor_i_train == indices_train;
+            correct_prediction = correct_bool_train.sum().item<int>();
 
             acc = 1.0f * correct_prediction / Y_train.rows();
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
         }
     }
-    prediction = net.forward(x_tensor);
+    prediction_train = net.forward(x_tensor_train);
 
-    tm = torch::max(prediction, 1);
-    std::tie(values, indices) = tm;
+    tm_train = torch::max(prediction_train, 1);
+    std::tie(values_train, indices_train) = tm_train;
 
-    correct_bool = y_tensor == indices;
-    correct_prediction = correct_bool.sum().item<int>();
+    correct_bool_train = y_tensor_train == indices_train;
+    correct_prediction = correct_bool_train.sum().item<int>();
 
     acc = 1.0f * correct_prediction / Y_train.rows();
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
@@ -151,17 +151,20 @@ int main(int argc, char *argv[])
     Eigen::MatrixXf X_test = test_mat.rightCols(test_mat.cols() - 1); // n,784 = 28*28
     X_test = X_test / 255.0;
 
-    x_tensor = eigenMatrixToTorchTensor(X_test);
-    y_tensor = eigenVectorToTorchTensor(Y_test);
-    y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
+    torch::Tensor x_tensor_test = eigenMatrixToTorchTensor(X_test);
+    torch::Tensor y_tensor_test = eigenVectorToTorchTensor(Y_test);
+    torch::Tensor y_tensor_i_test = y_tensor_test.toType(c10::ScalarType::Long);
 
-    prediction = net.forward(x_tensor);
+    torch::Tensor values_test, indices_test, prediction_test, correct_bool_test;
+    std::tuple<torch::Tensor, torch::Tensor> tm_test;
 
-    tm = torch::max(prediction, 1);
-    std::tie(values, indices) = tm;
+    prediction_test = net.forward(x_tensor_test);
 
-    correct_bool = y_tensor_i == indices;
-    correct_prediction = correct_bool.sum().item<int>();
+    tm_test = torch::max(prediction_test, 1);
+    std::tie(values_test, indices_test) = tm_test;
+
+    correct_bool_test = y_tensor_i_test == indices_test;
+    correct_prediction = correct_bool_test.sum().item<int>();
 
     acc = 1.0f * correct_prediction / Y_test.rows();
     printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
