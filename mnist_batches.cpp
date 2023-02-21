@@ -78,7 +78,10 @@ int main()
     torch::nn::NLLLoss loss_fn;
 
     // Create a multi-threaded data loader for the MNIST dataset.
-    auto data_loader = torch::data::make_data_loader(
+    auto train_data = torch::data::datasets::MNIST(base_dir);
+    std::cout << train_data.sizes() << std::endl;
+
+    auto train_dataloader = torch::data::make_data_loader(
         torch::data::datasets::MNIST(base_dir).map(torch::data::transforms::Stack<>()),
         batch_size);
 
@@ -92,7 +95,7 @@ int main()
     {
         size_t batch_index = 0;
         // Iterate the data loader to yield batches from the dataset.
-        for (auto &batch : *data_loader)
+        for (auto &batch : *train_dataloader)
         {
             // Reset gradients.
             optimizer.zero_grad();
@@ -147,12 +150,12 @@ int main()
     // prediction = net->forward(x_tensor);
     // correct_bool = y_tensor_i == indices;
 
-    auto data_tester = torch::data::make_data_loader(
+    auto test_dataloader = torch::data::make_data_loader(
         test_dataset.map(torch::data::transforms::Stack<>()),
         batch_size);
 
     correct_prediction = 0;
-    for (auto &batch_test : *data_tester)
+    for (auto &batch_test : *test_dataloader)
     {
         prediction = net_loaded->forward(batch_test.data);
 
