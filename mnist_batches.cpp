@@ -75,7 +75,7 @@ int main()
     // torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.01);
     auto net = std::make_shared<Net2>();
     // Instantiate an SGD optimization algorithm to update our Net's parameters.
-    torch::optim::SGD optimizer(net->parameters(), /*lr=*/);
+    torch::optim::SGD optimizer(net->parameters(), /*lr=*/alpha);
     torch::nn::NLLLoss loss_fn;
 
     // Create a multi-threaded data loader for the MNIST dataset.
