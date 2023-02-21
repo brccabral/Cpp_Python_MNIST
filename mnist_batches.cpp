@@ -80,7 +80,8 @@ int main()
 
     // Create a multi-threaded data loader for the MNIST dataset.
     auto train_data = torch::data::datasets::MNIST(base_dir);
-    std::cout << train_data.sizes() << std::endl;
+    std::cout << train_data.size() << std::endl;
+    std::cout << train_data.images().data().sizes() << std::endl;
 
     int categories = train_data.targets().max().item<int>() + 1;
     auto sample_sizes = train_data.images().index({0}).sizes();
