@@ -64,9 +64,9 @@ int main(int argc, char *argv[])
 
     Eigen::MatrixXf train_mat = train_dataset.to_matrix();
 
-    Eigen::VectorXf Y_train = train_mat.leftCols(1);                   // n,0
-    Eigen::MatrixXf X_train = train_mat.rightCols(train_mat.cols() - 1); // n,784 = 28*28
-    
+    Eigen::VectorXf Y_train = MNIST_Dataset::get_Y(train_mat);
+    Eigen::MatrixXf X_train = MNIST_Dataset::get_X(train_mat);
+
     int categories = Y_train.maxCoeff() + 1;
     
     X_train = X_train / 255.0;
@@ -117,8 +117,8 @@ int main(int argc, char *argv[])
 
     Eigen::MatrixXf test_mat = test_dataset.to_matrix();
 
-    Eigen::VectorXf Y_test = test_mat.leftCols(1);                  // n,0
-    Eigen::MatrixXf X_test = test_mat.rightCols(test_mat.cols() - 1); // n,784 = 28*28
+    Eigen::VectorXf Y_test = MNIST_Dataset::get_Y(test_mat);
+    Eigen::MatrixXf X_test = MNIST_Dataset::get_X(test_mat);
     X_test = X_test / 255.0;
 
     Eigen::MatrixXf X_test_T = X_test.transpose();

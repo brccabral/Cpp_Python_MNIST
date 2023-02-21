@@ -136,3 +136,13 @@ int MNIST_Dataset::get_label_from_index(int index)
 {
     return _images.at(index)._label;
 }
+
+Eigen::MatrixXf MNIST_Dataset::get_X(Eigen::MatrixXf &mat)
+{
+    return mat.rightCols(mat.cols() - 1);
+}
+
+Eigen::VectorXf MNIST_Dataset::get_Y(Eigen::MatrixXf &mat)
+{
+    return mat.leftCols(1);
+}

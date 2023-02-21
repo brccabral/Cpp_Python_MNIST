@@ -25,6 +25,8 @@ public:
     void save_dataset_as_csv(std::string save_dir);
 
     Eigen::MatrixXf to_matrix();
+    static Eigen::MatrixXf get_X(Eigen::MatrixXf &mat);
+    static Eigen::VectorXf get_Y(Eigen::MatrixXf &mat);
 
     void read_mnist_db(const int max_items);
     size_t get_images_length();
