@@ -12,7 +12,6 @@ TEST_LABEL_MAGIC = 2049
 
 
 def main():
-
     np.random.seed(int(time.time()))
 
     ini = configparser.ConfigParser()
@@ -46,8 +45,8 @@ def main():
 
     train_mat = train_dataset.to_numpy()
 
-    X_train = train_mat[:, 1:]
-    Y_train: np.ndarray = train_mat[:, 0]
+    Y_train = MNIST_Dataset.get_Y(train_mat)
+    X_train = MNIST_Dataset.get_X(train_mat)
     X_train /= 255.0
     Y_train = Y_train.astype(int)
 
@@ -60,8 +59,8 @@ def main():
     Y_tensor_train = torch.tensor(Y_train)
     # Y_tensor_train = Y_tensor_train.type(torch.long)
 
-    print(f'{X_tensor_train.shape=}')
-    print(f'{Y_tensor_train.shape=}')
+    print(f"{X_tensor_train.shape=}")
+    print(f"{Y_tensor_train.shape=}")
 
     neural_net = Net(X_train.shape[1], hidden_layer_size, categories)
     neural_net.train()
@@ -113,8 +112,9 @@ def main():
     test_dataset.save_dataset_as_csv(save_dir + "/test.csv")
 
     test_mat = test_dataset.to_numpy()
-    X_test = test_mat[:, 1:]
-    Y_test: np.ndarray = test_mat[:, 0]
+
+    Y_test = MNIST_Dataset.get_Y(test_mat)
+    X_test = MNIST_Dataset.get_X(test_mat)
     X_test /= 255.0
     Y_test = Y_test.astype(int)
 

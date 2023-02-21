@@ -61,3 +61,11 @@ class MNIST_Dataset:
 
     def to_numpy(self) -> np.ndarray:
         return np.asarray([img.get_pixels_as_float_list() for img in self._images])
+
+    @staticmethod
+    def get_X(mat: np.ndarray) -> np.ndarray:
+        return mat[:, 1:]
+
+    @staticmethod
+    def get_Y(mat: np.ndarray) -> np.ndarray:
+        return mat[:, 0]
