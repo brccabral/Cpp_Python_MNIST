@@ -11,7 +11,6 @@ TEST_LABEL_MAGIC = 2049
 
 
 def main():
-
     np.random.seed(int(time.time()))
 
     ini = configparser.ConfigParser()
@@ -96,7 +95,7 @@ def main():
     test_dataset.save_dataset_as_csv(save_dir + "/test.csv")
 
     test_mat = test_dataset.to_numpy()
-    
+
     Y_test = MNIST_Dataset.get_Y(test_mat)
     X_test = MNIST_Dataset.get_X(test_mat)
     X_test /= 255.0
