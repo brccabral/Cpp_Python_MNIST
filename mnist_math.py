@@ -22,7 +22,7 @@ def main():
     alpha = float(ini["MNIST"].get("ALPHA", 5))
     hidden_layer_size = int(ini["MNIST"].get("HIDDEN_LAYER_SIZE", 10))
 
-    base_dir = ini["MNIST"].get("BASE_DIR", "MNIST")
+    base_dir = ini["MNIST"].get("BASE_DIR", "MNIST_data/MNIST/raw")
     save_dir = base_dir + "/train"
     img_filename = ini["MNIST"].get("TRAIN_IMAGE_FILE", "train-images-idx3-ubyte")
     img_path = base_dir + "/" + img_filename

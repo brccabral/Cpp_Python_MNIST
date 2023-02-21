@@ -65,21 +65,22 @@ int main()
     SI_ASSERT(rc == SI_OK);
 
     std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
+    int batch_size = ini.GetLongValue("TORCH", "BATCH_SIZE", 64);
+    int num_epochs = ini.GetLongValue("TORCH", "EPOCHS", 10);
+    std::string save_model = ini.GetValue("TORCH", "SAVE_CPP", "net_cpp.pt");
 
     // Create a new Net.
     // auto net = std::make_shared<Net>();
     // torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.01);
     auto net = std::make_shared<Net2>();
+    // Instantiate an SGD optimization algorithm to update our Net's parameters.
     torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.1);
     torch::nn::NLLLoss loss_fn;
 
-    int batch_size = 64;
     // Create a multi-threaded data loader for the MNIST dataset.
     auto data_loader = torch::data::make_data_loader(
         torch::data::datasets::MNIST(base_dir).map(torch::data::transforms::Stack<>()),
-        /*batch_size=*/batch_size);
-
-    // Instantiate an SGD optimization algorithm to update our Net's parameters.
+        batch_size);
 
     std::tuple<torch::Tensor, torch::Tensor> tm;
     torch::Tensor prediction, values, indices, correct_bool;
@@ -87,7 +88,7 @@ int main()
     float acc;
 
     net->train();
-    for (size_t epoch = 1; epoch <= 10; ++epoch)
+    for (size_t epoch = 1; epoch <= num_epochs; ++epoch)
     {
         size_t batch_index = 0;
         // Iterate the data loader to yield batches from the dataset.
@@ -107,7 +108,7 @@ int main()
             if (batch_index++ % 100 == 0)
             {
                 // Serialize your model periodically as a checkpoint.
-                torch::save(net, "net.pt");
+                torch::save(net, save_model);
 
                 tm = torch::max(prediction, 1);
                 std::tie(values, indices) = tm;
@@ -120,6 +121,10 @@ int main()
             }
         }
     }
+
+    auto net_loaded = std::make_shared<Net2>();
+    torch::load(net_loaded, save_model);
+    net_loaded->eval();
 
     auto test_dataset = torch::data::datasets::MNIST(base_dir, torch::data::datasets::MNIST::Mode::kTest);
     c10::optional<size_t> test_size = test_dataset.size();

@@ -5,11 +5,20 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
+import configparser
+
+# %%
+ini = configparser.ConfigParser()
+ini.read("config.ini")
+batch_size = int(ini["TORCH"].get("BATCH_SIZE", 64))
+num_epochs = int(ini["TORCH"].get("EPOCHS", 10))
+save_model = ini["TORCH"].get("SAVE_PYTHON", "net_python.pth")
+python_data = ini["TORCH"].get("PYTHON_DATA", "MNIST_data")
 
 # %%
 # Download training data from open datasets.
 training_data = datasets.MNIST(
-    root="MNIST_data",
+    root=python_data,
     train=True,
     download=False,
     transform=ToTensor(),
@@ -18,14 +27,11 @@ training_data = datasets.MNIST(
 # %%
 # Download test data from open datasets.
 test_data = datasets.MNIST(
-    root="MNIST_data",
+    root=python_data,
     train=False,
     download=False,
     transform=ToTensor(),
 )
-
-# %%
-batch_size = 64
 
 # Create data loaders.
 train_dataloader = DataLoader(training_data, batch_size=batch_size)
@@ -114,7 +120,12 @@ def train(dataloader, model, loss_fn, optimizer):
 
         if batch % 100 == 0:
             loss, current = loss.item(), batch * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+            correct = (pred.argmax(1) == y).type(torch.float).sum().item()
+            correct /= len(y)
+            print(
+                f"Accuracy: {(100*correct):>0.1f}% \t loss: {loss:>4f}  [{current:>5d}/{size:>5d}]"
+            )
+            torch.save(model.state_dict(), "net_python.pth")
 
 
 # %%
@@ -131,17 +142,19 @@ def test(dataloader, model, loss_fn):
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
     test_loss /= num_batches
     correct /= size
-    print(
-        f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n"
-    )
+    print(f"Test: Accuracy: {(100*correct):>0.1f}% \t Avg loss: {test_loss:>4f} \n")
 
 
 # %%
-epochs = 10
+epochs = num_epochs
 for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
-    test(test_dataloader, model, loss_fn)
 print("Done!")
+
+# %%
+model = NeuralNetwork2().to(device)
+model.load_state_dict(torch.load("net_python.pth"))
+test(test_dataloader, model, loss_fn)
 
 # %%

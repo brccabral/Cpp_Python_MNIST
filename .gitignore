@@ -9,3 +9,5 @@ lib*.so*
 lib*.a
 !libopencv*
 dependencies
+*.pth
+*.pt
