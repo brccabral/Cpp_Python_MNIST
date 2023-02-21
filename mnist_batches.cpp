@@ -131,28 +131,37 @@ int main()
     int size = int(test_size.value());
     std::cout << size << std::endl;
 
-    torch::Tensor x_tensor = torch::empty({size, 784});
-    torch::Tensor y_tensor = torch::empty(size);
-    for (int b = 0; b < size; b++)
+    // torch::Tensor x_tensor = torch::empty({size, 784});
+    // torch::Tensor y_tensor = torch::empty(size);
+    // for (int b = 0; b < size; b++)
+    // {
+    //     x_tensor.index_put_({b}, test_dataset.get(b).data.reshape({784}));
+    //     y_tensor.index_put_({b}, test_dataset.get(b).target);
+    // }
+    // torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
+    // x_tensor.set_requires_grad(true);
+
+    // std::cout << x_tensor.sizes() << std::endl;
+    // std::cout << y_tensor_i.sizes() << std::endl;
+
+    // prediction = net->forward(x_tensor);
+    // correct_bool = y_tensor_i == indices;
+
+    auto data_tester = torch::data::make_data_loader(
+        test_dataset.map(torch::data::transforms::Stack<>()),
+        batch_size);
+
+    correct_prediction = 0;
+    for (auto &batch_test : *data_tester)
     {
-        x_tensor.index_put_({b}, test_dataset.get(b).data.reshape({784}));
-        y_tensor.index_put_({b}, test_dataset.get(b).target);
+        prediction = net_loaded->forward(batch_test.data);
+
+        tm = torch::max(prediction, 1);
+        std::tie(values, indices) = tm;
+
+        correct_bool = batch_test.target == indices;
+        correct_prediction += correct_bool.sum().item<int>();
     }
-    torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
-    x_tensor.set_requires_grad(true);
-
-    std::cout << x_tensor.sizes() << std::endl;
-    std::cout << y_tensor_i.sizes() << std::endl;
-
-    net->eval();
-    prediction = net->forward(x_tensor);
-
-    tm = torch::max(prediction, 1);
-    std::tie(values, indices) = tm;
-
-    correct_bool = y_tensor_i == indices;
-    correct_prediction = correct_bool.sum().item<int>();
-
     acc = 1.0f * correct_prediction / size;
     printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
