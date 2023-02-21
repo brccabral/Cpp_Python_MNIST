@@ -82,6 +82,14 @@ int main()
     auto train_data = torch::data::datasets::MNIST(base_dir);
     std::cout << train_data.sizes() << std::endl;
 
+    int categories = train_data.targets().max().item<int>() + 1;
+    auto sample_sizes = train_data.images().index({0}).sizes();
+    int num_features = 1;
+    for (auto s = sample_sizes.begin(); s != sample_sizes.end(); ++s)
+    {
+        num_features *= *s;
+    }
+
     auto train_dataloader = torch::data::make_data_loader(
         torch::data::datasets::MNIST(base_dir).map(torch::data::transforms::Stack<>()),
         batch_size);

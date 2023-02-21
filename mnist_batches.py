@@ -39,10 +39,14 @@ train_dataloader = DataLoader(training_data, batch_size=batch_size)
 test_dataloader = DataLoader(test_data, batch_size=batch_size)
 
 # %%
+num_features = torch.tensor(training_data.data.shape[1:]).prod()
+categories = training_data.targets.max().item() + 1
+
+# %%
 print(len(train_dataloader))
 print(len(test_dataloader))
 for X, y in train_dataloader:
-    print(f"Shape of X [N, C, H, W]: {X.shape}")
+    print(f"Shape of X [N items in batch, C colors channels, H image height, W image width]: {X.shape}")
     print(f"Shape of y: {y.shape} {y.dtype}")
     break
 
