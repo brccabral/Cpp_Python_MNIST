@@ -79,12 +79,14 @@ int main()
     torch::nn::NLLLoss loss_fn;
 
     // Create a multi-threaded data loader for the MNIST dataset.
-    auto train_data = torch::data::datasets::MNIST(base_dir);
-    std::cout << train_data.size() << std::endl;
-    std::cout << train_data.images().data().sizes() << std::endl;
+    auto train_dataset = torch::data::datasets::MNIST(base_dir);
+    c10::optional<size_t> train_size = train_dataset.size();
+    int size = int(train_size.value());
+    std::cout << size << std::endl;
+    std::cout << train_dataset.images().data().sizes() << std::endl;
 
-    int categories = train_data.targets().max().item<int>() + 1;
-    auto sample_sizes = train_data.images().index({0}).sizes();
+    int categories = train_dataset.targets().max().item<int>() + 1;
+    auto sample_sizes = train_dataset.images().index({0}).sizes();
     int num_features = 1;
     for (auto s = sample_sizes.begin(); s != sample_sizes.end(); ++s)
     {
@@ -141,8 +143,9 @@ int main()
 
     auto test_dataset = torch::data::datasets::MNIST(base_dir, torch::data::datasets::MNIST::Mode::kTest);
     c10::optional<size_t> test_size = test_dataset.size();
-    int size = int(test_size.value());
+    size = int(test_size.value());
     std::cout << size << std::endl;
+    std::cout << test_dataset.images().data().sizes() << std::endl;
 
     // torch::Tensor x_tensor = torch::empty({size, 784});
     // torch::Tensor y_tensor = torch::empty(size);
