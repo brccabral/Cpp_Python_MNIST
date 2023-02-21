@@ -108,15 +108,17 @@ optimizer = torch.optim.SGD(model.parameters(), lr=alpha)
 
 
 # %%
-def train(dataloader, model, loss_fn, optimizer):
+def train(dataloader: DataLoader, model: NeuralNetwork2, loss_fn: nn.NLLLoss, optimizer: torch.optim.Optimizer):
     size = len(dataloader.dataset)
     model.train()
+    X: torch.Tensor
+    y: torch.Tensor
     for batch, (X, y) in enumerate(dataloader):
         X, y = X.to(device), y.to(device)
 
         # Compute prediction error
-        pred = model(X)
-        loss = loss_fn(pred, y)
+        pred: torch.Tensor = model(X)
+        loss: torch.Tensor = loss_fn(pred, y)
 
         # Backpropagation
         optimizer.zero_grad()
@@ -134,16 +136,19 @@ def train(dataloader, model, loss_fn, optimizer):
 
 
 # %%
-def test(dataloader, model, loss_fn):
+def test(dataloader: DataLoader, model: NeuralNetwork2, loss_fn: nn.NLLLoss):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.eval()
     test_loss, correct = 0, 0
+    X: torch.Tensor
+    y: torch.Tensor
     with torch.no_grad():
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
-            pred = model(X)
-            test_loss += loss_fn(pred, y).item()
+            pred: torch.Tensor = model(X)
+            loss: torch.Tensor = loss_fn(pred, y)
+            test_loss += loss.item()
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
     test_loss /= num_batches
     correct /= size
