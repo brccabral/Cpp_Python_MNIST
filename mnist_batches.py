@@ -46,7 +46,9 @@ categories = training_data.targets.max().item() + 1
 print(len(train_dataloader))
 print(len(test_dataloader))
 for X, y in train_dataloader:
-    print(f"Shape of X [N items in batch, C colors channels, H image height, W image width]: {X.shape}")
+    print(
+        f"Shape of X [N items in batch, C colors channels, H image height, W image width]: {X.shape}"
+    )
     print(f"Shape of y: {y.shape} {y.dtype}")
     break
 
@@ -108,7 +110,12 @@ optimizer = torch.optim.SGD(model.parameters(), lr=alpha)
 
 
 # %%
-def train(dataloader: DataLoader, model: NeuralNetwork2, loss_fn: nn.NLLLoss, optimizer: torch.optim.Optimizer):
+def train(
+    dataloader: DataLoader,
+    model: NeuralNetwork2,
+    loss_fn: nn.NLLLoss,
+    optimizer: torch.optim.Optimizer,
+):
     size = len(dataloader.dataset)
     model.train()
     X: torch.Tensor
@@ -149,10 +156,12 @@ def test(dataloader: DataLoader, model: NeuralNetwork2, loss_fn: nn.NLLLoss):
             pred: torch.Tensor = model(X)
             loss: torch.Tensor = loss_fn(pred, y)
             test_loss += loss.item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+            correct += (pred.argmax(1) == y).type(torch.int).sum().item()
     test_loss /= num_batches
-    correct /= size
-    print(f"Test: Accuracy: {(100*correct):>0.1f}% \t Avg loss: {test_loss:>4f} \n")
+    acc = 1.0 * correct / size
+    print(
+        f"Test: Correct: {correct} \t Accuracy: {acc:>0.4f}% \t Loss: {test_loss:>0.4f} \t [{size}] \n"
+    )
 
 
 # %%
