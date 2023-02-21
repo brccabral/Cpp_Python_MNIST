@@ -50,10 +50,10 @@ add_executable(mnist_torch mnist_torch.cpp )
 target_link_libraries(mnist_torch "mnist;${TORCH_LIBRARIES}")
 
 add_executable(mnist_example mnist_example.cpp )
-target_link_libraries(mnist_example "mnist;${TORCH_LIBRARIES}")
+target_link_libraries(mnist_example "${TORCH_LIBRARIES}")
 
 add_executable(mnist_batches mnist_batches.cpp )
-target_link_libraries(mnist_batches "mnist;${TORCH_LIBRARIES}")
+target_link_libraries(mnist_batches "${TORCH_LIBRARIES}")
 
 # configure_file(neuralnet.pc.in neuralnet.pc @ONLY)
 # configure_file(mnist.pc.in mnist.pc @ONLY)
