@@ -14,6 +14,7 @@ batch_size = int(ini["TORCH"].get("BATCH_SIZE", 64))
 num_epochs = int(ini["TORCH"].get("EPOCHS", 10))
 save_model = ini["TORCH"].get("SAVE_PYTHON", "net_python.pth")
 python_data = ini["TORCH"].get("PYTHON_DATA", "MNIST_data")
+alpha = float(ini["MNIST"].get("ALPHA", 0.1))
 
 # %%
 # Download training data from open datasets.
@@ -99,7 +100,7 @@ print(model)
 # %%
 loss_fn = nn.NLLLoss()
 # optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+optimizer = torch.optim.SGD(model.parameters(), lr=alpha)
 
 
 # %%

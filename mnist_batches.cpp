@@ -68,13 +68,14 @@ int main()
     int batch_size = ini.GetLongValue("TORCH", "BATCH_SIZE", 64);
     int num_epochs = ini.GetLongValue("TORCH", "EPOCHS", 10);
     std::string save_model = ini.GetValue("TORCH", "SAVE_CPP", "net_cpp.pt");
+    float alpha = ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
 
     // Create a new Net.
     // auto net = std::make_shared<Net>();
     // torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.01);
     auto net = std::make_shared<Net2>();
     // Instantiate an SGD optimization algorithm to update our Net's parameters.
-    torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.1);
+    torch::optim::SGD optimizer(net->parameters(), /*lr=*/);
     torch::nn::NLLLoss loss_fn;
 
     // Create a multi-threaded data loader for the MNIST dataset.
