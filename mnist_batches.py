@@ -130,7 +130,7 @@ def train(dataloader, model, loss_fn, optimizer):
             print(
                 f"Accuracy: {(100*correct):>0.1f}% \t loss: {loss:>4f}  [{current:>5d}/{size:>5d}]"
             )
-            torch.save(model.state_dict(), "net_python.pth")
+            torch.save(model.state_dict(), save_model)
 
 
 # %%
@@ -159,7 +159,7 @@ print("Done!")
 
 # %%
 model = NeuralNetwork2().to(device)
-model.load_state_dict(torch.load("net_python.pth"))
+model.load_state_dict(torch.load(save_model))
 test(test_dataloader, model, loss_fn)
 
 # %%
