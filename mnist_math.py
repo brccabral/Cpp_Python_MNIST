@@ -11,7 +11,6 @@ TEST_LABEL_MAGIC = 2049
 
 
 def main():
-
     np.random.seed(int(time.time()))
 
     ini = configparser.ConfigParser()
@@ -23,7 +22,7 @@ def main():
     alpha = float(ini["MNIST"].get("ALPHA", 5))
     hidden_layer_size = int(ini["MNIST"].get("HIDDEN_LAYER_SIZE", 10))
 
-    base_dir = ini["MNIST"].get("BASE_DIR", "MNIST")
+    base_dir = ini["MNIST"].get("BASE_DIR", "MNIST_data/MNIST/raw")
     save_dir = base_dir + "/train"
     img_filename = ini["MNIST"].get("TRAIN_IMAGE_FILE", "train-images-idx3-ubyte")
     img_path = base_dir + "/" + img_filename
@@ -96,7 +95,7 @@ def main():
     test_dataset.save_dataset_as_csv(save_dir + "/test.csv")
 
     test_mat = test_dataset.to_numpy()
-    
+
     Y_test = MNIST_Dataset.get_Y(test_mat)
     X_test = MNIST_Dataset.get_X(test_mat)
     X_test /= 255.0

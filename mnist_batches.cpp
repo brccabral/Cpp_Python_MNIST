@@ -65,20 +65,22 @@ int main()
     SI_ASSERT(rc == SI_OK);
 
     std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
+    int batch_size = ini.GetLongValue("TORCH", "BATCH_SIZE", 64);
+    int num_epochs = ini.GetLongValue("TORCH", "EPOCHS", 10);
+    std::string save_model = ini.GetValue("TORCH", "SAVE_CPP", "net_cpp.pt");
 
     // Create a new Net.
     // auto net = std::make_shared<Net>();
     // torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.01);
     auto net = std::make_shared<Net2>();
+    // Instantiate an SGD optimization algorithm to update our Net's parameters.
     torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.1);
+    torch::nn::NLLLoss loss_fn;
 
-    int batch_size = 64;
     // Create a multi-threaded data loader for the MNIST dataset.
     auto data_loader = torch::data::make_data_loader(
         torch::data::datasets::MNIST(base_dir).map(torch::data::transforms::Stack<>()),
-        /*batch_size=*/batch_size);
-
-    // Instantiate an SGD optimization algorithm to update our Net's parameters.
+        batch_size);
 
     std::tuple<torch::Tensor, torch::Tensor> tm;
     torch::Tensor prediction, values, indices, correct_bool;
@@ -86,7 +88,7 @@ int main()
     float acc;
 
     net->train();
-    for (size_t epoch = 1; epoch <= 10; ++epoch)
+    for (size_t epoch = 1; epoch <= num_epochs; ++epoch)
     {
         size_t batch_index = 0;
         // Iterate the data loader to yield batches from the dataset.
@@ -97,7 +99,7 @@ int main()
             // Execute the model on the input data.
             prediction = net->forward(batch.data);
             // Compute a loss value to judge the prediction of our model.
-            torch::Tensor loss = torch::nll_loss(prediction, batch.target); // (64x10, 64x1)
+            torch::Tensor loss = loss_fn(prediction, batch.target); // (64x10, 64x1)
             // Compute gradients of the loss w.r.t. the parameters of our model.
             loss.backward();
             // Update the parameters based on the calculated gradients.
@@ -106,7 +108,7 @@ int main()
             if (batch_index++ % 100 == 0)
             {
                 // Serialize your model periodically as a checkpoint.
-                torch::save(net, "net.pt");
+                torch::save(net, save_model);
 
                 tm = torch::max(prediction, 1);
                 std::tie(values, indices) = tm;
@@ -120,33 +122,46 @@ int main()
         }
     }
 
+    auto net_loaded = std::make_shared<Net2>();
+    torch::load(net_loaded, save_model);
+    net_loaded->eval();
+
     auto test_dataset = torch::data::datasets::MNIST(base_dir, torch::data::datasets::MNIST::Mode::kTest);
     c10::optional<size_t> test_size = test_dataset.size();
     int size = int(test_size.value());
     std::cout << size << std::endl;
 
-    torch::Tensor x_tensor = torch::empty({size, 784});
-    torch::Tensor y_tensor = torch::empty(size);
-    for (int b = 0; b < size; b++)
+    // torch::Tensor x_tensor = torch::empty({size, 784});
+    // torch::Tensor y_tensor = torch::empty(size);
+    // for (int b = 0; b < size; b++)
+    // {
+    //     x_tensor.index_put_({b}, test_dataset.get(b).data.reshape({784}));
+    //     y_tensor.index_put_({b}, test_dataset.get(b).target);
+    // }
+    // torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
+    // x_tensor.set_requires_grad(true);
+
+    // std::cout << x_tensor.sizes() << std::endl;
+    // std::cout << y_tensor_i.sizes() << std::endl;
+
+    // prediction = net->forward(x_tensor);
+    // correct_bool = y_tensor_i == indices;
+
+    auto data_tester = torch::data::make_data_loader(
+        test_dataset.map(torch::data::transforms::Stack<>()),
+        batch_size);
+
+    correct_prediction = 0;
+    for (auto &batch_test : *data_tester)
     {
-        x_tensor.index_put_({b}, test_dataset.get(b).data.reshape({784}));
-        y_tensor.index_put_({b}, test_dataset.get(b).target);
+        prediction = net_loaded->forward(batch_test.data);
+
+        tm = torch::max(prediction, 1);
+        std::tie(values, indices) = tm;
+
+        correct_bool = batch_test.target == indices;
+        correct_prediction += correct_bool.sum().item<int>();
     }
-    torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
-    x_tensor.set_requires_grad(true);
-
-    std::cout << x_tensor.sizes() << std::endl;
-    std::cout << y_tensor_i.sizes() << std::endl;
-
-    net->eval();
-    prediction = net->forward(x_tensor);
-
-    tm = torch::max(prediction, 1);
-    std::tie(values, indices) = tm;
-
-    correct_bool = y_tensor_i == indices;
-    correct_prediction = correct_bool.sum().item<int>();
-
     acc = 1.0f * correct_prediction / size;
     printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
