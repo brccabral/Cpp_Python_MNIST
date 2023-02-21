@@ -71,6 +71,7 @@ int main()
     // torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.01);
     auto net = std::make_shared<Net2>();
     torch::optim::SGD optimizer(net->parameters(), /*lr=*/0.1);
+    torch::nn::NLLLoss loss_fn;
 
     int batch_size = 64;
     // Create a multi-threaded data loader for the MNIST dataset.
@@ -97,7 +98,7 @@ int main()
             // Execute the model on the input data.
             prediction = net->forward(batch.data);
             // Compute a loss value to judge the prediction of our model.
-            torch::Tensor loss = torch::nll_loss(prediction, batch.target); // (64x10, 64x1)
+            torch::Tensor loss = loss_fn(prediction, batch.target); // (64x10, 64x1)
             // Compute gradients of the loss w.r.t. the parameters of our model.
             loss.backward();
             // Update the parameters based on the calculated gradients.
