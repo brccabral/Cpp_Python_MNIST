@@ -8,6 +8,7 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(num_features, hidden_layer_size)
         self.out = nn.Linear(hidden_layer_size, categories)
         self.relu = nn.ReLU()
+        self.softmax = nn.LogSoftmax(dim=1)
         # self.linear_relu_stack = nn.Sequential(
         #     nn.Linear(num_features, hidden_layer_size),
         #     nn.ReLU(),
@@ -20,5 +21,5 @@ class Net(nn.Module):
         # logits = self.linear_relu_stack(x)
         x = self.fc1.forward(x)
         x = self.relu(x)
-        x = nn.LogSoftmax(dim=1).forward(self.out.forward(x))
+        x = self.softmax.forward(self.out.forward(x))
         return x

@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 import configparser
+from TorchNet.torchnet import Net
 
 # %%
 ini = configparser.ConfigParser()
@@ -15,6 +16,7 @@ num_epochs = int(ini["TORCH"].get("EPOCHS", 10))
 save_model = ini["TORCH"].get("SAVE_PYTHON", "net_python.pth")
 python_data = ini["TORCH"].get("PYTHON_DATA", "MNIST_data")
 alpha = float(ini["MNIST"].get("ALPHA", 0.1))
+hidden_layer_size = int(ini["MNIST"].get("HIDDEN_LAYER_SIZE", 10))
 
 # %%
 # Download training data from open datasets.
@@ -65,42 +67,7 @@ print(f"Using {device} device")
 
 
 # %%
-# Define model
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.flatten = nn.Flatten()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(28 * 28, 64),
-            nn.ReLU(),
-            nn.Linear(64, 32),
-            nn.ReLU(),
-            nn.Linear(32, 10),
-            nn.LogSoftmax(1),
-        )
-
-    def forward(self, x):
-        x = self.flatten(x)
-        logits = self.linear_relu_stack(x)
-        return logits
-
-
-class NeuralNetwork2(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.flatten = nn.Flatten()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(28 * 28, 10), nn.ReLU(), nn.Linear(10, 10), nn.LogSoftmax(1)
-        )
-
-    def forward(self, x):
-        x = self.flatten(x)
-        logits = self.linear_relu_stack(x)
-        return logits
-
-
-# model = NeuralNetwork().to(device)
-model = NeuralNetwork2().to(device)
+model = Net(num_features, hidden_layer_size, categories).to(device)
 print(model)
 
 # %%
@@ -112,16 +79,18 @@ optimizer = torch.optim.SGD(model.parameters(), lr=alpha)
 # %%
 def train(
     dataloader: DataLoader,
-    model: NeuralNetwork2,
+    model: Net,
     loss_fn: nn.NLLLoss,
     optimizer: torch.optim.Optimizer,
 ):
     size = len(dataloader.dataset)
     model.train()
+    flatten = torch.nn.Flatten()
     X: torch.Tensor
     y: torch.Tensor
     for batch, (X, y) in enumerate(dataloader):
         X, y = X.to(device), y.to(device)
+        X = flatten.forward(X)
 
         # Compute prediction error
         pred: torch.Tensor = model(X)
@@ -143,16 +112,18 @@ def train(
 
 
 # %%
-def test(dataloader: DataLoader, model: NeuralNetwork2, loss_fn: nn.NLLLoss):
+def test(dataloader: DataLoader, model: Net, loss_fn: nn.NLLLoss):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.eval()
+    flatten = torch.nn.Flatten()
     test_loss, correct = 0, 0
     X: torch.Tensor
     y: torch.Tensor
     with torch.no_grad():
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
+            X = flatten.forward(X)
             pred: torch.Tensor = model(X)
             loss: torch.Tensor = loss_fn(pred, y)
             test_loss += loss.item()
@@ -172,7 +143,7 @@ for t in range(epochs):
 print("Done!")
 
 # %%
-model = NeuralNetwork2().to(device)
+model = Net(num_features, hidden_layer_size, categories).to(device)
 model.load_state_dict(torch.load(save_model))
 test(test_dataloader, model, loss_fn)
 

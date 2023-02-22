@@ -11,3 +11,4 @@ lib*.a
 dependencies
 *.pth
 *.pt
+*.odp#
