@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include "MNIST_Image.hpp"
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 class MNIST_Dataset
 {

@@ -1,5 +1,5 @@
 #include <NeuralNet/NeuralNet.hpp>
-#include <eigen3/unsupported/Eigen/MatrixFunctions>
+#include <unsupported/Eigen/MatrixFunctions>
 
 NeuralNet::NeuralNet(int num_features,
                      int hidden_layer_size,

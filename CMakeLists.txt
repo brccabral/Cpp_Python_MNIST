@@ -6,19 +6,24 @@
 cmake_minimum_required(VERSION 3.14)
 project( MNISTCpp VERSION 0.0.1 )
 
-option(BUILD_SHARED_LIBS "SHARED or STATIC" OFF)
+option(BUILD_SHARED_LIBS "SHARED or STATIC" ON)
 
 # project(neuralnet VERSION 0.0.1 DESCRIPTION "custom neural net")
 # project(mnist VERSION 0.0.1 DESCRIPTION "mnist parser")
 
 include(GNUInstallDirs)
 
-include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies)
+set(Eigen3_DIR ${PROJECT_SOURCE_DIR}/dependencies/Eigen/share/eigen3/cmake/)
+find_package(Eigen3 REQUIRED)
+
 set(Torch_DIR ${PROJECT_SOURCE_DIR}/dependencies/libtorch/share/cmake/Torch)
 find_package(Torch REQUIRED)
+
 set(OpenCV_DIR ${PROJECT_SOURCE_DIR}/dependencies/opencv/lib/cmake/opencv4)
 find_package(OpenCV REQUIRED)
 
+# add_compile_definitions(${EIGEN3_DEFINITIONS})
+include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${EIGEN3_INCLUDE_DIRS})
 
 add_library(neuralnet ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
 set(NEURALNET_PUBLIC_HEADERS ${PROJECT_SOURCE_DIR}/include/NeuralNet/NeuralNet.hpp)
@@ -30,13 +35,13 @@ set_target_properties(neuralnet PROPERTIES PUBLIC_HEADER ${NEURALNET_PUBLIC_HEAD
 
 
 add_library(mnist ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Image.cpp)
+target_link_libraries(mnist ${OpenCV_LIBRARIES})
 set(MNIST_PUBLIC_HEADERS 
     ${PROJECT_SOURCE_DIR}/include/MNIST/MNIST_Dataset.hpp
     ${PROJECT_SOURCE_DIR}/include/MNIST/MNIST_Image.hpp
 )
 target_include_directories(mnist PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(mnist PRIVATE ${PROJECT_SOURCE_DIR}/src)
-target_link_libraries(mnist ${OpenCV_LIBRARIES})
 set_target_properties(mnist PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(mnist PROPERTIES SOVERSION ${PROJECT_VERSION})
 set_target_properties(mnist PROPERTIES PUBLIC_HEADER "${MNIST_PUBLIC_HEADERS}")
@@ -82,15 +87,17 @@ message("CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message("CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 message("CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
-message("BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 message("CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 message("CMAKE_INSTALL_LIBDIR: ${CMAKE_INSTALL_LIBDIR}")
 message("CMAKE_INSTALL_INCLUDEDIR: ${CMAKE_INSTALL_INCLUDEDIR}")
 message("CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+message("BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 message("TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
 message("TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
 message("TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
 message("OpenCV_DIR: ${OpenCV_DIR}")
 message("OpenCV_LIBRARIES: ${OpenCV_LIBRARIES}")
 message("OpenCV_INCLUDE_DIRS: ${OpenCV_INCLUDE_DIRS}")
+message("EIGEN3_DEFINITIONS: ${EIGEN3_DEFINITIONS}")
+message("EIGEN3_INCLUDE_DIRS: ${EIGEN3_INCLUDE_DIRS}")
 message("")
