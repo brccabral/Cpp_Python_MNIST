@@ -6,7 +6,6 @@
 cmake_minimum_required(VERSION 3.14)
 project( MNISTCpp VERSION 0.0.1 )
 
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS YES CACHE BOOL "Export all symbols")
 option(BUILD_SHARED_LIBS "SHARED or STATIC" OFF)
 
 # project(neuralnet VERSION 0.0.1 DESCRIPTION "custom neural net")
