@@ -46,3 +46,6 @@ For this project I used `torch==1.13.1`, `torchvision==0.14.1`, `torchaudio==0.1
 ```shell
 pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
 ```
+
+## Windows
+On Windows I could only build the project in Visual Studio, couldn't make it work with VSCode+MingW. OpenCV also needs to be built with Visual Studio.
