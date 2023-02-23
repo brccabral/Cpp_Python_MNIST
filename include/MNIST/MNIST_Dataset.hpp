@@ -21,8 +21,7 @@ public:
                   int label_magic);
 
     void save_dataset_as_png(std::string save_dir);
-
-    void save_dataset_as_csv(std::string save_dir);
+    void save_dataset_as_csv(std::string save_filename);
 
     Eigen::MatrixXf to_matrix();
     static Eigen::MatrixXf get_X(Eigen::MatrixXf &mat);

@@ -22,11 +22,11 @@ void MNIST_Dataset::save_dataset_as_png(std::string save_dir)
     }
 };
 
-void MNIST_Dataset::save_dataset_as_csv(std::string save_dir)
+void MNIST_Dataset::save_dataset_as_csv(std::string save_filename)
 {
     for (MNIST_Image img : _images)
     {
-        img.save_as_csv(save_dir);
+        img.save_as_csv(save_filename);
     }
 };
 

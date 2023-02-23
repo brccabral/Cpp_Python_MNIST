@@ -14,9 +14,9 @@ class MNIST_Dataset:
         for img in self._images:
             img.save_as_png(save_dir)
 
-    def save_dataset_as_csv(self, save_dir: str):
+    def save_dataset_as_csv(self, save_filename: str):
         for img in self._images:
-            img.save_as_csv(save_dir)
+            img.save_as_csv(save_filename)
 
     def read_mnist_db(self, max_items: int) -> list[MNIST_Image]:
         image_file = open(self._image_filename, "rb")
