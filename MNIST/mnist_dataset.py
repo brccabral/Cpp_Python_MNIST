@@ -44,9 +44,7 @@ class MNIST_Dataset:
         if num_items != num_labels:
             raise Exception("image file nums should equal to label num")
 
-        n_items = max_items
-        if max_items > num_items:
-            n_items = num_items
+        n_items = min(max_items, num_items)
 
         for item_id in range(n_items):
             pixels = image_file.read(rows * cols)

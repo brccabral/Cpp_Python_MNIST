@@ -101,11 +101,7 @@ void MNIST_Dataset::read_mnist_db(const int max_items)
         throw std::invalid_argument("image file nums should equal to label num");
     }
 
-    int n_items = max_items;
-    if (max_items > num_items)
-    {
-        n_items = num_items;
-    }
+    int n_items = max_items > num_items ? num_items : max_items;
 
     char label;
     char *pixels = new char[rows * cols];
