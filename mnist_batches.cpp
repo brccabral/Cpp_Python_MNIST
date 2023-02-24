@@ -102,7 +102,7 @@ int main()
                 tm = torch::max(prediction, 1);
                 std::tie(values, indices) = tm;
 
-                correct_bool = batch.target == indices;
+                correct_bool = y == indices;
                 correct_prediction = correct_bool.sum().item<int>();
 
                 acc = 1.0f * correct_prediction / batch_size;
