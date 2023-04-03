@@ -1,3 +1,4 @@
+# https://pytorch.org/cppdocs/installing.html#minimal-example
 cmake_minimum_required(VERSION 3.2)
 project( MNISTCpp VERSION 0.0.1 )
 
@@ -9,35 +10,26 @@ find_package(Eigen3 REQUIRED)
 set(OpenCV_DIR ${PROJECT_SOURCE_DIR}/dependencies/opencv)
 find_package(OpenCV REQUIRED)
 install(IMPORTED_RUNTIME_ARTIFACTS ${OpenCV_LIBS})
-# Avoid changing PATH
-install(IMPORTED_RUNTIME_ARTIFACTS ${OpenCV_LIBS} CONFIGURATIONS Debug DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
-install(IMPORTED_RUNTIME_ARTIFACTS ${OpenCV_LIBS} CONFIGURATIONS Release DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Release)
 
-set(Torch_DIR ${PROJECT_SOURCE_DIR}/dependencies/libtorch/share/cmake/Torch)
+
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set(Torch_DIR ${PROJECT_SOURCE_DIR}/dependencies/libtorch_debug/share/cmake/Torch)
+else()
+    set(Torch_DIR ${PROJECT_SOURCE_DIR}/dependencies/libtorch_rel/share/cmake/Torch)
+endif()
 find_package(Torch REQUIRED)
 install(IMPORTED_RUNTIME_ARTIFACTS torch;torch_cpu;c10)
-# Avoid changing PATH
-install(IMPORTED_RUNTIME_ARTIFACTS torch;torch_cpu;c10 CONFIGURATIONS Debug DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
-install(IMPORTED_RUNTIME_ARTIFACTS torch;torch_cpu;c10 CONFIGURATIONS Release DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Release)
 install(FILES 
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/asmjit.dll
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/fbgemm.dll
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/libiomp5md.dll
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/uv.dll
+    ${TORCH_INSTALL_PREFIX}/lib/asmjit.dll
+    ${TORCH_INSTALL_PREFIX}/lib/fbgemm.dll
+    ${TORCH_INSTALL_PREFIX}/lib/libiomp5md.dll
+    ${TORCH_INSTALL_PREFIX}/lib/uv.dll
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
-# Avoid changing PATH
-install(FILES 
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/asmjit.dll
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/fbgemm.dll
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/libiomp5md.dll
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/uv.dll
-    CONFIGURATIONS Debug DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
-install(FILES 
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/asmjit.dll
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/fbgemm.dll
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/libiomp5md.dll
-    ${PROJECT_SOURCE_DIR}/dependencies/libtorch/lib/uv.dll
-    CONFIGURATIONS Release DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Release)
+
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${TORCH_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${TORCH_CXX_FLAGS}")
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${EIGEN3_INCLUDE_DIRS})
 
@@ -45,6 +37,18 @@ add_library(mnist STATIC
     ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp 
     ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Image.cpp)
 target_link_libraries(mnist ${OpenCV_LIBS})
+if (MSVC)
+    if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+        file(GLOB OpenCV_DLLS "${OpenCV_DIR}/x64/vc17/bin/*d.dll")
+    else()
+        file(GLOB OpenCV_DLLS "${OpenCV_DIR}/x64/vc17/bin/*0.dll")
+    endif()
+    add_custom_command(TARGET mnist
+                    POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    ${OpenCV_DLLS}
+                    $<TARGET_FILE_DIR:mnist>)
+endif (MSVC)
 
 add_library(neuralnet STATIC
     ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
@@ -58,21 +62,23 @@ install(TARGETS mnist_math
 
 add_executable(mnist_batches mnist_batches.cpp )
 target_link_libraries(mnist_batches "${TORCH_LIBRARIES}")
+if (MSVC)
+    file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+    add_custom_command(TARGET mnist_batches
+                    POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    ${TORCH_DLLS}
+                    $<TARGET_FILE_DIR:mnist_batches>)
+endif (MSVC)
 install(TARGETS mnist_batches
         RUNTIME 
         DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
     )
 
-configure_file("${PROJECT_SOURCE_DIR}/config.ini" "${CMAKE_CURRENT_BINARY_DIR}/config.ini" COPYONLY)
+configure_file("${PROJECT_SOURCE_DIR}/config.ini" "${CMAKE_CURRENT_BINARY_DIR}/Debug/config.ini" COPYONLY)
+configure_file("${PROJECT_SOURCE_DIR}/config.ini" "${CMAKE_CURRENT_BINARY_DIR}/Release/config.ini" COPYONLY)
 install(FILES config.ini
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
-    )
-# Avoid changing PATH
-install(FILES config.ini
-    CONFIGURATIONS Debug DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug
-    )
-install(FILES config.ini
-    CONFIGURATIONS Release DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Release
     )
 
 message("")
@@ -81,6 +87,8 @@ message("PROJECT_VERSION: ${PROJECT_VERSION}")
 message("PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
 message("CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
+message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 message("CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 message("CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
 message("CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
@@ -91,10 +99,13 @@ message("CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 message("OpenCV_DIR: ${OpenCV_DIR}")
 message("OpenCV_LIBS: ${OpenCV_LIBS}")
 message("OpenCV_INCLUDE_DIRS: ${OpenCV_INCLUDE_DIRS}")
-message("OpenCV_SHARED: ${OpenCV_SHARED}")
+message("OpenCV_DLLS: ${OpenCV_DLLS}")
 message("EIGEN3_DEFINITIONS: ${EIGEN3_DEFINITIONS}")
 message("EIGEN3_INCLUDE_DIRS: ${EIGEN3_INCLUDE_DIRS}")
+message("Torch_DIR: ${Torch_DIR}")
 message("TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
 message("TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
 message("TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
+message("TORCH_INSTALL_PREFIX: ${TORCH_INSTALL_PREFIX}")
+message("TORCH_DLLS: ${TORCH_DLLS}")
 message("")
