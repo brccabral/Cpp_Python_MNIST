@@ -2,6 +2,8 @@ MNIST_data/
 .venv/
 .vscode/
 build/
+build_dir/
+build_win/
 config.ini
 __pycache__/
 libtorch/
@@ -12,4 +14,6 @@ dependencies
 *.pth
 *.pt
 *.odp#
-install
+install/
+install_dir/
+install_win/
