@@ -1,6 +1,7 @@
 #include <MNIST/MNIST_Image.hpp>
 #include <opencv2/opencv.hpp>
 #include <fstream>
+#include <memory>
 
 std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
 {
@@ -16,20 +17,14 @@ MNIST_Image::MNIST_Image(uint32_t rows, uint32_t cols, int label, char *pixels, 
     : _rows(rows), _cols(cols), _label(label), _db_item_id(item_id)
 {
     _pixels = new char[_rows * _cols];
-    for (int i = 0; i < _rows * _cols; i++)
-    {
-        _pixels[i] = pixels[i];
-    }
+    memcpy(_pixels, pixels, rows * cols * sizeof(char));
 };
 
 MNIST_Image::MNIST_Image(const MNIST_Image &other)
     : _rows(other._rows), _cols(other._cols), _label(other._label), _db_item_id(other._db_item_id)
 {
     _pixels = new char[_rows * _cols];
-    for (int i = 0; i < _rows * _cols; i++)
-    {
-        _pixels[i] = other._pixels[i];
-    }
+    memcpy(_pixels, other._pixels, other._rows * other._cols * sizeof(char));
 }
 
 MNIST_Image::~MNIST_Image()
