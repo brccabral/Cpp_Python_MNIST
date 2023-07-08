@@ -47,4 +47,4 @@ The `--index-url` is used to download the CPU version. If not passed as argument
 
 
 ## Windows
-On Windows I could only build the project in Visual Studio, couldn't make it work with VSCode+MingW. OpenCV also needs to be built with Visual Studio.
+On Windows I could only build the project in Visual Studio cmake generator, couldn't make it work with MinGW/Unix Makefiles. OpenCV also needs to be built with Visual Studio cmake generator.
