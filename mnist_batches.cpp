@@ -25,18 +25,21 @@ int main()
 
     // Create a multi-threaded data loader for the MNIST dataset.
     auto train_dataset = torch::data::datasets::MNIST(base_dir);
-    c10::optional<size_t> train_size = train_dataset.size();
-    int size = int(train_size.value());
-    std::cout << size << std::endl;
-    std::cout << train_dataset.images().data().sizes() << std::endl;
+    std::cout << "train_dataset.images().sizes()=" << train_dataset.images().sizes() << std::endl;
+    size_t size = train_dataset.size().value();
+    std::cout << "train size=" << size << std::endl;
 
     int categories = train_dataset.targets().max().item<int>() + 1;
     auto sample_sizes = train_dataset.images().index({0}).sizes();
+    std::cout << "sample_sizes=" << sample_sizes << std::endl;
     int num_features = 1;
-    for (auto s = sample_sizes.begin(); s != sample_sizes.end(); ++s)
+    for (auto &s : sample_sizes)
     {
-        num_features *= *s;
+        num_features *= s;
     }
+
+    std::cout << "num_features=" << num_features << std::endl;
+    std::cout << "categories=" << categories << std::endl;
 
     auto train_dataloader = torch::data::make_data_loader(
         torch::data::datasets::MNIST(base_dir).map(torch::data::transforms::Stack<>()),
@@ -116,26 +119,9 @@ int main()
     net_loaded->eval();
 
     auto test_dataset = torch::data::datasets::MNIST(base_dir, torch::data::datasets::MNIST::Mode::kTest);
-    c10::optional<size_t> test_size = test_dataset.size();
-    size = int(test_size.value());
+    size = test_dataset.size().value();
     std::cout << size << std::endl;
     std::cout << test_dataset.images().data().sizes() << std::endl;
-
-    // torch::Tensor x_tensor = torch::empty({size, 784});
-    // torch::Tensor y_tensor = torch::empty(size);
-    // for (int b = 0; b < size; b++)
-    // {
-    //     x_tensor.index_put_({b}, test_dataset.get(b).data.reshape({784}));
-    //     y_tensor.index_put_({b}, test_dataset.get(b).target);
-    // }
-    // torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
-    // x_tensor.set_requires_grad(true);
-
-    // std::cout << x_tensor.sizes() << std::endl;
-    // std::cout << y_tensor_i.sizes() << std::endl;
-
-    // prediction = net->forward(x_tensor);
-    // correct_bool = y_tensor_i == indices;
 
     auto test_dataloader = torch::data::make_data_loader(
         test_dataset.map(torch::data::transforms::Stack<>()),
