@@ -14,15 +14,13 @@ find_package(OpenCV REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${EIGEN3_INCLUDE_DIRS})
 
-add_library(neuralnet STATIC 
+add_library(neuralnet  
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
-target_include_directories(neuralnet PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
-add_library(mnist STATIC 
+add_library(mnist  
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp 
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Image.cpp)
 target_link_libraries(mnist ${OpenCV_LIBRARIES})
-target_include_directories(mnist PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 add_executable(mnist_math mnist_math.cpp )
 target_link_libraries(mnist_math mnist;neuralnet)
