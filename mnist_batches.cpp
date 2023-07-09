@@ -30,13 +30,7 @@ int main()
     std::cout << "train size=" << size << std::endl;
 
     int categories = train_dataset.targets().max().item<int>() + 1;
-    auto sample_sizes = train_dataset.images().index({0}).sizes();
-    std::cout << "sample_sizes=" << sample_sizes << std::endl;
-    int num_features = 1;
-    for (auto &s : sample_sizes)
-    {
-        num_features *= s;
-    }
+    int num_features = torch::tensor(train_dataset.images().sizes().slice(1)).prod().item<int>();
 
     std::cout << "num_features=" << num_features << std::endl;
     std::cout << "categories=" << categories << std::endl;
