@@ -107,6 +107,7 @@ int main()
             }
         }
     }
+    torch::save(net, save_model);
 
     auto net_loaded = std::make_shared<Net>(num_features, hidden_layer_size, categories);
     torch::load(net_loaded, save_model);

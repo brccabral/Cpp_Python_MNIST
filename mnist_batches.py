@@ -109,6 +109,7 @@ def train(
                 f"Accuracy: {(100*correct):>0.1f}% \t loss: {loss:>4f}  [{current:>5d}/{size:>5d}]"
             )
             torch.save(model.state_dict(), save_model)
+    torch.save(model.state_dict(), save_model)
 
 
 # %%
