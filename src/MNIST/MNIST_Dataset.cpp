@@ -74,7 +74,7 @@ void MNIST_Dataset::read_mnist_db(const int max_items)
     {
         image_file.close();
         label_file.close();
-        throw std::invalid_argument("Incorrect image file magic " + magic);
+        throw std::invalid_argument("Incorrect image file magic " + std::to_string(magic));
     }
     image_file.read(reinterpret_cast<char *>(&num_items), sizeof(num_items));
     num_items = swap_endian(num_items);
@@ -89,7 +89,7 @@ void MNIST_Dataset::read_mnist_db(const int max_items)
     {
         image_file.close();
         label_file.close();
-        throw std::invalid_argument("Incorrect label file magic " + magic);
+        throw std::invalid_argument("Incorrect label file magic " + std::to_string(magic));
     }
 
     label_file.read(reinterpret_cast<char *>(&num_labels), sizeof(num_labels));
