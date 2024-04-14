@@ -18,7 +18,7 @@ class MNIST_Dataset:
         for img in self._images:
             img.save_as_csv(save_filename)
 
-    def read_mnist_db(self, max_items: int) -> list[MNIST_Image]:
+    def read_mnist_db(self, max_items: int):
         image_file = open(self._image_filename, "rb")
         if not image_file:
             raise Exception("Failed open image file")

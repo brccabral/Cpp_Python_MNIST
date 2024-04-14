@@ -13,7 +13,7 @@ class NeuralNet:
         return np.maximum(Z, 0)
 
     @staticmethod
-    def softmax(Z: np.array) -> np.array:
+    def softmax(Z: np.ndarray) -> np.ndarray:
         return np.exp(Z) / sum(np.exp(Z))
 
     def forward_prop(self, X: np.ndarray) -> np.ndarray:
@@ -43,7 +43,7 @@ class NeuralNet:
         Y: np.ndarray,
         one_hot_Y: np.ndarray,
         alpha: float,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ) -> None:
         m = Y.size
         dZ2 = self.A2 - one_hot_Y
         dW2 = 1 / m * dZ2.dot(self.A1.T)
@@ -62,7 +62,7 @@ class NeuralNet:
         return np.argmax(A2, 0)
 
     @staticmethod
-    def get_correct_prediction(predictions: np.ndarray, Y: np.ndarray) -> float:
+    def get_correct_prediction(predictions: np.ndarray, Y: np.ndarray) -> int:
         return np.sum(predictions == Y)
 
     @staticmethod

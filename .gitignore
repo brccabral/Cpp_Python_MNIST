@@ -17,3 +17,4 @@ dependencies
 install/
 install_dir/
 install_win/
+*.srctrl*

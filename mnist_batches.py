@@ -11,12 +11,12 @@ from TorchNet.torchnet import Net
 # %%
 ini = configparser.ConfigParser()
 ini.read("config.ini")
-batch_size = int(ini["TORCH"].get("BATCH_SIZE", 64))
-num_epochs = int(ini["TORCH"].get("EPOCHS", 10))
+batch_size = ini["TORCH"].getint("BATCH_SIZE", 64)
+num_epochs = ini["TORCH"].getint("EPOCHS", 10)
 save_model = ini["TORCH"].get("SAVE_PYTHON", "net_python.pth")
 python_data = ini["TORCH"].get("PYTHON_DATA", "MNIST_data")
-alpha = float(ini["MNIST"].get("ALPHA", 0.1))
-hidden_layer_size = int(ini["MNIST"].get("HIDDEN_LAYER_SIZE", 10))
+alpha = ini["MNIST"].getfloat("ALPHA", 0.1)
+hidden_layer_size = ini["MNIST"].getint("HIDDEN_LAYER_SIZE", 10)
 
 # %%
 # Download training data from open datasets.
@@ -41,8 +41,8 @@ train_dataloader = DataLoader(training_data, batch_size=batch_size)
 test_dataloader = DataLoader(test_data, batch_size=batch_size)
 
 # %%
-num_features = torch.tensor(training_data.data.shape[1:]).prod()
-categories = training_data.targets.max().item() + 1
+num_features = int(torch.tensor(training_data.data.shape[1:]).prod().item())
+categories = int(training_data.targets.max().item() + 1)
 
 # %%
 print(len(train_dataloader))
@@ -102,11 +102,11 @@ def train(
         optimizer.step()
 
         if batch % 100 == 0:
-            loss, current = loss.item(), batch * len(X)
+            train_loss, current = loss.item(), batch * len(X)
             correct = (pred.argmax(1) == y).type(torch.float).sum().item()
             correct /= len(y)
             print(
-                f"Accuracy: {(100*correct):>0.1f}% \t loss: {loss:>4f}  [{current:>5d}/{size:>5d}]"
+                f"Accuracy: {(100*correct):>0.1f}% \t loss: {train_loss:>4f}  [{current:>5d}/{size:>5d}]"
             )
             torch.save(model.state_dict(), save_model)
     torch.save(model.state_dict(), save_model)

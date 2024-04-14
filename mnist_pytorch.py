@@ -17,11 +17,11 @@ def main():
     ini = configparser.ConfigParser()
     ini.read("config.ini")
 
-    num_generations = int(ini["MNIST"].get("GENERATIONS", 5))
-    max_items = int(ini["MNIST"].get("MAX_ITEMS", 5))
-    save_img = bool(ini["MNIST"].get("SAVE_IMG", 0))
-    alpha = float(ini["MNIST"].get("ALPHA", 0.1))
-    hidden_layer_size = int(ini["MNIST"].get("HIDDEN_LAYER_SIZE", 10))
+    num_generations = ini["MNIST"].getint("GENERATIONS", 5)
+    max_items = ini["MNIST"].getint("MAX_ITEMS", 5)
+    save_img = ini["MNIST"].getboolean("SAVE_IMG", 0)
+    alpha = ini["MNIST"].getfloat("ALPHA", 0.1)
+    hidden_layer_size = ini["MNIST"].getint("HIDDEN_LAYER_SIZE", 10)
 
     base_dir = ini["MNIST"].get("BASE_DIR", "MNIST_data/MNIST/raw")
 

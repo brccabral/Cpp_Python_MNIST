@@ -7,7 +7,7 @@ class MNIST_Image:
         rows: int,
         cols: int,
         label: int,
-        pixels: list[bytes],
+        pixels: bytes,
         item_id: int,
     ):
         self._rows = rows
