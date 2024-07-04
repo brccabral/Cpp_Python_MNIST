@@ -83,8 +83,7 @@ def train(
     loss_fn: nn.NLLLoss,
     optimizer: torch.optim.Optimizer,
 ):
-    size = len(dataloader.dataset)
-    model.train()
+    size = len(training_data)
     flatten = torch.nn.Flatten()
     X: torch.Tensor
     y: torch.Tensor
@@ -106,7 +105,7 @@ def train(
             correct = (pred.argmax(1) == y).type(torch.float).sum().item()
             correct /= len(y)
             print(
-                f"Accuracy: {(100*correct):>0.1f}% \t loss: {train_loss:>4f}  [{current:>5d}/{size:>5d}]"
+                f"Accuracy: {(100.0 * correct):>0.1f}% \t loss: {train_loss:>4f}  [{current:>5d}/{size:>5d}]"
             )
             torch.save(model.state_dict(), save_model)
     torch.save(model.state_dict(), save_model)
@@ -114,9 +113,8 @@ def train(
 
 # %%
 def test(dataloader: DataLoader, model: Net, loss_fn: nn.NLLLoss):
-    size = len(dataloader.dataset)
+    size = len(test_data)
     num_batches = len(dataloader)
-    model.eval()
     flatten = torch.nn.Flatten()
     test_loss, correct = 0, 0
     X: torch.Tensor
@@ -137,15 +135,17 @@ def test(dataloader: DataLoader, model: Net, loss_fn: nn.NLLLoss):
 
 
 # %%
-epochs = num_epochs
-for t in range(epochs):
-    print(f"Epoch {t+1}\n-------------------------------")
+model.train()
+for epoch in range(num_epochs):
+    print(f"Epoch {epoch + 1}\n-------------------------------")
     train(train_dataloader, model, loss_fn, optimizer)
+torch.save(model.state_dict(), save_model)
 print("Done!")
 
 # %%
 model = Net(num_features, hidden_layer_size, categories).to(device)
 model.load_state_dict(torch.load(save_model))
+model.eval()
 test(test_dataloader, model, loss_fn)
 
 # %%
