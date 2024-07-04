@@ -18,7 +18,7 @@ int main()
 
     std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
     int batch_size = ini.GetLongValue("TORCH", "BATCH_SIZE", 64);
-    int num_epochs = ini.GetLongValue("TORCH", "EPOCHS", 10);
+    size_t num_epochs = ini.GetLongValue("TORCH", "EPOCHS", 10);
     std::string save_model = ini.GetValue("TORCH", "SAVE_CPP", "net_cpp.pt");
     float alpha = ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
     int hidden_layer_size = ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
@@ -36,7 +36,7 @@ int main()
     std::cout << "categories=" << categories << std::endl;
 
     auto train_dataloader = torch::data::make_data_loader(
-        torch::data::datasets::MNIST(base_dir).map(torch::data::transforms::Stack<>()),
+        train_dataset.map(torch::data::transforms::Stack<>()),
         batch_size);
 
     // Create a new Net.
@@ -70,7 +70,7 @@ int main()
     float acc;
 
     net->train();
-    for (size_t epoch = 1; epoch <= num_epochs; ++epoch)
+    for (size_t epoch = 0; epoch < num_epochs; ++epoch)
     {
         size_t batch_index = 0;
         // Iterate the data loader to yield batches from the dataset.
@@ -93,17 +93,21 @@ int main()
             // Output the loss and checkpoint every 100 batches.
             if (batch_index++ % 100 == 0)
             {
-                // Serialize your model periodically as a checkpoint.
-                torch::save(net, save_model);
+                float loss_value = loss.item<float>();
+                size_t current = batch_index * X.sizes()[0];
 
                 tm = torch::max(prediction, 1);
-                std::tie(values, indices) = tm;
+                values = std::get<0>(tm);
+                indices = std::get<1>(tm);
 
                 correct_bool = y == indices;
                 correct_prediction = correct_bool.sum().item<int>();
 
-                acc = 1.0f * correct_prediction / batch_size;
-                printf("Epoch %lu\t Batch %lu\t Correct %d\tAccuracy %.4f\t Loss %.4f\n", epoch, batch_index, correct_prediction, acc, loss.item<float>());
+                acc = 1.0f * (float)correct_prediction / (float)batch_size;
+                printf("Epoch: %lu \t Batch: %lu \t Correct: %d \t Accuracy: %.4f \t Loss: %.4f \t [%5lu/%5lu] \n", epoch, batch_index, correct_prediction, acc, loss_value, current, size);
+
+                // Serialize your model periodically as a checkpoint.
+                torch::save(net, save_model);
             }
         }
     }
@@ -122,23 +126,42 @@ int main()
         test_dataset.map(torch::data::transforms::Stack<>()),
         batch_size);
 
-    correct_prediction = 0;
-    for (auto &batch_test : *test_dataloader)
+    int num_batches = 0;
+    float test_loss = 0.0f;
+    int correct = 0;
+    acc = 0.0f;
+
     {
-        torch::Tensor X = batch_test.data.to(device);
-        torch::Tensor y = batch_test.target.to(device);
-        X = flatten(X);
+        torch::NoGradGuard no_grad;
 
-        prediction = net_loaded->forward(X);
+        for (auto &batch_test : *test_dataloader)
+        {
+            torch::Tensor X = batch_test.data.to(device);
+            torch::Tensor y = batch_test.target.to(device);
+            X = flatten(X);
 
-        tm = torch::max(prediction, 1);
-        std::tie(values, indices) = tm;
+            prediction = net_loaded->forward(X);
+            torch::Tensor loss = loss_fn(prediction, y);
+            float loss_value = loss.item<float>();
 
-        correct_bool = y == indices;
-        correct_prediction += correct_bool.sum().item<int>();
+            tm = torch::max(prediction, 1);
+            values = std::get<0>(tm);
+            indices = std::get<1>(tm);
+
+            correct_bool = y == indices;
+            correct_prediction = correct_bool.sum().item<int>();
+
+            test_loss += loss_value;
+            correct += correct_prediction;
+            num_batches++;
+        }
     }
-    acc = 1.0f * correct_prediction / size;
-    printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
+    test_loss /= (float)num_batches;
+
+    size = test_dataset.size().value();
+    acc = 1.0f * (float)correct / (float)size;
+
+    printf("Test: Correct: %d \t Accuracy: %.4f \t Loss: %.4f \t [%5lu] \n", correct, acc, test_loss, size);
 
     return EXIT_SUCCESS;
 }
