@@ -31,6 +31,10 @@ def main():
     label_filename = ini["MNIST"].get("TRAIN_LABEL_FILE", "train-labels.idx1-ubyte")
     label_path = base_dir + "/" + label_filename
 
+    print(
+        f"{num_generations=} {max_items=} {save_img=} {alpha=} {hidden_layer_size=} {base_dir=} {save_dir=} {img_filename=} {img_path=} {label_filename=} {label_path=}"
+    )
+
     train_dataset = MNIST_Dataset(
         img_path,
         label_path,
@@ -38,6 +42,8 @@ def main():
         TRAIN_LABEL_MAGIC,
     )
     train_dataset.read_mnist_db(max_items)
+    print(f"{len(train_dataset._images)=}")
+    print(f"{train_dataset._images[4]._label=}")
 
     if save_img:
         train_dataset.save_dataset_as_png(save_dir)
@@ -49,6 +55,10 @@ def main():
     Y_train = MNIST_Dataset.get_Y(train_mat)
     X_train = MNIST_Dataset.get_X(train_mat)
     X_train /= 255.0
+    print(f"{Y_train[4]=}")
+    print(f"{X_train.shape=}")
+    print(f"{X_train[4, :]=}")
+
     Y_train = Y_train.astype(int)
 
     categories = int(np.max(Y_train) + 1)
@@ -58,7 +68,6 @@ def main():
     X_tensor_train = X_tensor_train.type(torch.float32)
 
     Y_tensor_train = torch.tensor(Y_train)
-    # Y_tensor_train = Y_tensor_train.type(torch.long)
 
     print(f"{X_tensor_train.shape=}")
     print(f"{Y_tensor_train.shape=}")
@@ -94,9 +103,9 @@ def main():
     print(f"Final\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}")
 
     save_dir = base_dir + "/test"
-    img_filename = ini["MNIST"].get("TEST_IMAGE_FILE", "t10k-images.idx3-ubyte")
+    img_filename = ini["MNIST"].get("TEST_IMAGE_FILE", "t10k-images-idx3-ubyte")
     img_path = base_dir + "/" + img_filename
-    label_filename = ini["MNIST"].get("TEST_LABEL_FILE", "t10k-labels.idx1-ubyte")
+    label_filename = ini["MNIST"].get("TEST_LABEL_FILE", "t10k-labels-idx1-ubyte")
     label_path = base_dir + "/" + label_filename
 
     test_dataset = MNIST_Dataset(
@@ -109,7 +118,6 @@ def main():
 
     if save_img:
         test_dataset.save_dataset_as_png(save_dir)
-
     test_dataset.save_dataset_as_csv(save_dir + "/test.csv")
 
     test_mat = test_dataset.to_numpy()
@@ -122,7 +130,9 @@ def main():
     X_tensor_test = torch.tensor(X_test)
     X_tensor_test = X_tensor_test.type(torch.float32)
     Y_tensor_test = torch.tensor(Y_test)
-    # Y_tensor_train = Y_tensor_train.type(torch.long)
+
+    print(f"{X_tensor_test.shape=}")
+    print(f"{Y_tensor_test.shape=}")
 
     output = neural_net.forward(X_tensor_test)
     predictions = output.argmax(1) == Y_tensor_test
