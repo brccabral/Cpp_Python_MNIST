@@ -1,25 +1,10 @@
 #include <SimpleIni/SimpleIni.h>
+#include <iostream>
 #include <MNIST/MNIST_Dataset.hpp>
+#include <Eigen/Dense>
 #include <NeuralNet/NeuralNet.hpp>
 
-#ifdef DEBUG
-#define DUMP_VAR(x) std::cout << "---\n" \
-                              << #x "\n" \
-                              << x << "\n---" << std::endl
-
-float get_float_matrix(Eigen::MatrixXf &M, int r, int c)
-{
-    return M(r, c);
-}
-
-float get_float_vector(Eigen::VectorXf &V, int r)
-{
-    return V(r);
-}
-
-#else
-#define DUMP_VAR(x)
-#endif
+#define PRINT_VAR(x) #x << "=" << x
 
 #define TRAIN_IMAGE_MAGIC 2051
 #define TRAIN_LABEL_MAGIC 2049
@@ -41,11 +26,11 @@ int main(int argc, char *argv[])
     };
     SI_ASSERT(rc == SI_OK);
 
-    int num_generations = ini.GetLongValue("MNIST", "GENERATIONS", 5);
-    int max_items = ini.GetLongValue("MNIST", "MAX_ITEMS", 15);
+    int num_generations = (int)ini.GetLongValue("MNIST", "GENERATIONS", 5);
+    int max_items = (int)ini.GetLongValue("MNIST", "MAX_ITEMS", 15);
     bool save_img = ini.GetBoolValue("MNIST", "SAVE_IMG", false);
-    float alpha = ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
-    int hidden_layer_size = ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
+    float alpha = (float)ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
+    int hidden_layer_size = (int)ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
 
     std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
     std::string save_dir = base_dir + "/train";
@@ -54,8 +39,25 @@ int main(int argc, char *argv[])
     std::string label_filename = ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels-idx1-ubyte");
     std::string label_path = base_dir + "/" + label_filename;
 
+    std::cout << PRINT_VAR(num_generations) << " "
+              << PRINT_VAR(max_items) << " "
+              << PRINT_VAR(save_img) << " "
+              << PRINT_VAR(alpha) << " "
+              << PRINT_VAR(hidden_layer_size) << " "
+              << PRINT_VAR(base_dir) << " "
+              << PRINT_VAR(save_dir) << " "
+              << PRINT_VAR(img_filename) << " "
+              << PRINT_VAR(img_path) << " "
+              << PRINT_VAR(label_filename) << " "
+              << PRINT_VAR(label_path) << " "
+              << std::endl;
+
     MNIST_Dataset train_dataset(img_path.c_str(), label_path.c_str(), TRAIN_IMAGE_MAGIC, TRAIN_LABEL_MAGIC);
     train_dataset.read_mnist_db(max_items);
+    std::cout << PRINT_VAR(train_dataset.get_images_length())
+              << std::endl;
+    std::cout << PRINT_VAR(train_dataset.get_label_from_index(4))
+              << std::endl;
 
     if (save_img)
         train_dataset.save_dataset_as_png(save_dir);
@@ -66,9 +68,14 @@ int main(int argc, char *argv[])
 
     Eigen::VectorXf Y_train = MNIST_Dataset::get_Y(train_mat);
     Eigen::MatrixXf X_train = MNIST_Dataset::get_X(train_mat);
+    std::cout << Y_train(4) << std::endl;
+    std::cout << X_train.rows() << "," << X_train.cols() << std::endl;
+    for (int c = 0; c < X_train.cols(); c++)
+        std::cout << X_train(4, c) << ", ";
+    std::cout << std::endl;
 
     int categories = Y_train.maxCoeff() + 1;
-    
+
     X_train = X_train / 255.0;
     Eigen::MatrixXf X_train_T = X_train.transpose();
 
@@ -96,6 +103,7 @@ int main(int argc, char *argv[])
 
         neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha);
     }
+    output = neural_net.forward_prop(X_train_T);
     prediction = NeuralNet::get_predictions(output);
     correct_prediction = NeuralNet::get_correct_prediction(prediction, Y_train);
     acc = NeuralNet::get_accuracy(correct_prediction, Y_train.rows());
@@ -129,4 +137,6 @@ int main(int argc, char *argv[])
     correct_prediction = NeuralNet::get_correct_prediction(prediction, Y_test);
     acc = NeuralNet::get_accuracy(correct_prediction, Y_test.rows());
     printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
+
+    return EXIT_SUCCESS;
 }
