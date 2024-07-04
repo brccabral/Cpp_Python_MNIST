@@ -1,6 +1,7 @@
 MNIST_data/
 .venv/
 .vscode/
+.idea/
 build/
 build_dir/
 build_win/
