@@ -1,7 +1,11 @@
 #include <SimpleIni/SimpleIni.h>
+#include <iostream>
 #include <MNIST/MNIST_Dataset.hpp>
+#include <Eigen/Dense>
 #include <torch/torch.h>
 #include <TorchNet/torchnet.hpp>
+
+#define PRINT_VAR(x) #x << "=" << x
 
 #define TRAIN_IMAGE_MAGIC 2051
 #define TRAIN_LABEL_MAGIC 2049
@@ -58,9 +62,26 @@ int main(int argc, char *argv[])
     std::string label_filename = ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels-idx1-ubyte");
     std::string label_path = base_dir + "/" + label_filename;
 
+    std::cout << PRINT_VAR(num_generations) << " "
+              << PRINT_VAR(max_items) << " "
+              << PRINT_VAR(save_img) << " "
+              << PRINT_VAR(alpha) << " "
+              << PRINT_VAR(hidden_layer_size) << " "
+              << PRINT_VAR(base_dir) << " "
+              << PRINT_VAR(save_dir) << " "
+              << PRINT_VAR(img_filename) << " "
+              << PRINT_VAR(img_path) << " "
+              << PRINT_VAR(label_filename) << " "
+              << PRINT_VAR(label_path) << " "
+              << std::endl;
+
     std::cout << "Reading dataset file" << std::endl;
     MNIST_Dataset train_dataset(img_path.c_str(), label_path.c_str(), TRAIN_IMAGE_MAGIC, TRAIN_LABEL_MAGIC);
     train_dataset.read_mnist_db(max_items);
+    std::cout << PRINT_VAR(train_dataset.get_images_length())
+              << std::endl;
+    std::cout << PRINT_VAR(train_dataset.get_label_from_index(4))
+              << std::endl;
 
     if (save_img)
         train_dataset.save_dataset_as_png(save_dir);
@@ -72,6 +93,12 @@ int main(int argc, char *argv[])
 
     Eigen::VectorXf Y_train = MNIST_Dataset::get_Y(train_mat);
     Eigen::MatrixXf X_train = MNIST_Dataset::get_X(train_mat);
+    std::cout << Y_train(4) << std::endl;
+    std::cout << X_train.rows() << "," << X_train.cols() << std::endl;
+    for (int c = 0; c < X_train.cols(); c++)
+        std::cout << X_train(4, c) << ", ";
+    std::cout << std::endl;
+
     X_train = X_train / 255.0;
 
     int categories = Y_train.maxCoeff() + 1;
@@ -110,19 +137,21 @@ int main(int argc, char *argv[])
         if (generation % 50 == 0)
         {
             tm_train = torch::max(prediction_train, 1);
-            std::tie(values_train, indices_train) = tm_train;
+            values_train = std::get<0>(tm_train);
+            indices_train = std::get<1>(tm_train);
 
             correct_bool_train = y_tensor_i_train == indices_train;
             correct_prediction = correct_bool_train.sum().item<int>();
 
-            acc = 1.0f * correct_prediction / Y_train.rows();
+            acc = 1.0f * (float)correct_prediction / (float)Y_train.rows();
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
         }
     }
     prediction_train = net.forward(x_tensor_train);
 
     tm_train = torch::max(prediction_train, 1);
-    std::tie(values_train, indices_train) = tm_train;
+    values_train = std::get<0>(tm_train);
+    indices_train = std::get<1>(tm_train);
 
     correct_bool_train = y_tensor_train == indices_train;
     correct_prediction = correct_bool_train.sum().item<int>();
@@ -155,18 +184,22 @@ int main(int argc, char *argv[])
     torch::Tensor y_tensor_test = eigenVectorToTorchTensor(Y_test);
     torch::Tensor y_tensor_i_test = y_tensor_test.toType(c10::ScalarType::Long);
 
+    std::cout << x_tensor_test.sizes() << std::endl;
+    std::cout << y_tensor_test.sizes() << std::endl;
+
     torch::Tensor values_test, indices_test, prediction_test, correct_bool_test;
     std::tuple<torch::Tensor, torch::Tensor> tm_test;
 
     prediction_test = net.forward(x_tensor_test);
 
     tm_test = torch::max(prediction_test, 1);
-    std::tie(values_test, indices_test) = tm_test;
+    values_test = std::get<0>(tm_test);
+    indices_test = std::get<1>(tm_test);
 
     correct_bool_test = y_tensor_i_test == indices_test;
     correct_prediction = correct_bool_test.sum().item<int>();
 
-    acc = 1.0f * correct_prediction / Y_test.rows();
+    acc = 1.0f * (float)correct_prediction / (float)Y_test.rows();
     printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
     return EXIT_SUCCESS;
