@@ -29,6 +29,10 @@ def main():
     label_filename = ini["MNIST"].get("TRAIN_LABEL_FILE", "train-labels-idx1-ubyte")
     label_path = base_dir + "/" + label_filename
 
+    print(
+        f"{num_generations=} {max_items=} {save_img=} {alpha=} {hidden_layer_size=} {base_dir=} {save_dir=} {img_filename=} {img_path=} {label_filename=} {label_path=}"
+    )
+
     train_dataset = MNIST_Dataset(
         img_path,
         label_path,
@@ -36,6 +40,8 @@ def main():
         TRAIN_LABEL_MAGIC,
     )
     train_dataset.read_mnist_db(max_items)
+    print(f"{len(train_dataset._images)=}")
+    print(f"{train_dataset._images[4]._label=}")
 
     if save_img:
         train_dataset.save_dataset_as_png(save_dir)
@@ -47,6 +53,10 @@ def main():
     Y_train = MNIST_Dataset.get_Y(train_mat)
     X_train = MNIST_Dataset.get_X(train_mat)
     X_train /= 255.0
+    print(f"{Y_train[4]=}")
+    print(f"{X_train.shape=}")
+    print(f"{X_train[4, :]=}")
+
     Y_train = Y_train.astype(int)
 
     categories = np.max(Y_train) + 1
@@ -55,9 +65,6 @@ def main():
 
     neural_net = NeuralNet(X_train.shape[1], hidden_layer_size, categories)
     one_hot_Y = NeuralNet.one_hot(Y_train)
-
-    correct_prediction = 0
-    acc = 0.0
 
     for generation in range(num_generations):
         output = neural_net.forward_prop(X_train_T)
@@ -71,8 +78,14 @@ def main():
             )
 
         neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha)
+
+    output = neural_net.forward_prop(X_train_T)
+    predictions = NeuralNet.get_predictions(output)
+    correct_prediction = NeuralNet.get_correct_prediction(predictions, Y_train)
+    acc = NeuralNet.get_accuracy(correct_prediction, Y_train.size)
+
     print(
-        f"Final\tCorrect {correct_prediction}\tAccuracy: {NeuralNet.get_accuracy(NeuralNet.get_correct_prediction(NeuralNet.get_predictions(output), Y_train), Y_train.size):.4f}"
+        f"Final\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}"
     )
 
     save_dir = base_dir + "/test"
