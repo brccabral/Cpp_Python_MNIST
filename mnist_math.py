@@ -121,7 +121,7 @@ def main():
     predictions = NeuralNet.get_predictions(output)
     correct_prediction = NeuralNet.get_correct_prediction(predictions, Y_test)
     acc = NeuralNet.get_accuracy(correct_prediction, Y_test.size)
-    print(f"Test: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}")
+    print(f"Test: \tCorrect {correct_prediction}\tAccuracy: {acc:.4f}")
 
 
 if __name__ == "__main__":
