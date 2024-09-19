@@ -1,6 +1,7 @@
 MNIST_data/
 .venv/
 .vscode/
+cmake-build-*/
 .idea/
 build/
 build_dir/
@@ -16,6 +17,5 @@ dependencies
 *.pt
 *.odp#
 install/
-install_dir/
-install_win/
+install_*/
 *.srctrl*
