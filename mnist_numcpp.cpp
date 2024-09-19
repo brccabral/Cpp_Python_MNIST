@@ -83,5 +83,11 @@ int main()
     nc::NdArray<int> one_hot_Y = NeuralNetNC::one_hot_encode(Y_train);
     one_hot_Y.print();
 
+    nc::NdArray<float> output;
+    for (int generation = 0; generation < num_generations; generation++)
+    {
+        output = neural_net.forward_prop(X_train_T);
+    }
+    output.print();
     return 0;
 }

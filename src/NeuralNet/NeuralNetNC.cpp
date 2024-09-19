@@ -1,3 +1,4 @@
+#include <NeuralNet/NeuralNet.hpp>
 #include <NeuralNet/NeuralNetNC.hpp>
 
 
@@ -10,41 +11,26 @@ NeuralNetNC::NeuralNetNC(unsigned int num_features,
     W2 = nc::random::rand<float>({categories, hidden_layer_size}) - 0.5f;
     b2 = nc::random::rand<float>({categories, 1}) - 0.5f;
 }
-//
-// nc::NdArray<float> NeuralNetNC::ReLU(nc::NdArray<float> &Z)
-// {
-//     return Z.cwiseMax(0);
-// }
-//
-// nc::NdArray<float> NeuralNetNC::Softmax(nc::NdArray<float> &Z)
-// {
-//     nc::NdArray<float> e = Z.array().exp();
-//     nc::NdArray<float> s = e.colwise().sum();
-//     for (int c = 0; c < e.cols(); c++)
-//     {
-//         e.col(c) = e.col(c) / s(c);
-//     }
-//     return e;
-// }
-//
-// nc::NdArray<float> NeuralNetNC::forward_prop(nc::NdArray<float> &X)
-// {
-//     Z1 = W1 * X;
-//     for (int c = 0; c < Z1.cols(); c++)
-//     {
-//         Z1.col(c) = Z1.col(c) + b1;
-//     }
-//     A1 = ReLU(Z1);
-//
-//     Z2 = W2 * A1;
-//     for (int c = 0; c < Z2.cols(); c++)
-//     {
-//         Z2.col(c) = Z2.col(c) + b2;
-//     }
-//     A2 = Softmax(Z2);
-//
-//     return A2;
-// }
+
+nc::NdArray<float> NeuralNetNC::ReLU(nc::NdArray<float> &Z)
+{
+    return nc::maximum(Z, 0.0f);
+}
+
+nc::NdArray<float> NeuralNetNC::Softmax(nc::NdArray<float> &Z)
+{
+    return nc::exp(Z) / nc::sum(nc::exp(Z));
+}
+
+nc::NdArray<float> NeuralNetNC::forward_prop(nc::NdArray<float> &X)
+{
+    Z1 = W1.dot(X) + b1;
+    A1 = NeuralNetNC::ReLU(Z1);
+    Z2 = W2.dot(A1) + b2;
+    A2 = NeuralNetNC::Softmax(Z2);
+
+    return A2;
+}
 
 nc::NdArray<int> NeuralNetNC::one_hot_encode(nc::NdArray<int> &Y)
 {
@@ -58,13 +44,11 @@ nc::NdArray<int> NeuralNetNC::one_hot_encode(nc::NdArray<int> &Y)
     return one_hot_Y.transpose();
 }
 
-// nc::NdArray<float> NeuralNetNC::deriv_ReLU(nc::NdArray<float> &Z)
-// {
-//     Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> b2 = (Z.array() > 0);
-//     return b2.unaryExpr([](const bool x)
-//                         { return x ? 1.0f : 0.0f; });
-// }
-//
+nc::NdArray<bool> NeuralNetNC::deriv_ReLU(nc::NdArray<float> &Z)
+{
+    return Z > 0.0f;
+}
+
 // void NeuralNetNC::back_prop(
 //     nc::NdArray<float> &X,
 //     nc::NdArray<float> &Y,

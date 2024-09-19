@@ -37,7 +37,7 @@ public:
 
     static nc::NdArray<int> one_hot_encode(nc::NdArray<int> &Y);
 
-    static nc::NdArray<float> deriv_ReLU(nc::NdArray<float> &Z);
+    static nc::NdArray<bool> deriv_ReLU(nc::NdArray<float> &Z);
 
     void back_prop(
         nc::NdArray<float> &X,
