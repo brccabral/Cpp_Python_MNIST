@@ -71,27 +71,18 @@ nc::NdArray<bool> NeuralNetNC::deriv_ReLU(nc::NdArray<float> &Z)
 //     b2 = b2.array() - db2 * alpha;
 // }
 //
-// nc::NdArray<float> NeuralNetNC::get_predictions(nc::NdArray<float> &P)
-// {
-//     nc::NdArray<float> p = nc::NdArray<float>::Zero(P.cols()).array() - 1;
-//     Eigen::Index maxIndex;
-//     for (int c = 0; c < P.cols(); c++)
-//     {
-//         P.col(c).maxCoeff(&maxIndex);
-//         p(c) = maxIndex;
-//     }
-//     return p;
-// }
+nc::NdArray<unsigned> NeuralNetNC::get_predictions(nc::NdArray<float> &P)
+{
+    return nc::argmax(P, nc::Axis::COL);
+}
+
 //
-// int NeuralNetNC::get_correct_prediction(nc::NdArray<float> &p, nc::NdArray<float> &y)
-// {
-//     Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> e = p.cwiseEqual(y);
-//     Eigen::VectorXi e_int = e.unaryExpr([](const bool x)
-//                                         { return x ? 1 : 0; });
-//     return e_int.sum();
-// }
-//
-// float NeuralNetNC::get_accuracy(int correct_prediction, int size)
-// {
-//     return 1.0f * correct_prediction / size;
-// }
+int NeuralNetNC::get_correct_prediction(nc::NdArray<unsigned> &p, nc::NdArray<int> &y)
+{
+    return nc::sum(p == y.astype<unsigned>()).item();
+}
+
+float NeuralNetNC::get_accuracy(int correct_prediction, int size)
+{
+    return 1.0f * correct_prediction / size;
+}

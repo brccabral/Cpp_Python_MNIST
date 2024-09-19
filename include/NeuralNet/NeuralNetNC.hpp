@@ -45,9 +45,9 @@ public:
         nc::NdArray<float> &one_hot_Y,
         float alpha);
 
-    static nc::NdArray<float> get_predictions(nc::NdArray<float> &P);
+    static nc::NdArray<unsigned> get_predictions(nc::NdArray<float> &P);
 
-    static int get_correct_prediction(nc::NdArray<float> &p, nc::NdArray<float> &y);
+    static int get_correct_prediction(nc::NdArray<unsigned> &p, nc::NdArray<int> &y);
 
     static float get_accuracy(int correct_prediction, int size);
 };

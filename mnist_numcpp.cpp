@@ -84,10 +84,24 @@ int main()
     one_hot_Y.print();
 
     nc::NdArray<float> output;
+
+    int correct_prediction = 0;
+    float acc = 0.0f;
+
+    nc::NdArray<unsigned> prediction;
+
     for (int generation = 0; generation < num_generations; generation++)
     {
         output = neural_net.forward_prop(X_train_T);
+
+        if (generation % 50 == 0)
+        {
+            prediction = NeuralNetNC::get_predictions(output);
+            correct_prediction = NeuralNetNC::get_correct_prediction(prediction, Y_train);
+            acc = NeuralNetNC::get_accuracy(correct_prediction, Y_train.size());
+            printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
+        }
     }
-    output.print();
+
     return 0;
 }
