@@ -1,6 +1,7 @@
 #include "NumCpp.hpp"
 #include <SimpleIni/SimpleIni.h>
 #include <MNIST/MNIST_Dataset.hpp>
+#include <NeuralNet/NeuralNetNC.hpp>
 
 #define PRINT_VAR(x) #x << "=" << x
 
@@ -64,14 +65,23 @@ int main()
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 
     nc::NdArray<float> train_mat = train_dataset.to_numcpp();
-    nc::NdArray<float> Y_train = MNIST_Dataset::get_Y(train_mat);
+    nc::NdArray<float> Y_train_float = MNIST_Dataset::get_Y(train_mat);
     nc::NdArray<float> X_train = MNIST_Dataset::get_X(train_mat);
+    X_train /= 255.0f;
 
-    std::cout << Y_train(4, 0) << std::endl;
-    std::cout << X_train.numRows() << "," << X_train.numCols() << std::endl;
-    for (int c = 0; c < X_train.numCols(); c++)
-        std::cout << X_train(4, c) << ", ";
-    std::cout << std::endl;
+    std::cout << Y_train_float(4, 0) << std::endl;
+    std::cout << X_train.shape() << std::endl;
+    std::cout << X_train(4, X_train.cSlice()) << std::endl;
+
+    nc::NdArray<int> Y_train = Y_train_float.astype<int>();
+
+    int categories = nc::max(Y_train).item() + 1;
+
+    nc::NdArray<float> X_train_T = X_train.transpose();
+
+    NeuralNetNC neural_net = NeuralNetNC(X_train.numCols(), hidden_layer_size, categories);
+    nc::NdArray<int> one_hot_Y = NeuralNetNC::one_hot_encode(Y_train);
+    one_hot_Y.print();
 
     return 0;
 }
