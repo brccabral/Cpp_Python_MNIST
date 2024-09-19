@@ -13,7 +13,7 @@
 
 int main()
 {
-    std::srand((unsigned int)time(0));
+    nc::random::seed((int)time(nullptr));
 
     CSimpleIniA ini;
     ini.SetUnicode();
@@ -65,10 +65,10 @@ int main()
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 
     nc::NdArray<float> train_mat = train_dataset.to_numcpp();
+
     nc::NdArray<float> Y_train_float = MNIST_Dataset::get_Y(train_mat);
     nc::NdArray<float> X_train = MNIST_Dataset::get_X(train_mat);
     X_train /= 255.0f;
-
     std::cout << Y_train_float(4, 0) << std::endl;
     std::cout << X_train.shape() << std::endl;
     std::cout << X_train(4, X_train.cSlice()) << std::endl;
