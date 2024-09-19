@@ -20,7 +20,8 @@ nc::NdArray<float> NeuralNetNC::ReLU(const nc::NdArray<float> &Z)
 nc::NdArray<float> NeuralNetNC::Softmax(const nc::NdArray<float> &Z)
 {
     const auto e = nc::exp(Z);
-    return e / nc::sum(e);
+    const auto s = nc::sum(e, nc::Axis::ROW);
+    return e / s;
 }
 
 nc::NdArray<float> NeuralNetNC::forward_prop(const nc::NdArray<float> &X)

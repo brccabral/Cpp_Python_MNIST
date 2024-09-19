@@ -14,7 +14,9 @@ class NeuralNet:
 
     @staticmethod
     def softmax(Z: np.ndarray) -> np.ndarray:
-        return np.exp(Z) / sum(np.exp(Z))
+        e = np.exp(Z)
+        s = np.sum(e, 0)
+        return e / s
 
     def forward_prop(self, X: np.ndarray) -> np.ndarray:
         self.Z1: np.ndarray = self.W1.dot(X) + self.b1
