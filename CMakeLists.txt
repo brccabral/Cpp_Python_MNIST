@@ -12,7 +12,7 @@ find_package(Eigen3 REQUIRED)
 find_package(Torch REQUIRED)
 find_package(OpenCV REQUIRED)
 
-include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${EIGEN3_INCLUDE_DIRS})
+include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${PROJECT_SOURCE_DIR}/dependencies/nc ${EIGEN3_INCLUDE_DIRS})
 
 add_library(neuralnet  
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
@@ -43,6 +43,12 @@ install(TARGETS mnist_example
 add_executable(mnist_batches mnist_batches.cpp )
 target_link_libraries(mnist_batches "${TORCH_LIBRARIES}")
 install(TARGETS mnist_batches
+        CONFIGURATIONS Debug;Release
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+
+add_executable(mnist_numcpp mnist_numcpp.cpp)
+target_link_libraries(mnist_numcpp "mnist")
+install(TARGETS mnist_numcpp
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 

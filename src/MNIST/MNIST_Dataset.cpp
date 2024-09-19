@@ -45,6 +45,23 @@ Eigen::MatrixXf MNIST_Dataset::to_matrix()
         }
     }
     return mat;
+}
+
+nc::NdArray<float> MNIST_Dataset::to_numcpp()
+{
+    int number_images = _images.size();
+    int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
+
+    nc::NdArray<float> mat(number_images, number_pixels);
+    for (int img = 0; img < number_images; img++)
+    {
+        mat(img, 0) = float(_images.at(img)._label);
+        for (int pix = 0; pix < number_pixels; pix++)
+        {
+            mat(img, pix + 1) = (unsigned char)_images.at(img)._pixels[pix];
+        }
+    }
+    return mat;
 };
 
 void MNIST_Dataset::read_mnist_db(const int max_items)
@@ -138,7 +155,18 @@ Eigen::MatrixXf MNIST_Dataset::get_X(Eigen::MatrixXf &mat)
     return mat.rightCols(mat.cols() - 1);
 }
 
+nc::NdArray<float> MNIST_Dataset::get_X(nc::NdArray<float>& mat)
+{
+    int cols = mat.numCols();
+    return mat(mat.rSlice(), {1, cols});
+}
+
 Eigen::VectorXf MNIST_Dataset::get_Y(Eigen::MatrixXf &mat)
 {
     return mat.leftCols(1);
+}
+
+nc::NdArray<float> MNIST_Dataset::get_Y(nc::NdArray<float>& mat)
+{
+    return mat(mat.rSlice(), {0});
 }

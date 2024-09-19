@@ -4,6 +4,7 @@
 #include <vector>
 #include "MNIST_Image.hpp"
 #include <Eigen/Dense>
+#include <NumCpp.hpp>
 
 class MNIST_Dataset
 {
@@ -24,8 +25,11 @@ public:
     void save_dataset_as_csv(std::string save_filename);
 
     Eigen::MatrixXf to_matrix();
+    nc::NdArray<float> to_numcpp();
     static Eigen::MatrixXf get_X(Eigen::MatrixXf &mat);
+    static nc::NdArray<float> get_X(nc::NdArray<float> &mat);
     static Eigen::VectorXf get_Y(Eigen::MatrixXf &mat);
+    static nc::NdArray<float> get_Y(nc::NdArray<float> &mat);
 
     void read_mnist_db(const int max_items);
     size_t get_images_length();
