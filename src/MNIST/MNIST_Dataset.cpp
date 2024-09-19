@@ -49,10 +49,10 @@ Eigen::MatrixXf MNIST_Dataset::to_matrix()
 
 nc::NdArray<float> MNIST_Dataset::to_numcpp()
 {
-    int number_images = _images.size();
-    int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
+    const int number_images = _images.size();
+    const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
 
-    nc::NdArray<float> mat(number_images, number_pixels);
+    nc::NdArray<float> mat(number_images, number_pixels + 1);
     for (int img = 0; img < number_images; img++)
     {
         mat(img, 0) = float(_images.at(img)._label);

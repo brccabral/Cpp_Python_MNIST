@@ -81,7 +81,6 @@ int main()
 
     NeuralNetNC neural_net = NeuralNetNC(X_train.numCols(), hidden_layer_size, categories);
     nc::NdArray<int> one_hot_Y = NeuralNetNC::one_hot_encode(Y_train);
-    one_hot_Y.print();
 
     nc::NdArray<float> output;
 
@@ -101,6 +100,8 @@ int main()
             acc = NeuralNetNC::get_accuracy(correct_prediction, Y_train.size());
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
         }
+
+        neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha);
     }
 
     return 0;

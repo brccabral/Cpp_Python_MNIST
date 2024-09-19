@@ -12,17 +12,18 @@ NeuralNetNC::NeuralNetNC(unsigned int num_features,
     b2 = nc::random::rand<float>({categories, 1}) - 0.5f;
 }
 
-nc::NdArray<float> NeuralNetNC::ReLU(nc::NdArray<float> &Z)
+nc::NdArray<float> NeuralNetNC::ReLU(const nc::NdArray<float> &Z)
 {
     return nc::maximum(Z, 0.0f);
 }
 
-nc::NdArray<float> NeuralNetNC::Softmax(nc::NdArray<float> &Z)
+nc::NdArray<float> NeuralNetNC::Softmax(const nc::NdArray<float> &Z)
 {
-    return nc::exp(Z) / nc::sum(nc::exp(Z));
+    const auto e = nc::exp(Z);
+    return e / nc::sum(e);
 }
 
-nc::NdArray<float> NeuralNetNC::forward_prop(nc::NdArray<float> &X)
+nc::NdArray<float> NeuralNetNC::forward_prop(const nc::NdArray<float> &X)
 {
     Z1 = W1.dot(X) + b1;
     A1 = NeuralNetNC::ReLU(Z1);
@@ -40,49 +41,46 @@ nc::NdArray<int> NeuralNetNC::one_hot_encode(nc::NdArray<int> &Y)
         one_hot_Y(i, Y(i, 0)) = 1;
     }
     // one_hot_Y.put(nc::arange(Y.size()), Y, 1);
-    one_hot_Y.print();
     return one_hot_Y.transpose();
 }
 
-nc::NdArray<bool> NeuralNetNC::deriv_ReLU(nc::NdArray<float> &Z)
+nc::NdArray<float> NeuralNetNC::deriv_ReLU(const nc::NdArray<float> &Z)
 {
-    return Z > 0.0f;
+    return (Z > 0.0f).astype<float>();
 }
 
-// void NeuralNetNC::back_prop(
-//     nc::NdArray<float> &X,
-//     nc::NdArray<float> &Y,
-//     nc::NdArray<float> &one_hot_Y,
-//     float alpha)
-// {
-//     int y_size = Y.rows();
-//
-//     nc::NdArray<float> dZ2 = A2 - one_hot_Y;
-//     dW2 = dZ2 * A1.transpose() / y_size;
-//     db2 = dZ2.sum() / y_size;
-//
-//     nc::NdArray<float> dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
-//     dW1 = dZ1 * X.transpose() / y_size;
-//     db1 = dZ1.sum() / y_size;
-//
-//     W1 = W1 - dW1 * alpha;
-//     b1 = b1.array() - db1 * alpha;
-//     W2 = W2 - dW2 * alpha;
-//     b2 = b2.array() - db2 * alpha;
-// }
-//
-nc::NdArray<unsigned> NeuralNetNC::get_predictions(nc::NdArray<float> &P)
+void NeuralNetNC::back_prop(
+    const nc::NdArray<float> &X,
+    const nc::NdArray<int> &Y,
+    const nc::NdArray<int> &one_hot_Y,
+    const float alpha)
 {
-    return nc::argmax(P, nc::Axis::COL);
+    const float m = Y.size();
+    const auto dZ2 = A2 - one_hot_Y.astype<float>();
+    const auto dW2 = 1.0f / m * dZ2.dot(A1.transpose());
+    const auto db2 = (1.0f / m * nc::sum(dZ2)).item();
+
+    const auto dZ1 = W2.transpose().dot(dZ2) * NeuralNetNC::deriv_ReLU(Z1);
+    const auto dW1 = 1.0f / m * dZ1.dot(X.transpose());
+    const auto db1 = (1.0f / m * nc::sum(dZ1)).item();
+
+    W1 = W1 - alpha * dW1;
+    b1 = b1 - alpha * db1;
+    W2 = W2 - alpha * dW2;
+    b2 = b2 - alpha * db2;
 }
 
-//
-int NeuralNetNC::get_correct_prediction(nc::NdArray<unsigned> &p, nc::NdArray<int> &y)
+nc::NdArray<unsigned> NeuralNetNC::get_predictions(const nc::NdArray<float> &P)
 {
-    return nc::sum(p == y.astype<unsigned>()).item();
+    return nc::argmax(P, nc::Axis::ROW);
 }
 
-float NeuralNetNC::get_accuracy(int correct_prediction, int size)
+int NeuralNetNC::get_correct_prediction(const nc::NdArray<unsigned> &p, const nc::NdArray<int> &y)
+{
+    return nc::sum((p == y.astype<unsigned>().transpose()).astype<int>()).item();
+}
+
+float NeuralNetNC::get_accuracy(const int correct_prediction, const int size)
 {
     return 1.0f * correct_prediction / size;
 }

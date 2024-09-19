@@ -18,36 +18,30 @@ private:
     nc::NdArray<float> Z2;
     nc::NdArray<float> A2;
 
-    // gradients
-    nc::NdArray<float> dW1;
-    float db1;
-    nc::NdArray<float> dW2;
-    float db2;
-
 public:
     NeuralNetNC(unsigned int num_features,
               unsigned int hidden_layer_size,
               unsigned int categories);
 
-    static nc::NdArray<float> ReLU(nc::NdArray<float> &Z);
+    static nc::NdArray<float> ReLU(const nc::NdArray<float> &Z);
 
-    static nc::NdArray<float> Softmax(nc::NdArray<float> &Z);
+    static nc::NdArray<float> Softmax(const nc::NdArray<float> &Z);
 
-    nc::NdArray<float> forward_prop(nc::NdArray<float> &X);
+    nc::NdArray<float> forward_prop(const nc::NdArray<float> &X);
 
     static nc::NdArray<int> one_hot_encode(nc::NdArray<int> &Y);
 
-    static nc::NdArray<bool> deriv_ReLU(nc::NdArray<float> &Z);
+    static nc::NdArray<float> deriv_ReLU(const nc::NdArray<float> &Z);
 
     void back_prop(
-        nc::NdArray<float> &X,
-        nc::NdArray<float> &Y,
-        nc::NdArray<float> &one_hot_Y,
+        const nc::NdArray<float> &X,
+        const nc::NdArray<int> &Y,
+        const nc::NdArray<int> &one_hot_Y,
         float alpha);
 
-    static nc::NdArray<unsigned> get_predictions(nc::NdArray<float> &P);
+    static nc::NdArray<unsigned> get_predictions(const nc::NdArray<float> &P);
 
-    static int get_correct_prediction(nc::NdArray<unsigned> &p, nc::NdArray<int> &y);
+    static int get_correct_prediction(const nc::NdArray<unsigned> &p, const nc::NdArray<int> &y);
 
     static float get_accuracy(int correct_prediction, int size);
 };
