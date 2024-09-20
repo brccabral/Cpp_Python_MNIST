@@ -12,7 +12,8 @@ MNIST_Dataset::MNIST_Dataset(
         const char *image_filename, const char *label_filename, const int image_magic,
         const int label_magic)
     : _image_filename(image_filename), _label_filename(label_filename), _image_magic(image_magic),
-      _label_magic(label_magic){}
+      _label_magic(label_magic)
+{}
 
 void MNIST_Dataset::save_dataset_as_png(const std::string &save_dir)
 {
@@ -53,6 +54,24 @@ nc::NdArray<float> MNIST_Dataset::to_numcpp() const
     const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
 
     nc::NdArray<float> mat(number_images, number_pixels + 1);
+    for (int img = 0; img < number_images; img++)
+    {
+        mat(img, 0) = float(_images.at(img)._label);
+        for (int pix = 0; pix < number_pixels; pix++)
+        {
+            mat(img, pix + 1) = (unsigned char) _images.at(img)._pixels[pix];
+        }
+    }
+    return mat;
+}
+
+xt::xarray<float> MNIST_Dataset::to_xtensor() const
+{
+    const size_t number_images = _images.size();
+    const size_t number_pixels = _images.at(0)._rows * _images.at(0)._cols;
+
+    const std::vector<size_t> shape = {number_images, number_pixels + 1};
+    xt::xarray<float> mat(shape);
     for (int img = 0; img < number_images; img++)
     {
         mat(img, 0) = float(_images.at(img)._label);

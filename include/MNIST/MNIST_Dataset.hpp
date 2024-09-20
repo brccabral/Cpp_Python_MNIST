@@ -1,10 +1,10 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
 #include "MNIST_Image.hpp"
 #include <Eigen/Dense>
 #include <NumCpp.hpp>
+#include <xtensor/xarray.hpp>
 
 class MNIST_Dataset
 {
@@ -25,8 +25,9 @@ public:
     void save_dataset_as_png(const std::string &save_dir);
     void save_dataset_as_csv(const std::string &save_filename);
 
-    Eigen::MatrixXf to_matrix() const;
-    nc::NdArray<float> to_numcpp() const;
+    [[nodiscard]] Eigen::MatrixXf to_matrix() const;
+    [[nodiscard]] nc::NdArray<float> to_numcpp() const;
+    [[nodiscard]] xt::xarray<float> to_xtensor() const;
     static Eigen::MatrixXf get_X(Eigen::MatrixXf &mat);
     static nc::NdArray<float> get_X(const nc::NdArray<float> &mat);
     static Eigen::VectorXf get_Y(Eigen::MatrixXf &mat);
