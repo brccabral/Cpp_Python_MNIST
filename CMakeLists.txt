@@ -1,8 +1,3 @@
-# cmake -DCMAKE_PREFIX_PATH="/path/to//build_opencv" -DCMAKE_BUILD_TYPE=Release ../..
-# cmake -DCMAKE_PREFIX_PATH="/path/to//build_opencv" -DCMAKE_BUILD_TYPE=Debug ../..
-# cmake --help-module FindOpenCV
-# cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 ../..
-
 cmake_minimum_required(VERSION 3.14)
 project(MNISTCpp)
 
@@ -12,18 +7,19 @@ find_package(Eigen3 REQUIRED)
 find_package(Torch REQUIRED)
 find_package(OpenCV REQUIRED)
 
-include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${PROJECT_SOURCE_DIR}/dependencies/nc ${EIGEN3_INCLUDE_DIRS})
-
 add_library(neuralnet
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
+target_include_directories(neuralnet PUBLIC ${PROJECT_SOURCE_DIR}/include ${EIGEN3_INCLUDE_DIRS})
 
 add_library(neuralnetnc
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNetNC.cpp)
+target_include_directories(neuralnetnc PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies/nc)
 
 add_library(mnist
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Image.cpp)
 target_link_libraries(mnist ${OpenCV_LIBRARIES})
+target_include_directories(mnist PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${PROJECT_SOURCE_DIR}/dependencies/nc ${EIGEN3_INCLUDE_DIRS})
 
 add_executable(mnist_math mnist_math.cpp)
 target_link_libraries(mnist_math mnist;neuralnet)
@@ -38,12 +34,14 @@ install(TARGETS mnist_torch
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 add_executable(mnist_example mnist_example.cpp)
+target_include_directories(mnist_example PUBLIC ${PROJECT_SOURCE_DIR}/dependencies)
 target_link_libraries(mnist_example "${TORCH_LIBRARIES}")
 install(TARGETS mnist_example
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 add_executable(mnist_batches mnist_batches.cpp)
+target_include_directories(mnist_batches PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies)
 target_link_libraries(mnist_batches "${TORCH_LIBRARIES}")
 install(TARGETS mnist_batches
         CONFIGURATIONS Debug;Release
