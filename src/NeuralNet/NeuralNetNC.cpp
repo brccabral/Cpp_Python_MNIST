@@ -1,4 +1,3 @@
-#include <NeuralNet/NeuralNet.hpp>
 #include <NeuralNet/NeuralNetNC.hpp>
 
 
@@ -58,12 +57,12 @@ void NeuralNetNC::back_prop(
 {
     const float m = Y.size();
     const auto dZ2 = A2 - one_hot_Y.astype<float>();
-    const auto dW2 = 1.0f / m * dZ2.dot(A1.transpose());
-    const auto db2 = (1.0f / m * nc::sum(dZ2)).item();
+    dW2 = 1.0f / m * dZ2.dot(A1.transpose());
+    db2 = (1.0f / m * nc::sum(dZ2)).item();
 
     const auto dZ1 = W2.transpose().dot(dZ2) * NeuralNetNC::deriv_ReLU(Z1);
-    const auto dW1 = 1.0f / m * dZ1.dot(X.transpose());
-    const auto db1 = (1.0f / m * nc::sum(dZ1)).item();
+    dW1 = 1.0f / m * dZ1.dot(X.transpose());
+    db1 = (1.0f / m * nc::sum(dZ1)).item();
 
     W1 = W1 - alpha * dW1;
     b1 = b1 - alpha * db1;
