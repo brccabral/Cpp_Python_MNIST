@@ -4,7 +4,7 @@
 # cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=1 ../..
 
 cmake_minimum_required(VERSION 3.14)
-project( MNISTCpp )
+project(MNISTCpp)
 
 include(GNUInstallDirs)
 
@@ -14,42 +14,45 @@ find_package(OpenCV REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${PROJECT_SOURCE_DIR}/dependencies/nc ${EIGEN3_INCLUDE_DIRS})
 
-add_library(neuralnet  
+add_library(neuralnet
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
 
 add_library(neuralnetnc
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNetNC.cpp)
 
-add_library(mnist  
-        ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp 
+add_library(mnist
+        ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Image.cpp)
 target_link_libraries(mnist ${OpenCV_LIBRARIES})
 
-add_executable(mnist_math mnist_math.cpp )
+add_executable(mnist_math mnist_math.cpp)
 target_link_libraries(mnist_math mnist;neuralnet)
 install(TARGETS mnist_math
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
-add_executable(mnist_torch mnist_torch.cpp )
+add_executable(mnist_torch mnist_torch.cpp)
 target_link_libraries(mnist_torch "mnist;${TORCH_LIBRARIES}")
 install(TARGETS mnist_torch
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
-add_executable(mnist_example mnist_example.cpp )
+add_executable(mnist_example mnist_example.cpp)
 target_link_libraries(mnist_example "${TORCH_LIBRARIES}")
 install(TARGETS mnist_example
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
-add_executable(mnist_batches mnist_batches.cpp )
+add_executable(mnist_batches mnist_batches.cpp)
 target_link_libraries(mnist_batches "${TORCH_LIBRARIES}")
 install(TARGETS mnist_batches
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 add_executable(mnist_numcpp mnist_numcpp.cpp)
+if (NUMCPP_USE_MULTITHREAD)
+    target_compile_definitions(mnist_numcpp PUBLIC NUMCPP_USE_MULTITHREAD)
+endif ()
 target_link_libraries(mnist_numcpp "mnist;neuralnetnc")
 install(TARGETS mnist_numcpp
         CONFIGURATIONS Debug;Release
