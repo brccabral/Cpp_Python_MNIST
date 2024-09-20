@@ -6,6 +6,7 @@ include(GNUInstallDirs)
 find_package(Eigen3 REQUIRED)
 find_package(Torch REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(xtensor REQUIRED)
 
 add_library(neuralnet
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
@@ -53,6 +54,13 @@ if (NUMCPP_USE_MULTITHREAD)
 endif ()
 target_link_libraries(mnist_numcpp "mnist;neuralnetnc")
 install(TARGETS mnist_numcpp
+        CONFIGURATIONS Debug;Release
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+
+add_executable(mnist_xtensor mnist_xtensor.cpp)
+target_include_directories(mnist_xtensor PUBLIC ${xtensor_INCLUDE_DIRS})
+target_link_libraries(mnist_xtensor "mnist;neuralnetnc;xtensor")
+install(TARGETS mnist_xtensor
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
