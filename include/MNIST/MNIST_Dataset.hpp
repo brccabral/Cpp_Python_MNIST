@@ -30,8 +30,10 @@ public:
     [[nodiscard]] xt::xarray<float> to_xtensor() const;
     static Eigen::MatrixXf get_X(Eigen::MatrixXf &mat);
     static nc::NdArray<float> get_X(const nc::NdArray<float> &mat);
+    static xt::xarray<float> get_X(const xt::xarray<float> &mat);
     static Eigen::VectorXf get_Y(Eigen::MatrixXf &mat);
     static nc::NdArray<float> get_Y(const nc::NdArray<float> &mat);
+    static xt::xarray<float> get_Y(const xt::xarray<float> &mat);
 
     void read_mnist_db(const int max_items);
     size_t get_images_length() const;

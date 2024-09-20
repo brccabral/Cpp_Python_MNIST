@@ -1,6 +1,7 @@
 #include <MNIST/MNIST_Dataset.hpp>
 #include <fstream>
 #include <stdexcept>
+#include <xtensor/xview.hpp>
 
 uint32_t swap_endian(uint32_t val)
 {
@@ -180,6 +181,12 @@ nc::NdArray<float> MNIST_Dataset::get_X(const nc::NdArray<float> &mat)
     return mat(mat.rSlice(), {1, cols});
 }
 
+xt::xarray<float> MNIST_Dataset::get_X(const xt::xarray<float> &mat)
+{
+    using namespace xt::placeholders; // to enable _ syntax
+    return xt::view(mat, xt::all(), xt::range(1, _));
+}
+
 Eigen::VectorXf MNIST_Dataset::get_Y(Eigen::MatrixXf &mat)
 {
     return mat.leftCols(1);
@@ -188,4 +195,10 @@ Eigen::VectorXf MNIST_Dataset::get_Y(Eigen::MatrixXf &mat)
 nc::NdArray<float> MNIST_Dataset::get_Y(const nc::NdArray<float> &mat)
 {
     return mat(mat.rSlice(), {0});
+}
+
+xt::xarray<float> MNIST_Dataset::get_Y(const xt::xarray<float> &mat)
+{
+    using namespace xt::placeholders; // to enable _ syntax
+    return xt::view(mat, xt::all(), 0);
 }

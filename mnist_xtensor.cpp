@@ -61,7 +61,12 @@ int main()
 
     auto train_mat = train_dataset.to_xtensor();
 
-    std::cout << train_mat << "\n";
+    xt::xarray<float> Y_train_float = MNIST_Dataset::get_Y(train_mat);
+    xt::xarray<float> X_train = MNIST_Dataset::get_X(train_mat);
+    X_train /= 255.0f;
+    std::cout << Y_train_float(4) << std::endl;
+    std::cout << X_train.shape()[0] << "," << X_train.shape()[1] << std::endl;
+    std::cout << xt::view(X_train, 4, xt::all()) << std::endl;
 
     return 0;
 }
