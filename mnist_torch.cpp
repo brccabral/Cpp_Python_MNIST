@@ -13,29 +13,39 @@
 #define TEST_LABEL_MAGIC 2049
 
 // https://discuss.pytorch.org/t/data-transfer-between-libtorch-c-and-eigen/54156/6
-torch::Tensor eigenMatrixToTorchTensor(Eigen::MatrixXf e)
+torch::Tensor eigenMatrixToTorchTensor(const Eigen::MatrixXf &e)
 {
-    auto t = torch::empty({e.cols(), e.rows()});
-    float *data = t.data_ptr<float>();
+    const auto t = torch::empty({e.cols(), e.rows()});
+    float *data = t.data_ptr<float>(); // NOLINT(*-use-auto)
 
+    // the `data` is a pointer, and Eigen::Map<> populates `t` in-place
+    // ReSharper disable once CppDFAUnusedValue
+    // ReSharper disable once CppEntityAssignedButNoRead
+    // ReSharper disable once CppDFAUnreadVariable
     Eigen::Map<Eigen::MatrixXf> ef(data, t.size(1), t.size(0));
+    // ReSharper disable once CppDFAUnusedValue
     ef = e.cast<float>();
     return t.transpose(0, 1);
 }
 
-torch::Tensor eigenVectorToTorchTensor(Eigen::VectorXf e)
+torch::Tensor eigenVectorToTorchTensor(const Eigen::VectorXf &e)
 {
     auto t = torch::empty({e.rows()});
-    float *data = t.data_ptr<float>();
+    float *data = t.data_ptr<float>(); // NOLINT(*-use-auto)
 
+    // the `data` is a pointer, and Eigen::Map<> populates `t` in-place
+    // ReSharper disable once CppDFAUnusedValue
+    // ReSharper disable once CppEntityAssignedButNoRead
+    // ReSharper disable once CppDFAUnreadVariable
     Eigen::Map<Eigen::VectorXf> ef(data, t.size(0), 1);
+    // ReSharper disable once CppDFAUnusedValue
     ef = e.cast<float>();
     return t;
 }
 
-int main(int argc, char *argv[])
+int main()
 {
-    std::srand((unsigned int)time(0));
+    std::srand((unsigned int) time(nullptr)); // NOLINT(*-msc51-cpp)
 
     CSimpleIniA ini;
     ini.SetUnicode();
@@ -45,7 +55,7 @@ int main(int argc, char *argv[])
     {
         std::cout << "Error loading config.ini" << std::endl;
         return EXIT_FAILURE;
-    };
+    }
     SI_ASSERT(rc == SI_OK);
 
     int num_generations = ini.GetLongValue("MNIST", "GENERATIONS", 5);
@@ -59,29 +69,23 @@ int main(int argc, char *argv[])
     std::string save_dir = base_dir + "/train";
     std::string img_filename = ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images-idx3-ubyte");
     std::string img_path = base_dir + "/" + img_filename;
-    std::string label_filename = ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels-idx1-ubyte");
+    std::string label_filename =
+            ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels-idx1-ubyte");
     std::string label_path = base_dir + "/" + label_filename;
 
-    std::cout << PRINT_VAR(num_generations) << " "
-              << PRINT_VAR(max_items) << " "
-              << PRINT_VAR(save_img) << " "
-              << PRINT_VAR(alpha) << " "
-              << PRINT_VAR(hidden_layer_size) << " "
-              << PRINT_VAR(base_dir) << " "
-              << PRINT_VAR(save_dir) << " "
-              << PRINT_VAR(img_filename) << " "
-              << PRINT_VAR(img_path) << " "
-              << PRINT_VAR(label_filename) << " "
-              << PRINT_VAR(label_path) << " "
+    std::cout << PRINT_VAR(num_generations) << " " << PRINT_VAR(max_items) << " "
+              << PRINT_VAR(save_img) << " " << PRINT_VAR(alpha) << " "
+              << PRINT_VAR(hidden_layer_size) << " " << PRINT_VAR(base_dir) << " "
+              << PRINT_VAR(save_dir) << " " << PRINT_VAR(img_filename) << " " << PRINT_VAR(img_path)
+              << " " << PRINT_VAR(label_filename) << " " << PRINT_VAR(label_path) << " "
               << std::endl;
 
     std::cout << "Reading dataset file" << std::endl;
-    MNIST_Dataset train_dataset(img_path.c_str(), label_path.c_str(), TRAIN_IMAGE_MAGIC, TRAIN_LABEL_MAGIC);
+    MNIST_Dataset train_dataset(
+            img_path.c_str(), label_path.c_str(), TRAIN_IMAGE_MAGIC, TRAIN_LABEL_MAGIC);
     train_dataset.read_mnist_db(max_items);
-    std::cout << PRINT_VAR(train_dataset.get_images_length())
-              << std::endl;
-    std::cout << PRINT_VAR(train_dataset.get_label_from_index(4))
-              << std::endl;
+    std::cout << PRINT_VAR(train_dataset.get_images_length()) << std::endl;
+    std::cout << PRINT_VAR(train_dataset.get_label_from_index(4)) << std::endl;
 
     if (save_img)
         train_dataset.save_dataset_as_png(save_dir);
@@ -115,13 +119,13 @@ int main(int argc, char *argv[])
 
     x_tensor_train.set_requires_grad(true);
 
-    Net net = Net(X_train.cols(), hidden_layer_size, categories);
+    auto net = Net(X_train.cols(), hidden_layer_size, categories);
     net.train();
 
     torch::optim::SGD optimizer(net.parameters(), /*lr=*/alpha);
     torch::nn::NLLLoss loss_fn;
 
-    torch::Tensor values_train, indices_train, prediction_train, correct_bool_train;
+    torch::Tensor indices_train, prediction_train, correct_bool_train;
     std::tuple<torch::Tensor, torch::Tensor> tm_train;
     int correct_prediction = 0;
     float acc = 0.0f;
@@ -137,20 +141,19 @@ int main(int argc, char *argv[])
         if (generation % 50 == 0)
         {
             tm_train = torch::max(prediction_train, 1);
-            values_train = std::get<0>(tm_train);
             indices_train = std::get<1>(tm_train);
 
             correct_bool_train = y_tensor_i_train == indices_train;
             correct_prediction = correct_bool_train.sum().item<int>();
 
-            acc = 1.0f * (float)correct_prediction / (float)Y_train.rows();
-            printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
+            acc = 1.0f * (float) correct_prediction / (float) Y_train.rows();
+            printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction,
+                   acc);
         }
     }
     prediction_train = net.forward(x_tensor_train);
 
     tm_train = torch::max(prediction_train, 1);
-    values_train = std::get<0>(tm_train);
     indices_train = std::get<1>(tm_train);
 
     correct_bool_train = y_tensor_train == indices_train;
@@ -166,7 +169,8 @@ int main(int argc, char *argv[])
     label_path = base_dir + "/" + label_filename;
 
     net.eval();
-    MNIST_Dataset test_dataset(img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
+    MNIST_Dataset test_dataset(
+            img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
     test_dataset.read_mnist_db(max_items);
 
     if (save_img)
@@ -187,19 +191,21 @@ int main(int argc, char *argv[])
     std::cout << x_tensor_test.sizes() << std::endl;
     std::cout << y_tensor_test.sizes() << std::endl;
 
-    torch::Tensor values_test, indices_test, prediction_test, correct_bool_test;
+    torch::Tensor indices_test, prediction_test, correct_bool_test;
     std::tuple<torch::Tensor, torch::Tensor> tm_test;
 
-    prediction_test = net.forward(x_tensor_test);
+    {
+        torch::NoGradGuard no_grad;
+        prediction_test = net.forward(x_tensor_test);
+    }
 
     tm_test = torch::max(prediction_test, 1);
-    values_test = std::get<0>(tm_test);
     indices_test = std::get<1>(tm_test);
 
     correct_bool_test = y_tensor_i_test == indices_test;
     correct_prediction = correct_bool_test.sum().item<int>();
 
-    acc = 1.0f * (float)correct_prediction / (float)Y_test.rows();
+    acc = 1.0f * (float) correct_prediction / (float) Y_test.rows();
     printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
     return EXIT_SUCCESS;

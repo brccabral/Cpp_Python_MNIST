@@ -13,17 +13,17 @@ int main()
     {
         std::cout << "Error loading config.ini" << std::endl;
         return EXIT_FAILURE;
-    };
+    }
     SI_ASSERT(rc == SI_OK);
 
     std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
-    int batch_size = ini.GetLongValue("TORCH", "BATCH_SIZE", 64);
+    int batch_size = (int) ini.GetLongValue("TORCH", "BATCH_SIZE", 64);
     size_t num_epochs = ini.GetLongValue("TORCH", "EPOCHS", 10);
     std::string save_model = ini.GetValue("TORCH", "SAVE_CPP", "net_cpp.pt");
     float alpha = ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
     int hidden_layer_size = ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
 
-    // Create a multi-threaded data loader for the MNIST dataset.
+    // Create a multithreaded data loader for the MNIST dataset.
     auto train_dataset = torch::data::datasets::MNIST(base_dir);
     std::cout << "train_dataset.images().sizes()=" << train_dataset.images().sizes() << std::endl;
     size_t size = train_dataset.size().value();
@@ -36,8 +36,7 @@ int main()
     std::cout << "categories=" << categories << std::endl;
 
     auto train_dataloader = torch::data::make_data_loader(
-        train_dataset.map(torch::data::transforms::Stack<>()),
-        batch_size);
+            train_dataset.map(torch::data::transforms::Stack<>()), batch_size);
 
     // Create a new Net.
     // auto net = std::make_shared<Net>();
@@ -65,7 +64,7 @@ int main()
     torch::nn::Flatten flatten;
 
     std::tuple<torch::Tensor, torch::Tensor> tm;
-    torch::Tensor prediction, values, indices, correct_bool;
+    torch::Tensor prediction, indices, correct_bool;
     int correct_prediction;
     float acc;
 
@@ -74,7 +73,7 @@ int main()
     {
         size_t batch_index = 0;
         // Iterate the data loader to yield batches from the dataset.
-        for (auto &batch : *train_dataloader)
+        for (auto &batch: *train_dataloader)
         {
             torch::Tensor X = batch.data.to(device);
             torch::Tensor y = batch.target.to(device);
@@ -93,18 +92,19 @@ int main()
             // Output the loss and checkpoint every 100 batches.
             if (batch_index++ % 100 == 0)
             {
-                float loss_value = loss.item<float>();
+                auto loss_value = loss.item<float>();
                 size_t current = batch_index * X.sizes()[0];
 
                 tm = torch::max(prediction, 1);
-                values = std::get<0>(tm);
                 indices = std::get<1>(tm);
 
                 correct_bool = y == indices;
                 correct_prediction = correct_bool.sum().item<int>();
 
-                acc = 1.0f * (float)correct_prediction / (float)batch_size;
-                printf("Epoch: %lu \t Batch: %lu \t Correct: %d \t Accuracy: %.4f \t Loss: %.4f \t [%5lu/%5lu] \n", epoch, batch_index, correct_prediction, acc, loss_value, current, size);
+                acc = 1.0f * (float) correct_prediction / (float) batch_size;
+                printf("Epoch: %lu \t Batch: %lu \t Correct: %d \t Accuracy: %.4f \t Loss: %.4f \t "
+                       "[%5lu/%5lu] \n",
+                       epoch, batch_index, correct_prediction, acc, loss_value, current, size);
 
                 // Serialize your model periodically as a checkpoint.
                 torch::save(net, save_model);
@@ -117,24 +117,23 @@ int main()
     torch::load(net_loaded, save_model);
     net_loaded->eval();
 
-    auto test_dataset = torch::data::datasets::MNIST(base_dir, torch::data::datasets::MNIST::Mode::kTest);
+    auto test_dataset =
+            torch::data::datasets::MNIST(base_dir, torch::data::datasets::MNIST::Mode::kTest);
     size = test_dataset.size().value();
     std::cout << size << std::endl;
     std::cout << test_dataset.images().data().sizes() << std::endl;
 
     auto test_dataloader = torch::data::make_data_loader(
-        test_dataset.map(torch::data::transforms::Stack<>()),
-        batch_size);
+            test_dataset.map(torch::data::transforms::Stack<>()), batch_size);
 
     int num_batches = 0;
     float test_loss = 0.0f;
     int correct = 0;
-    acc = 0.0f;
 
     {
         torch::NoGradGuard no_grad;
 
-        for (auto &batch_test : *test_dataloader)
+        for (auto &batch_test: *test_dataloader)
         {
             torch::Tensor X = batch_test.data.to(device);
             torch::Tensor y = batch_test.target.to(device);
@@ -142,10 +141,9 @@ int main()
 
             prediction = net_loaded->forward(X);
             torch::Tensor loss = loss_fn(prediction, y);
-            float loss_value = loss.item<float>();
+            auto loss_value = loss.item<float>();
 
             tm = torch::max(prediction, 1);
-            values = std::get<0>(tm);
             indices = std::get<1>(tm);
 
             correct_bool = y == indices;
@@ -156,12 +154,13 @@ int main()
             num_batches++;
         }
     }
-    test_loss /= (float)num_batches;
+    test_loss /= (float) num_batches;
 
     size = test_dataset.size().value();
-    acc = 1.0f * (float)correct / (float)size;
+    acc = 1.0f * (float) correct / (float) size;
 
-    printf("Test: Correct: %d \t Accuracy: %.4f \t Loss: %.4f \t [%5lu] \n", correct, acc, test_loss, size);
+    printf("Test: Correct: %d \t Accuracy: %.4f \t Loss: %.4f \t [%5lu] \n", correct, acc,
+           test_loss, size);
 
     return EXIT_SUCCESS;
 }

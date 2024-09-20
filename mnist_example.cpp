@@ -3,7 +3,7 @@
 #include <iostream>
 
 // Define a new Module.
-struct Net : torch::nn::Module
+struct Net final : torch::nn::Module
 {
     // Use one of many "standard library" modules.
     torch::nn::Linear fc1{nullptr}, out{nullptr};
@@ -42,7 +42,7 @@ int main()
     {
         std::cout << "Error loading config.ini" << std::endl;
         return EXIT_FAILURE;
-    };
+    }
     SI_ASSERT(rc == SI_OK);
 
     int num_generations = ini.GetLongValue("MNIST", "GENERATIONS", 5);
@@ -56,7 +56,8 @@ int main()
 
     torch::Tensor x_tensor = torch::empty({size, 784});
     torch::Tensor y_tensor = torch::empty(size);
-    for(int b = 0 ; b < size; b++){
+    for (int b = 0; b < size; b++)
+    {
         x_tensor.index_put_({b}, dataset.get(b).data.reshape({784}));
         y_tensor.index_put_({b}, dataset.get(b).target);
     }
@@ -66,7 +67,7 @@ int main()
     std::cout << x_tensor.sizes() << std::endl;
     std::cout << y_tensor_i.sizes() << std::endl;
 
-    Net net2 = Net();
+    auto net2 = Net();
     net2.train();
 
     torch::optim::SGD optimizer(net2.parameters(), /*lr=*/0.1);
@@ -91,7 +92,8 @@ int main()
             correct_prediction = correct_bool.sum().item<int>();
 
             acc = 1.0f * correct_prediction / size;
-            printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction, acc);
+            printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction,
+                   acc);
         }
     }
     prediction = net2.forward(x_tensor);
@@ -106,25 +108,29 @@ int main()
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
 
-    auto test_dataset = torch::data::datasets::MNIST(base_dir, torch::data::datasets::MNIST::Mode::kTest);
+    auto test_dataset =
+            torch::data::datasets::MNIST(base_dir, torch::data::datasets::MNIST::Mode::kTest);
     c10::optional<size_t> test_size = test_dataset.size();
     size = int(test_size.value());
     std::cout << size << std::endl;
 
     x_tensor = torch::empty({size, 784});
     y_tensor = torch::empty(size);
-    for(int b = 0 ; b < size; b++){
+    for (int b = 0; b < size; b++)
+    {
         x_tensor.index_put_({b}, test_dataset.get(b).data.reshape({784}));
         y_tensor.index_put_({b}, test_dataset.get(b).target);
     }
     y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
-    x_tensor.set_requires_grad(true);
 
     std::cout << x_tensor.sizes() << std::endl;
     std::cout << y_tensor_i.sizes() << std::endl;
 
     net2.eval();
-    prediction = net2.forward(x_tensor);
+    {
+        torch::NoGradGuard no_grad;
+        prediction = net2.forward(x_tensor);
+    }
 
     tm = torch::max(prediction, 1);
     std::tie(values, indices) = tm;

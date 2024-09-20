@@ -1,9 +1,8 @@
 #include <NeuralNet/NeuralNetNC.hpp>
 
 
-NeuralNetNC::NeuralNetNC(unsigned int num_features,
-                     unsigned int hidden_layer_size,
-                     unsigned int categories)
+NeuralNetNC::NeuralNetNC(
+        unsigned int num_features, unsigned int hidden_layer_size, unsigned int categories)
 {
     W1 = nc::random::rand<float>({hidden_layer_size, num_features}) - 0.5f;
     b1 = nc::random::rand<float>({hidden_layer_size, 1}) - 0.5f;
@@ -50,10 +49,8 @@ nc::NdArray<float> NeuralNetNC::deriv_ReLU(const nc::NdArray<float> &Z)
 }
 
 void NeuralNetNC::back_prop(
-    const nc::NdArray<float> &X,
-    const nc::NdArray<int> &Y,
-    const nc::NdArray<int> &one_hot_Y,
-    const float alpha)
+        const nc::NdArray<float> &X, const nc::NdArray<int> &Y, const nc::NdArray<int> &one_hot_Y,
+        const float alpha)
 {
     const float m = Y.size();
     const auto dZ2 = A2 - one_hot_Y.astype<float>();

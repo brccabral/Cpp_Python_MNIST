@@ -6,6 +6,7 @@
 class NeuralNetNC
 {
 private:
+
     // layers
     nc::NdArray<float> W1;
     nc::NdArray<float> b1;
@@ -20,14 +21,13 @@ private:
 
     // gradients
     nc::NdArray<float> dW1;
-    float db1;
+    float db1{};
     nc::NdArray<float> dW2;
-    float db2;
+    float db2{};
 
 public:
-    NeuralNetNC(unsigned int num_features,
-              unsigned int hidden_layer_size,
-              unsigned int categories);
+
+    NeuralNetNC(unsigned int num_features, unsigned int hidden_layer_size, unsigned int categories);
 
     static nc::NdArray<float> ReLU(const nc::NdArray<float> &Z);
 
@@ -40,10 +40,8 @@ public:
     static nc::NdArray<float> deriv_ReLU(const nc::NdArray<float> &Z);
 
     void back_prop(
-        const nc::NdArray<float> &X,
-        const nc::NdArray<int> &Y,
-        const nc::NdArray<int> &one_hot_Y,
-        float alpha);
+            const nc::NdArray<float> &X, const nc::NdArray<int> &Y,
+            const nc::NdArray<int> &one_hot_Y, float alpha);
 
     static nc::NdArray<unsigned> get_predictions(const nc::NdArray<float> &P);
 

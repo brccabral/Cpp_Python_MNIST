@@ -8,32 +8,32 @@ uint32_t swap_endian(uint32_t val)
     return (val << 16) | (val >> 16);
 }
 
-MNIST_Dataset::MNIST_Dataset(const char *image_filename,
-                             const char *label_filename,
-                             int image_magic,
-                             int label_magic)
-    : _image_filename(image_filename), _label_filename(label_filename), _image_magic(image_magic), _label_magic(label_magic){};
+MNIST_Dataset::MNIST_Dataset(
+        const char *image_filename, const char *label_filename, const int image_magic,
+        const int label_magic)
+    : _image_filename(image_filename), _label_filename(label_filename), _image_magic(image_magic),
+      _label_magic(label_magic){}
 
-void MNIST_Dataset::save_dataset_as_png(std::string save_dir)
+void MNIST_Dataset::save_dataset_as_png(const std::string &save_dir)
 {
-    for (MNIST_Image img : _images)
+    for (const MNIST_Image &img: _images)
     {
         img.save_as_png(save_dir);
     }
-};
+}
 
-void MNIST_Dataset::save_dataset_as_csv(std::string save_filename)
+void MNIST_Dataset::save_dataset_as_csv(const std::string &save_filename)
 {
-    for (MNIST_Image img : _images)
+    for (const MNIST_Image &img: _images)
     {
         img.save_as_csv(save_filename);
     }
-};
+}
 
-Eigen::MatrixXf MNIST_Dataset::to_matrix()
+Eigen::MatrixXf MNIST_Dataset::to_matrix() const
 {
-    int number_images = _images.size();
-    int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
+    const int number_images = _images.size();
+    const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
 
     Eigen::MatrixXf mat(number_images, number_pixels + 1);
     for (int img = 0; img < number_images; img++)
@@ -41,13 +41,13 @@ Eigen::MatrixXf MNIST_Dataset::to_matrix()
         mat(img, 0) = float(_images.at(img)._label);
         for (int pix = 0; pix < number_pixels; pix++)
         {
-            mat(img, pix + 1) = (unsigned char)_images.at(img)._pixels[pix];
+            mat(img, pix + 1) = (unsigned char) _images.at(img)._pixels[pix];
         }
     }
     return mat;
 }
 
-nc::NdArray<float> MNIST_Dataset::to_numcpp()
+nc::NdArray<float> MNIST_Dataset::to_numcpp() const
 {
     const int number_images = _images.size();
     const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
@@ -58,11 +58,11 @@ nc::NdArray<float> MNIST_Dataset::to_numcpp()
         mat(img, 0) = float(_images.at(img)._label);
         for (int pix = 0; pix < number_pixels; pix++)
         {
-            mat(img, pix + 1) = (unsigned char)_images.at(img)._pixels[pix];
+            mat(img, pix + 1) = (unsigned char) _images.at(img)._pixels[pix];
         }
     }
     return mat;
-};
+}
 
 void MNIST_Dataset::read_mnist_db(const int max_items)
 {
@@ -121,7 +121,7 @@ void MNIST_Dataset::read_mnist_db(const int max_items)
     int n_items = max_items > num_items ? num_items : max_items;
 
     char label;
-    char *pixels = new char[rows * cols];
+    auto *pixels = new char[rows * cols];
 
     for (int item_id = 0; item_id < n_items; ++item_id)
     {
@@ -138,14 +138,14 @@ void MNIST_Dataset::read_mnist_db(const int max_items)
     delete[] pixels;
     image_file.close();
     label_file.close();
-};
+}
 
-size_t MNIST_Dataset::get_images_length()
+size_t MNIST_Dataset::get_images_length() const
 {
     return _images.size();
 }
 
-int MNIST_Dataset::get_label_from_index(int index)
+int MNIST_Dataset::get_label_from_index(const int index) const
 {
     return _images.at(index)._label;
 }
@@ -155,7 +155,7 @@ Eigen::MatrixXf MNIST_Dataset::get_X(Eigen::MatrixXf &mat)
     return mat.rightCols(mat.cols() - 1);
 }
 
-nc::NdArray<float> MNIST_Dataset::get_X(nc::NdArray<float>& mat)
+nc::NdArray<float> MNIST_Dataset::get_X(const nc::NdArray<float> &mat)
 {
     int cols = mat.numCols();
     return mat(mat.rSlice(), {1, cols});
@@ -166,7 +166,7 @@ Eigen::VectorXf MNIST_Dataset::get_Y(Eigen::MatrixXf &mat)
     return mat.leftCols(1);
 }
 
-nc::NdArray<float> MNIST_Dataset::get_Y(nc::NdArray<float>& mat)
+nc::NdArray<float> MNIST_Dataset::get_Y(const nc::NdArray<float> &mat)
 {
     return mat(mat.rSlice(), {0});
 }

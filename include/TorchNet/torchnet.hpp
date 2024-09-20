@@ -3,19 +3,17 @@
 #include <torch/torch.h>
 
 // https://pytorch.org/cppdocs/frontend.html#end-to-end-example
-struct Net : torch::nn::Module
+struct Net final : torch::nn::Module
 {
     torch::nn::Linear fc1{nullptr}, fc2{nullptr}, out{nullptr};
 
     // create one hidden layer having hidden_layer_size,
     // out has categories size
-    Net(int num_features,
-            int hidden_layer_size,
-            int categories)
+    Net(int num_features, int hidden_layer_size, int categories)
     {
         fc1 = register_module("fc1", torch::nn::Linear(num_features, hidden_layer_size));
-        // fc2 = register_module("fc2", torch::nn::Linear(hidden_layer_size, hidden_layer_size / 2));
-        // out = register_module("out", torch::nn::Linear(hidden_layer_size / 2, categories));
+        // fc2 = register_module("fc2", torch::nn::Linear(hidden_layer_size, hidden_layer_size /
+        // 2)); out = register_module("out", torch::nn::Linear(hidden_layer_size / 2, categories));
         out = register_module("out", torch::nn::Linear(hidden_layer_size, categories));
     }
 
