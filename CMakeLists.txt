@@ -8,6 +8,9 @@ find_package(Torch REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(xtensor REQUIRED)
 
+option(USE_SIMD "Enables XTENSOR_USE_XSIMD - SIMD optimizations" OFF)
+option(USE_TBB "Enables XTENSOR_USE_TBB - parallelism" OFF)
+
 add_library(neuralnet
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
 target_include_directories(neuralnet PUBLIC ${PROJECT_SOURCE_DIR}/include ${EIGEN3_INCLUDE_DIRS})
@@ -18,13 +21,25 @@ target_include_directories(neuralnetnc PUBLIC ${PROJECT_SOURCE_DIR}/include ${PR
 
 add_library(neuralnetxt
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNetXT.cpp)
-target_compile_definitions(neuralnetxt PUBLIC XTENSOR_USE_XSIMD)
+if (USE_SIMD)
+    target_compile_definitions(neuralnetxt PUBLIC XTENSOR_USE_XSIMD)
+    target_compile_options(neuralnetxt PUBLIC "-march=native")
+endif ()
+if (USE_TBB)
+    target_compile_definitions(neuralnetxt PUBLIC XTENSOR_USE_TBB)
+endif ()
 target_include_directories(neuralnetxt PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies/nc)
 
 add_library(mnist
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Image.cpp)
-target_compile_definitions(mnist PUBLIC XTENSOR_USE_XSIMD)
+if (USE_SIMD)
+    target_compile_definitions(mnist PUBLIC XTENSOR_USE_XSIMD)
+    target_compile_options(mnist PUBLIC "-march=native")
+endif ()
+if (USE_TBB)
+    target_compile_definitions(mnist PUBLIC XTENSOR_USE_TBB)
+endif ()
 target_link_libraries(mnist ${OpenCV_LIBRARIES})
 target_include_directories(mnist PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${PROJECT_SOURCE_DIR}/dependencies/nc ${EIGEN3_INCLUDE_DIRS})
 
@@ -64,9 +79,16 @@ install(TARGETS mnist_numcpp
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 add_executable(mnist_xtensor mnist_xtensor.cpp)
-target_compile_definitions(mnist_xtensor PUBLIC XTENSOR_USE_XSIMD)
 target_include_directories(mnist_xtensor PUBLIC ${xtensor_INCLUDE_DIRS})
 target_link_libraries(mnist_xtensor "mnist;neuralnetxt;xtensor")
+if (USE_SIMD)
+    target_compile_definitions(mnist_xtensor PUBLIC XTENSOR_USE_XSIMD)
+    target_compile_options(mnist_xtensor PUBLIC "-march=native")
+endif ()
+if (USE_TBB)
+    target_compile_definitions(mnist_xtensor PUBLIC XTENSOR_USE_TBB)
+    target_link_libraries(mnist_xtensor "tbb")
+endif ()
 install(TARGETS mnist_xtensor
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})

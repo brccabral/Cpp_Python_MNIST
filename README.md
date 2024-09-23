@@ -42,8 +42,9 @@ Files: train images, train labels, test images, test labels
       sudo apt install xtensor-dev libxtensor-blas-dev
       ```
       To enable SIMD optimizations, need to install **xsimd**
-    - **xsimd**
-      https://github.com/xtensor-stack/xsimd
+      To enable parallel assignment loop, need to install **oneTBB**
+    - **xsimd**  
+      https://github.com/xtensor-stack/xsimd  
       SIMD optimizations for xtensor
       ```shell
       git clone --depth 1 https://github.com/xtensor-stack/xsimd.git
@@ -52,6 +53,18 @@ Files: train images, train labels, test images, test labels
       cd cmake-build-release
       cmake -DCMAKE_BUILD_TYPE=Release ..
       sudo make install -j 10
+      ```
+    - **oneTBB**  
+      https://github.com/oneapi-src/oneTBB/  
+      _oneTBB is a flexible C++ library that simplifies the work of adding parallelism to complex applications, even if
+      you are not a threading expert._
+      ```shell
+      git clone --depth 1 https://github.com/oneapi-src/oneTBB.git
+      cd oneTBB
+      mkdir cmake-build-release
+      cd cmake-build-release
+      cmake -DCMAKE_BUILD_TYPE=Release -G Ninja -DTBB_TEST:BOOL=OFF ..
+      cmake --install .
       ```
     - **C++ Libtorch**  
       https://pytorch.org/get-started/locally/  
