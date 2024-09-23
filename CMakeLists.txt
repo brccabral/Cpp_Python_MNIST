@@ -13,10 +13,16 @@ option(USE_TBB "Enables XTENSOR_USE_TBB - parallelism" OFF)
 
 add_library(neuralnet
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
+if (USE_SIMD)
+    target_compile_options(neuralnet PUBLIC "-march=native" "-mtune=native")
+endif ()
 target_include_directories(neuralnet PUBLIC ${PROJECT_SOURCE_DIR}/include ${EIGEN3_INCLUDE_DIRS})
 
 add_library(neuralnetnc
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNetNC.cpp)
+if (USE_SIMD)
+    target_compile_options(neuralnetnc PUBLIC "-march=native" "-mtune=native")
+endif ()
 target_include_directories(neuralnetnc PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies/nc)
 
 add_library(neuralnetxt
@@ -38,18 +44,27 @@ target_link_libraries(mnist ${OpenCV_LIBRARIES})
 target_include_directories(mnist PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${PROJECT_SOURCE_DIR}/dependencies/nc ${EIGEN3_INCLUDE_DIRS})
 
 add_executable(mnist_math mnist_math.cpp)
+if (USE_SIMD)
+    target_compile_options(mnist_math PUBLIC "-march=native" "-mtune=native")
+endif ()
 target_link_libraries(mnist_math mnist;neuralnet)
 install(TARGETS mnist_math
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 add_executable(mnist_torch mnist_torch.cpp)
+if (USE_SIMD)
+    target_compile_options(mnist_torch PUBLIC "-march=native" "-mtune=native")
+endif ()
 target_link_libraries(mnist_torch "mnist;${TORCH_LIBRARIES}")
 install(TARGETS mnist_torch
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 add_executable(mnist_example mnist_example.cpp)
+if (USE_SIMD)
+    target_compile_options(mnist_example PUBLIC "-march=native" "-mtune=native")
+endif ()
 target_include_directories(mnist_example PUBLIC ${PROJECT_SOURCE_DIR}/dependencies)
 target_link_libraries(mnist_example "${TORCH_LIBRARIES}")
 install(TARGETS mnist_example
@@ -57,6 +72,9 @@ install(TARGETS mnist_example
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 add_executable(mnist_batches mnist_batches.cpp)
+if (USE_SIMD)
+    target_compile_options(mnist_batches PUBLIC "-march=native" "-mtune=native")
+endif ()
 target_include_directories(mnist_batches PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies)
 target_link_libraries(mnist_batches "${TORCH_LIBRARIES}")
 install(TARGETS mnist_batches
@@ -64,6 +82,10 @@ install(TARGETS mnist_batches
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 add_executable(mnist_numcpp mnist_numcpp.cpp)
+if (USE_SIMD)
+    target_compile_options(mnist_numcpp PUBLIC "-march=native" "-mtune=native")
+    target_link_libraries(mnist_numcpp "tbb")
+endif ()
 if (NUMCPP_USE_MULTITHREAD)
     target_compile_definitions(mnist_numcpp PUBLIC NUMCPP_USE_MULTITHREAD)
 endif ()
