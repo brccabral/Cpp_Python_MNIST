@@ -79,7 +79,17 @@ int main()
 
     auto neural_net = NeuralNetXT(X_train.shape()[1], hidden_layer_size, categories);
     auto one_hot_Y = NeuralNetXT::one_hot_encode(Y_train);
-    std::cout << one_hot_Y << "\n";
 
+    xt::xarray<float> output;
+
+    int correct_prediction = 0;
+    float acc = 0.0f;
+
+    xt::xarray<unsigned> prediction;
+
+    for (int generation = 0; generation < num_generations; generation++)
+    {
+        output = neural_net.forward_prop(X_train_T);
+    }
     return 0;
 }

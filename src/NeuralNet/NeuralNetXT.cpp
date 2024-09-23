@@ -1,5 +1,6 @@
 #include "NeuralNet/NeuralNetXT.hpp"
 #include <xtensor/xrandom.hpp>
+#include <xtensor-blas/xlinalg.hpp>
 
 
 NeuralNetXT::NeuralNetXT(
@@ -9,6 +10,28 @@ NeuralNetXT::NeuralNetXT(
     b1 = xt::random::rand<float>({hidden_layer_size, (unsigned int) 1}) - 0.5f;
     W2 = xt::random::rand<float>({categories, hidden_layer_size}) - 0.5f;
     b2 = xt::random::rand<float>({categories, (unsigned int) 1}) - 0.5f;
+}
+
+xt::xarray<float> NeuralNetXT::ReLU(const xt::xarray<float> &Z)
+{
+    return xt::maximum(Z, 0.0f);
+}
+
+xt::xarray<float> NeuralNetXT::Softmax(const xt::xarray<float> &Z)
+{
+    const auto e = xt::exp(Z);
+    const auto s = xt::sum(e, {0});
+    return e / s;
+}
+
+xt::xarray<float> NeuralNetXT::forward_prop(const xt::xarray<float> &X)
+{
+    Z1 = xt::linalg::dot(W1, X) + b1;
+    A1 = NeuralNetXT::ReLU(Z1);
+    Z2 = xt::linalg::dot(W2, A1) + b2;
+    A2 = NeuralNetXT::Softmax(Z2);
+
+    return A2;
 }
 
 xt::xarray<int> NeuralNetXT::one_hot_encode(xt::xarray<int> &Y)
