@@ -36,13 +36,12 @@ int main()
     const auto hidden_layer_size = (int) ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
 
     const std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
-    const std::string save_dir = base_dir + "/train";
-    const std::string img_filename =
-            ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images-idx3-ubyte");
-    const std::string img_path = base_dir + "/" + img_filename;
-    const std::string label_filename =
+    std::string save_dir = base_dir + "/train";
+    std::string img_filename = ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images-idx3-ubyte");
+    std::string img_path = base_dir + "/" + img_filename;
+    std::string label_filename =
             ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels-idx1-ubyte");
-    const std::string label_path = base_dir + "/" + label_filename;
+    std::string label_path = base_dir + "/" + label_filename;
 
     std::cout << PRINT_VAR(num_generations) << " " << PRINT_VAR(max_items) << " "
               << PRINT_VAR(save_img) << " " << PRINT_VAR(alpha) << " "
@@ -102,5 +101,44 @@ int main()
 
         neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha);
     }
+
+
+    output = neural_net.forward_prop(X_train_T);
+    prediction = NeuralNetXT::get_predictions(output);
+    correct_prediction = NeuralNetXT::get_correct_prediction(prediction, Y_train);
+    acc = NeuralNetXT::get_accuracy(correct_prediction, Y_train.size());
+    printf("Final\tCorrect %d\tAccuracy %.4f\n", correct_prediction, acc);
+
+    save_dir = base_dir + "/test";
+    img_filename = ini.GetValue("MNIST", "TEST_IMAGE_FILE", "t10k-images-idx3-ubyte");
+    img_path = base_dir + "/" + img_filename;
+    label_filename = ini.GetValue("MNIST", "TEST_LABEL_FILE", "t10k-labels-idx1-ubyte");
+    label_path = base_dir + "/" + label_filename;
+
+    MNIST_Dataset test_dataset(
+            img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
+    test_dataset.read_mnist_db(max_items);
+
+    if (save_img)
+        test_dataset.save_dataset_as_png(save_dir);
+
+    test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
+
+    auto test_mat = test_dataset.to_xtensor();
+
+    auto Y_test_float = MNIST_Dataset::get_Y(test_mat);
+    auto X_test = MNIST_Dataset::get_X(test_mat);
+    X_test /= 255.0f;
+    auto Y_test = xt::cast<int>(Y_test_float);
+
+    auto X_test_T = xt::transpose(X_test);
+
+    output = neural_net.forward_prop(X_test_T);
+
+    prediction = NeuralNetXT::get_predictions(output);
+    correct_prediction = NeuralNetXT::get_correct_prediction(prediction, Y_test);
+    acc = NeuralNetXT::get_accuracy(correct_prediction, Y_test.size());
+    printf("Test: \tCorrect %d\tAccuracy %.4f\n", correct_prediction, acc);
+
     return 0;
 }
