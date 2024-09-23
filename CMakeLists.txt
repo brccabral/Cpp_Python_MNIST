@@ -10,6 +10,7 @@ find_package(xtensor REQUIRED)
 
 option(USE_SIMD "Enables XTENSOR_USE_XSIMD - SIMD optimizations" OFF)
 option(USE_TBB "Enables XTENSOR_USE_TBB - parallelism" OFF)
+option(NC_USE_MULTITHREAD "Passes NUMCPP_USE_MULTITHREAD to NumCpp" OFF)
 
 add_library(neuralnet
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
@@ -86,8 +87,11 @@ if (USE_SIMD)
     target_compile_options(mnist_numcpp PUBLIC "-march=native" "-mtune=native")
     target_link_libraries(mnist_numcpp "tbb")
 endif ()
-if (NUMCPP_USE_MULTITHREAD)
+if (NC_USE_MULTITHREAD)
+    message("NumCpp to use MultiThread")
     target_compile_definitions(mnist_numcpp PUBLIC NUMCPP_USE_MULTITHREAD)
+    # if installed `oneTBB`, NUMCPP_USE_MULTITHREAD forces to use `tbb` lib
+    target_link_libraries(mnist_numcpp "tbb")
 endif ()
 target_link_libraries(mnist_numcpp "mnist;neuralnetnc")
 install(TARGETS mnist_numcpp
