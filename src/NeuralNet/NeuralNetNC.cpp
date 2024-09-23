@@ -8,6 +8,7 @@ NeuralNetNC::NeuralNetNC(
     b1 = nc::random::rand<float>({hidden_layer_size, 1}) - 0.5f;
     W2 = nc::random::rand<float>({categories, hidden_layer_size}) - 0.5f;
     b2 = nc::random::rand<float>({categories, 1}) - 0.5f;
+    // W1({0, 3}, {0, 3}).print();
 }
 
 nc::NdArray<float> NeuralNetNC::ReLU(const nc::NdArray<float> &Z)
@@ -80,4 +81,9 @@ int NeuralNetNC::get_correct_prediction(const nc::NdArray<unsigned> &p, const nc
 float NeuralNetNC::get_accuracy(const int correct_prediction, const int size)
 {
     return 1.0f * correct_prediction / size;
+}
+
+void NeuralNetNC::rnd_seed(const int seed)
+{
+    nc::random::seed(seed); // NOLINT(*-msc51-cpp)
 }

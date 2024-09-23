@@ -13,7 +13,7 @@
 
 int main()
 {
-    nc::random::seed((int) time(nullptr)); // NOLINT(*-msc51-cpp)
+    NeuralNetNC::rnd_seed((int) time(nullptr)); // NOLINT(*-msc51-cpp)
 
     CSimpleIniA ini;
     ini.SetUnicode();

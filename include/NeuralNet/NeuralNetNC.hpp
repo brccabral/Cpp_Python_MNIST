@@ -48,4 +48,6 @@ public:
     static int get_correct_prediction(const nc::NdArray<unsigned> &p, const nc::NdArray<int> &y);
 
     static float get_accuracy(int correct_prediction, int size);
+
+    static void rnd_seed(int seed);
 };
