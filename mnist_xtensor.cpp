@@ -90,6 +90,17 @@ int main()
     for (int generation = 0; generation < num_generations; generation++)
     {
         output = neural_net.forward_prop(X_train_T);
+
+        if (generation % 50 == 0)
+        {
+            prediction = NeuralNetXT::get_predictions(output);
+            correct_prediction = NeuralNetXT::get_correct_prediction(prediction, Y_train);
+            acc = NeuralNetXT::get_accuracy(correct_prediction, Y_train.size());
+            printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction,
+                   acc);
+        }
+
+        neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha);
     }
     return 0;
 }
