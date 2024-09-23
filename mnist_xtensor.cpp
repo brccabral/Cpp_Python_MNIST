@@ -4,6 +4,7 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xio.hpp>
 #include <xtensor/xview.hpp>
+#include <NeuralNet/NeuralNetXT.hpp>
 
 #define PRINT_VAR(x) #x << "=" << x
 
@@ -15,6 +16,8 @@
 
 int main()
 {
+    NeuralNetXT::rnd_seed((int) time(nullptr)); // NOLINT(*-msc51-cpp)
+
     CSimpleIniA ini;
     ini.SetUnicode();
 
@@ -73,6 +76,8 @@ int main()
     int categories = xt::amax(Y_train)() + 1;
 
     auto X_train_T = xt::transpose(X_train);
+
+    auto neural_net = NeuralNetXT(X_train.shape()[1], hidden_layer_size, categories);
 
     return 0;
 }
