@@ -14,6 +14,36 @@
 #define TEST_LABEL_MAGIC 2049
 
 
+xt::xarray<float> to_xtensor(const std::vector<MNIST_Image> &_images)
+{
+    const size_t number_images = _images.size();
+    const size_t number_pixels = _images.at(0)._rows * _images.at(0)._cols;
+
+    const std::vector<size_t> shape = {number_images, number_pixels + 1};
+    xt::xarray<float> mat(shape);
+    for (int img = 0; img < number_images; img++)
+    {
+        mat(img, 0) = float(_images.at(img)._label);
+        for (int pix = 0; pix < number_pixels; pix++)
+        {
+            mat(img, pix + 1) = (unsigned char) _images.at(img)._pixels[pix];
+        }
+    }
+    return mat;
+}
+
+xt::xarray<float> get_X(const xt::xarray<float> &mat)
+{
+    using namespace xt::placeholders; // to enable _ syntax
+    return xt::view(mat, xt::all(), xt::range(1, _));
+}
+
+xt::xarray<float> get_Y(const xt::xarray<float> &mat)
+{
+    using namespace xt::placeholders; // to enable _ syntax
+    return xt::view(mat, xt::all(), 0);
+}
+
 int main()
 {
     NeuralNetXT::rnd_seed((int) time(nullptr)); // NOLINT(*-msc51-cpp)
@@ -61,10 +91,10 @@ int main()
 
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 
-    auto train_mat = train_dataset.to_xtensor();
+    auto train_mat = to_xtensor(train_dataset._images);
 
-    xt::xarray<float> Y_train_float = MNIST_Dataset::get_Y(train_mat);
-    xt::xarray<float> X_train = MNIST_Dataset::get_X(train_mat);
+    xt::xarray<float> Y_train_float = get_Y(train_mat);
+    xt::xarray<float> X_train = get_X(train_mat);
     X_train /= 255.0f;
     std::cout << Y_train_float(4) << std::endl;
     std::cout << X_train.shape()[0] << "," << X_train.shape()[1] << std::endl;
@@ -124,10 +154,10 @@ int main()
 
     test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
 
-    auto test_mat = test_dataset.to_xtensor();
+    auto test_mat = to_xtensor(test_dataset._images);
 
-    auto Y_test_float = MNIST_Dataset::get_Y(test_mat);
-    auto X_test = MNIST_Dataset::get_X(test_mat);
+    auto Y_test_float = get_Y(test_mat);
+    auto X_test = get_X(test_mat);
     X_test /= 255.0f;
     auto Y_test = xt::cast<int>(Y_test_float);
 

@@ -62,7 +62,7 @@ int main()
         y_tensor.index_put_({b}, dataset.get(b).target);
     }
     torch::Tensor y_tensor_i = y_tensor.toType(c10::ScalarType::Long);
-    x_tensor.set_requires_grad(true);
+    x_tensor = x_tensor.set_requires_grad(true);
 
     std::cout << x_tensor.sizes() << std::endl;
     std::cout << y_tensor_i.sizes() << std::endl;

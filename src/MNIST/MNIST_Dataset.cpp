@@ -1,7 +1,6 @@
 #include <MNIST/MNIST_Dataset.hpp>
 #include <fstream>
 #include <stdexcept>
-#include <xtensor/xview.hpp>
 
 uint32_t swap_endian(uint32_t val)
 {
@@ -30,58 +29,6 @@ void MNIST_Dataset::save_dataset_as_csv(const std::string &save_filename)
     {
         img.save_as_csv(save_filename);
     }
-}
-
-Eigen::MatrixXf MNIST_Dataset::to_matrix() const
-{
-    const int number_images = _images.size();
-    const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
-
-    Eigen::MatrixXf mat(number_images, number_pixels + 1);
-    for (int img = 0; img < number_images; img++)
-    {
-        mat(img, 0) = float(_images.at(img)._label);
-        for (int pix = 0; pix < number_pixels; pix++)
-        {
-            mat(img, pix + 1) = (unsigned char) _images.at(img)._pixels[pix];
-        }
-    }
-    return mat;
-}
-
-nc::NdArray<float> MNIST_Dataset::to_numcpp() const
-{
-    const int number_images = _images.size();
-    const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
-
-    nc::NdArray<float> mat(number_images, number_pixels + 1);
-    for (int img = 0; img < number_images; img++)
-    {
-        mat(img, 0) = float(_images.at(img)._label);
-        for (int pix = 0; pix < number_pixels; pix++)
-        {
-            mat(img, pix + 1) = (unsigned char) _images.at(img)._pixels[pix];
-        }
-    }
-    return mat;
-}
-
-xt::xarray<float> MNIST_Dataset::to_xtensor() const
-{
-    const size_t number_images = _images.size();
-    const size_t number_pixels = _images.at(0)._rows * _images.at(0)._cols;
-
-    const std::vector<size_t> shape = {number_images, number_pixels + 1};
-    xt::xarray<float> mat(shape);
-    for (int img = 0; img < number_images; img++)
-    {
-        mat(img, 0) = float(_images.at(img)._label);
-        for (int pix = 0; pix < number_pixels; pix++)
-        {
-            mat(img, pix + 1) = (unsigned char) _images.at(img)._pixels[pix];
-        }
-    }
-    return mat;
 }
 
 void MNIST_Dataset::read_mnist_db(const int max_items)
@@ -168,37 +115,4 @@ size_t MNIST_Dataset::get_images_length() const
 int MNIST_Dataset::get_label_from_index(const int index) const
 {
     return _images.at(index)._label;
-}
-
-Eigen::MatrixXf MNIST_Dataset::get_X(Eigen::MatrixXf &mat)
-{
-    return mat.rightCols(mat.cols() - 1);
-}
-
-nc::NdArray<float> MNIST_Dataset::get_X(const nc::NdArray<float> &mat)
-{
-    int cols = mat.numCols();
-    return mat(mat.rSlice(), {1, cols});
-}
-
-xt::xarray<float> MNIST_Dataset::get_X(const xt::xarray<float> &mat)
-{
-    using namespace xt::placeholders; // to enable _ syntax
-    return xt::view(mat, xt::all(), xt::range(1, _));
-}
-
-Eigen::VectorXf MNIST_Dataset::get_Y(Eigen::MatrixXf &mat)
-{
-    return mat.leftCols(1);
-}
-
-nc::NdArray<float> MNIST_Dataset::get_Y(const nc::NdArray<float> &mat)
-{
-    return mat(mat.rSlice(), {0});
-}
-
-xt::xarray<float> MNIST_Dataset::get_Y(const xt::xarray<float> &mat)
-{
-    using namespace xt::placeholders; // to enable _ syntax
-    return xt::view(mat, xt::all(), 0);
 }

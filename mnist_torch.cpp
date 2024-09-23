@@ -43,6 +43,33 @@ torch::Tensor eigenVectorToTorchTensor(const Eigen::VectorXf &e)
     return t;
 }
 
+Eigen::MatrixXf to_matrix(const std::vector<MNIST_Image> &_images)
+{
+    const int number_images = _images.size();
+    const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
+
+    Eigen::MatrixXf mat(number_images, number_pixels + 1);
+    for (int img = 0; img < number_images; img++)
+    {
+        mat(img, 0) = float(_images.at(img)._label);
+        for (int pix = 0; pix < number_pixels; pix++)
+        {
+            mat(img, pix + 1) = (unsigned char) _images.at(img)._pixels[pix];
+        }
+    }
+    return mat;
+}
+
+Eigen::MatrixXf get_X(Eigen::MatrixXf &mat)
+{
+    return mat.rightCols(mat.cols() - 1);
+}
+
+Eigen::VectorXf get_Y(Eigen::MatrixXf &mat)
+{
+    return mat.leftCols(1);
+}
+
 int main()
 {
     std::srand((unsigned int) time(nullptr)); // NOLINT(*-msc51-cpp)
@@ -93,10 +120,10 @@ int main()
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 
     std::cout << "Converting to matrix" << std::endl;
-    Eigen::MatrixXf train_mat = train_dataset.to_matrix();
+    Eigen::MatrixXf train_mat = to_matrix(train_dataset._images);
 
-    Eigen::VectorXf Y_train = MNIST_Dataset::get_Y(train_mat);
-    Eigen::MatrixXf X_train = MNIST_Dataset::get_X(train_mat);
+    Eigen::VectorXf Y_train = get_Y(train_mat);
+    Eigen::MatrixXf X_train = get_X(train_mat);
     std::cout << Y_train(4) << std::endl;
     std::cout << X_train.rows() << "," << X_train.cols() << std::endl;
     for (int c = 0; c < X_train.cols(); c++)
@@ -117,7 +144,7 @@ int main()
     std::cout << y_tensor_train.sizes() << std::endl;
     torch::Tensor y_tensor_i_train = y_tensor_train.toType(c10::ScalarType::Long);
 
-    x_tensor_train.set_requires_grad(true);
+    x_tensor_train = x_tensor_train.set_requires_grad(true);
 
     auto net = Net(X_train.cols(), hidden_layer_size, categories);
     net.train();
@@ -178,10 +205,10 @@ int main()
 
     test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
 
-    Eigen::MatrixXf test_mat = test_dataset.to_matrix();
+    Eigen::MatrixXf test_mat = to_matrix(test_dataset._images);
 
-    Eigen::VectorXf Y_test = MNIST_Dataset::get_Y(test_mat);
-    Eigen::MatrixXf X_test = MNIST_Dataset::get_X(test_mat);
+    Eigen::VectorXf Y_test = get_Y(test_mat);
+    Eigen::MatrixXf X_test = get_X(test_mat);
     X_test = X_test / 255.0;
 
     torch::Tensor x_tensor_test = eigenMatrixToTorchTensor(X_test);

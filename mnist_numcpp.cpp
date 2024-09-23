@@ -11,6 +11,34 @@
 #define TEST_LABEL_MAGIC 2049
 
 
+nc::NdArray<float> to_numcpp(const std::vector<MNIST_Image> &_images)
+{
+    const int number_images = _images.size();
+    const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
+
+    nc::NdArray<float> mat(number_images, number_pixels + 1);
+    for (int img = 0; img < number_images; img++)
+    {
+        mat(img, 0) = float(_images.at(img)._label);
+        for (int pix = 0; pix < number_pixels; pix++)
+        {
+            mat(img, pix + 1) = (unsigned char) _images.at(img)._pixels[pix];
+        }
+    }
+    return mat;
+}
+
+nc::NdArray<float> get_X(const nc::NdArray<float> &mat)
+{
+    int cols = mat.numCols();
+    return mat(mat.rSlice(), {1, cols});
+}
+
+nc::NdArray<float> get_Y(const nc::NdArray<float> &mat)
+{
+    return mat(mat.rSlice(), {0});
+}
+
 int main()
 {
     NeuralNetNC::rnd_seed((int) time(nullptr)); // NOLINT(*-msc51-cpp)
@@ -58,10 +86,10 @@ int main()
 
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 
-    nc::NdArray<float> train_mat = train_dataset.to_numcpp();
+    nc::NdArray<float> train_mat = to_numcpp(train_dataset._images);
 
-    nc::NdArray<float> Y_train_float = MNIST_Dataset::get_Y(train_mat);
-    nc::NdArray<float> X_train = MNIST_Dataset::get_X(train_mat);
+    nc::NdArray<float> Y_train_float = get_Y(train_mat);
+    nc::NdArray<float> X_train = get_X(train_mat);
     X_train /= 255.0f;
     std::cout << Y_train_float(4, 0) << std::endl;
     std::cout << X_train.shape() << std::endl;
@@ -120,10 +148,10 @@ int main()
 
     test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
 
-    auto test_mat = test_dataset.to_numcpp();
+    auto test_mat = to_numcpp(test_dataset._images);
 
-    auto Y_test_float = MNIST_Dataset::get_Y(test_mat);
-    auto X_test = MNIST_Dataset::get_X(test_mat);
+    auto Y_test_float = get_Y(test_mat);
+    auto X_test = get_X(test_mat);
     X_test /= 255.0f;
     auto Y_test = Y_test_float.astype<int>();
 
