@@ -41,6 +41,18 @@ Files: train images, train labels, test images, test labels
       ```shell
       sudo apt install xtensor-dev libxtensor-blas-dev
       ```
+      To enable SIMD optimizations, need to install **xsimd**
+    - **xsimd**
+      https://github.com/xtensor-stack/xsimd
+      SIMD optimizations for xtensor
+      ```shell
+      git clone --depth 1 https://github.com/xtensor-stack/xsimd.git
+      cd xsimd
+      mkdir cmake-build-release
+      cd cmake-build-release
+      cmake -DCMAKE_BUILD_TYPE=Release ..
+      sudo make install -j 10
+      ```
     - **C++ Libtorch**  
       https://pytorch.org/get-started/locally/  
       Download `libtorch` : PyTorch C++ library C++ ABI  

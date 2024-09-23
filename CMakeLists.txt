@@ -18,11 +18,13 @@ target_include_directories(neuralnetnc PUBLIC ${PROJECT_SOURCE_DIR}/include ${PR
 
 add_library(neuralnetxt
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNetXT.cpp)
+target_compile_definitions(neuralnetxt PUBLIC XTENSOR_USE_XSIMD)
 target_include_directories(neuralnetxt PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies/nc)
 
 add_library(mnist
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Image.cpp)
+target_compile_definitions(mnist PUBLIC XTENSOR_USE_XSIMD)
 target_link_libraries(mnist ${OpenCV_LIBRARIES})
 target_include_directories(mnist PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${PROJECT_SOURCE_DIR}/dependencies/nc ${EIGEN3_INCLUDE_DIRS})
 
@@ -62,6 +64,7 @@ install(TARGETS mnist_numcpp
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 add_executable(mnist_xtensor mnist_xtensor.cpp)
+target_compile_definitions(mnist_xtensor PUBLIC XTENSOR_USE_XSIMD)
 target_include_directories(mnist_xtensor PUBLIC ${xtensor_INCLUDE_DIRS})
 target_link_libraries(mnist_xtensor "mnist;neuralnetxt;xtensor")
 install(TARGETS mnist_xtensor
