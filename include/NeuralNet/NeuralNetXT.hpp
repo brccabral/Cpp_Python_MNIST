@@ -16,5 +16,7 @@ public:
 
     NeuralNetXT(unsigned int num_features, unsigned int hidden_layer_size, unsigned int categories);
 
+    static xt::xarray<int> one_hot_encode(xt::xarray<int> &Y);
+
     static void rnd_seed(int seed);
 };

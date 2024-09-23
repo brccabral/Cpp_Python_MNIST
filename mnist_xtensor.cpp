@@ -71,13 +71,15 @@ int main()
     std::cout << X_train.shape()[0] << "," << X_train.shape()[1] << std::endl;
     std::cout << xt::view(X_train, 4, xt::all()) << std::endl;
 
-    auto Y_train = xt::cast<int>(Y_train_float);
+    xt::xarray<int> Y_train = xt::cast<int>(Y_train_float);
 
     int categories = xt::amax(Y_train)() + 1;
 
     auto X_train_T = xt::transpose(X_train);
 
     auto neural_net = NeuralNetXT(X_train.shape()[1], hidden_layer_size, categories);
+    auto one_hot_Y = NeuralNetXT::one_hot_encode(Y_train);
+    std::cout << one_hot_Y << "\n";
 
     return 0;
 }
