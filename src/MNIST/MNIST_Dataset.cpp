@@ -1,6 +1,7 @@
 #include <MNIST/MNIST_Dataset.hpp>
 #include <fstream>
 #include <stdexcept>
+#include <string>
 
 uint32_t swap_endian(uint32_t val)
 {

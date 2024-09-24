@@ -102,8 +102,8 @@ int main()
                 correct_prediction = correct_bool.sum().item<int>();
 
                 acc = 1.0f * (float) correct_prediction / (float) batch_size;
-                printf("Epoch: %lu \t Batch: %lu \t Correct: %d \t Accuracy: %.4f \t Loss: %.4f \t "
-                       "[%5lu/%5lu] \n",
+                printf("Epoch: %zu \t Batch: %zu \t Correct: %d \t Accuracy: %.4f \t Loss: %.4f \t "
+                       "[%5zu/%5zu] \n",
                        epoch, batch_index, correct_prediction, acc, loss_value, current, size);
 
                 // Serialize your model periodically as a checkpoint.
@@ -159,7 +159,7 @@ int main()
     size = test_dataset.size().value();
     acc = 1.0f * (float) correct / (float) size;
 
-    printf("Test: Correct: %d \t Accuracy: %.4f \t Loss: %.4f \t [%5lu] \n", correct, acc,
+    printf("Test: Correct: %d \t Accuracy: %.4f \t Loss: %.4f \t [%5zu] \n", correct, acc,
            test_loss, size);
 
     return EXIT_SUCCESS;

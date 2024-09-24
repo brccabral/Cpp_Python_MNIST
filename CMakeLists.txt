@@ -3,6 +3,8 @@ project(MNISTCpp)
 
 include(GNUInstallDirs)
 
+set(CMAKE_CXX_STANDARD 20)
+
 find_package(Eigen3 REQUIRED)
 find_package(Torch REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -11,6 +13,7 @@ find_package(xtensor REQUIRED)
 option(USE_SIMD "Enables XTENSOR_USE_XSIMD - SIMD optimizations" OFF)
 option(USE_TBB "Enables XTENSOR_USE_TBB - parallelism" OFF)
 option(NC_USE_MULTITHREAD "Passes NUMCPP_USE_MULTITHREAD to NumCpp" OFF)
+option(NC_NO_USE_BOOST "Passes NUMCPP_NO_USE_BOOST to NumCpp" OFF)
 
 add_library(neuralnet
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
@@ -24,6 +27,9 @@ add_library(neuralnetnc
 if (USE_SIMD)
     target_compile_options(neuralnetnc PUBLIC "-march=native" "-mtune=native")
 endif ()
+if (NC_NO_USE_BOOST)
+    target_compile_definitions(neuralnetnc PUBLIC NUMCPP_NO_USE_BOOST)
+endif ()
 target_include_directories(neuralnetnc PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies/nc)
 
 add_library(neuralnetxt
@@ -36,13 +42,19 @@ if (USE_TBB)
     target_compile_definitions(neuralnetxt PUBLIC XTENSOR_USE_TBB)
     target_link_libraries(neuralnetxt "tbb")
 endif ()
-target_include_directories(neuralnetxt PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies/nc)
+target_include_directories(neuralnetxt PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies/nc ${xtensor_INCLUDE_DIRS})
 
 add_library(mnist
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Image.cpp)
-target_link_libraries(mnist ${OpenCV_LIBRARIES})
-target_include_directories(mnist PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies ${PROJECT_SOURCE_DIR}/dependencies/nc ${EIGEN3_INCLUDE_DIRS})
+target_include_directories(mnist PUBLIC 
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/dependencies
+    ${PROJECT_SOURCE_DIR}/dependencies/nc
+    ${EIGEN3_INCLUDE_DIRS}
+    ${OpenCV_INCLUDE_DIRS}
+)
+target_link_libraries(mnist PUBLIC ${OpenCV_LIBRARIES})
 
 add_executable(mnist_math mnist_math.cpp)
 if (USE_SIMD)
@@ -136,4 +148,9 @@ message("OpenCV_DIR: ${OpenCV_DIR}")
 message("OpenCV_LIBRARIES: ${OpenCV_LIBRARIES}")
 message("OpenCV_INCLUDE_DIRS: ${OpenCV_INCLUDE_DIRS}")
 message("EIGEN3_INCLUDE_DIRS: ${EIGEN3_INCLUDE_DIRS}")
+if (WIN32)
+message("xtensor_INCLUDE_DIRS ${xtensor_INCLUDE_DIRS}")
+message("xtl_INCLUDE_DIRS ${xtl_INCLUDE_DIRS}")
+message("OpenBLAS_INCLUDE_DIRS ${OpenBLAS_INCLUDE_DIRS}")
+endif ()
 message("")

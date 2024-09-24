@@ -5,7 +5,7 @@
 std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
 {
     outs << m._label;
-    for (int p = 0; p < m._rows * m._cols; p++)
+    for (unsigned int p = 0; p < m._rows * m._cols; ++p)
     {
         outs << ',' << std::to_string((unsigned char) m._pixels[p]);
     }
@@ -49,7 +49,7 @@ void MNIST_Image::save_as_csv(const std::string &save_filename) const
         outfile.open(save_filename, std::ios_base::app);
 
     outfile << _label;
-    for (int p = 0; p < _rows * _cols; p++)
+    for (unsigned int p = 0; p < _rows * _cols; ++p)
     {
         outfile << ',' << std::to_string((unsigned char) _pixels[p]);
     }
