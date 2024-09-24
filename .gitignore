@@ -5,8 +5,7 @@ venv/
 cmake-build-*/
 .idea/
 build/
-build_dir/
-build_win/
+build_*/
 config.ini
 __pycache__/
 libtorch/
