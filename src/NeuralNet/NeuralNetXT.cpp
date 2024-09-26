@@ -54,7 +54,7 @@ void NeuralNetXT::back_prop(
         const xt::xarray<float> &X, const xt::xarray<int> &Y, const xt::xarray<int> &one_hot_Y,
         const float alpha)
 {
-    const float m = Y.size();
+    const auto m = (float)Y.size();
     const auto dZ2 = A2 - xt::cast<float>(one_hot_Y);
     dW2 = 1.0f / m * xt::linalg::dot(dZ2, xt::transpose(A1));
     db2 = (1.0f / m * xt::sum(dZ2))();
