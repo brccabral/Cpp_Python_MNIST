@@ -44,6 +44,7 @@ Files: train images, train labels, test images, test labels
       ```
       To enable SIMD optimizations, need to install **xsimd**  
       To enable parallel assignment loop, need to install **oneTBB**  
+      On Windows, run `cmake *** --target install` and add to `%PATH%`  
     - **xtensor-blas**  
       https://github.com/xtensor-stack/xtensor-blas  
       An _xtensor_ extension for linear algebra _BLAS (Basic Linear Algebra Subprograms)_  
@@ -52,6 +53,7 @@ Files: train images, train labels, test images, test labels
       sudo apt install libxtensor-blas-dev
       ```
       On Windows, we need `OpenBLAS`  
+      On Windows, run `cmake *** --target install` and add to `%PATH%`  
     - **xsimd**  
       https://github.com/xtensor-stack/xsimd  
       SIMD optimizations for xtensor
@@ -63,6 +65,7 @@ Files: train images, train labels, test images, test labels
       cmake -DCMAKE_BUILD_TYPE=Release ..
       sudo make install -j 10
       ```
+      On Windows, run `cmake *** --target install` and add to `%PATH%`  
     - **oneTBB**  
       https://github.com/oneapi-src/oneTBB/  
       _oneTBB is a flexible C++ library that simplifies the work of adding parallelism to complex applications, even if
@@ -75,6 +78,7 @@ Files: train images, train labels, test images, test labels
       cmake -DCMAKE_BUILD_TYPE=Release -G Ninja -DTBB_TEST:BOOL=OFF ..
       cmake --install .
       ```
+      On Windows, run `cmake *** --target install` and add to `%PATH%`  
     - **C++ Libtorch**  
       https://pytorch.org/get-started/locally/  
       Download `libtorch` : PyTorch C++ library C++ ABI  
