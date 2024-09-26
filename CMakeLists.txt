@@ -5,6 +5,19 @@ include(GNUInstallDirs)
 
 set(CMAKE_CXX_STANDARD 20) # needed for NumCpp
 
+# https://xtensor.readthedocs.io/en/latest/build-options.html#external-dependencies
+option(USE_SIMD "Enables XTENSOR_USE_XSIMD - SIMD optimizations" OFF)
+option(USE_TBB "Enables XTENSOR_USE_TBB - parallelism" OFF)
+option(NC_USE_MULTITHREAD "Passes NUMCPP_USE_MULTITHREAD to NumCpp" OFF)
+option(NC_NO_USE_BOOST "Passes NUMCPP_NO_USE_BOOST to NumCpp" OFF)
+
+if (USE_SIMD)
+    set(XTENSOR_USE_XSIMD 1)
+endif ()
+if (USE_TBB)
+    set(XTENSOR_USE_TBB 1)
+endif ()
+
 find_package(Eigen3 REQUIRED)
 find_package(Torch REQUIRED)
 set(OPENCV_MAP_IMPORTED_CONFIG "") # this is needed for compiling with OpenCV in Debug
@@ -21,11 +34,6 @@ if (WIN32)
     find_package(TBB REQUIRED)
     set(TBB_PATH "${TBB_DIR}/../../..")
 endif ()
-
-option(USE_SIMD "Enables XTENSOR_USE_XSIMD - SIMD optimizations" OFF)
-option(USE_TBB "Enables XTENSOR_USE_TBB - parallelism" OFF)
-option(NC_USE_MULTITHREAD "Passes NUMCPP_USE_MULTITHREAD to NumCpp" OFF)
-option(NC_NO_USE_BOOST "Passes NUMCPP_NO_USE_BOOST to NumCpp" OFF)
 
 if (WIN32)
     set(SIMD_FLAGS "/arch:AVX2")
@@ -60,6 +68,7 @@ if (USE_SIMD)
     target_compile_definitions(neuralnetxt PUBLIC XTENSOR_USE_XSIMD)
     target_compile_options(neuralnetxt PUBLIC ${SIMD_FLAGS})
     target_include_directories(neuralnetxt PUBLIC ${xsimd_INCLUDE_DIRS})
+    target_link_libraries(neuralnetxt PUBLIC xtensor::optimize)
 endif ()
 if (USE_TBB)
     # Windows can't compile with both XTENSOR_USE_XSIMD and XTENSOR_USE_TBB
@@ -151,6 +160,7 @@ if (USE_SIMD)
     target_compile_definitions(mnist_xtensor PUBLIC XTENSOR_USE_XSIMD)
     target_compile_options(mnist_xtensor PUBLIC ${SIMD_FLAGS})
     target_include_directories(mnist_xtensor PUBLIC ${xsimd_INCLUDE_DIRS})
+    target_link_libraries(mnist_xtensor xtensor::optimize)
 endif ()
 if (USE_TBB)
     # Windows can't compile with both XTENSOR_USE_XSIMD and XTENSOR_USE_TBB
