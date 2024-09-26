@@ -11,7 +11,7 @@ set(OPENCV_MAP_IMPORTED_CONFIG "") # this is needed for compiling with OpenCV in
 find_package(OpenCV REQUIRED)
 find_package(xtensor REQUIRED)
 
-if(WIN32)
+if (WIN32)
     find_package(xtl REQUIRED)
     add_definitions(-DHAVE_CBLAS=1)
     find_package(OpenBLAS REQUIRED)
@@ -20,18 +20,18 @@ if(WIN32)
     find_package(xsimd REQUIRED)
     find_package(TBB REQUIRED)
     set(TBB_PATH "${TBB_DIR}/../../..")
-endif()
+endif ()
 
 option(USE_SIMD "Enables XTENSOR_USE_XSIMD - SIMD optimizations" OFF)
 option(USE_TBB "Enables XTENSOR_USE_TBB - parallelism" OFF)
 option(NC_USE_MULTITHREAD "Passes NUMCPP_USE_MULTITHREAD to NumCpp" OFF)
 option(NC_NO_USE_BOOST "Passes NUMCPP_NO_USE_BOOST to NumCpp" OFF)
 
-if(WIN32)
+if (WIN32)
     set(SIMD_FLAGS "/arch:AVX2")
-else()
+else ()
     set(SIMD_FLAGS "-march=native" "-mtune=native")
-endif(WIN32)
+endif (WIN32)
 
 add_library(neuralnet
         ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNet.cpp)
@@ -66,20 +66,20 @@ if (USE_TBB)
     # https://github.com/xtensor-stack/xtensor/issues/2736
     target_compile_definitions(neuralnetxt PUBLIC XTENSOR_USE_TBB)
     target_link_libraries(neuralnetxt PUBLIC TBB::tbb)
-    if(WIN32)
+    if (WIN32)
         target_include_directories(neuralnetxt PUBLIC "${TBB_PATH}/include")
         target_link_directories(neuralnetxt PUBLIC "${TBB_PATH}/lib")
-    endif(WIN32)
+    endif (WIN32)
 endif ()
 target_include_directories(neuralnetxt PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies/nc ${xtensor_INCLUDE_DIRS})
 
 add_library(mnist
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Image.cpp)
-target_include_directories(mnist PUBLIC 
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/dependencies
-    ${OpenCV_INCLUDE_DIRS}
+target_include_directories(mnist PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/dependencies
+        ${OpenCV_INCLUDE_DIRS}
 )
 target_link_libraries(mnist PUBLIC ${OpenCV_LIBRARIES})
 
@@ -126,18 +126,18 @@ add_executable(mnist_numcpp mnist_numcpp.cpp)
 if (USE_SIMD)
     target_compile_options(mnist_numcpp PUBLIC ${SIMD_FLAGS})
     target_link_libraries(mnist_numcpp TBB::tbb)
-    if(WIN32)
+    if (WIN32)
         target_link_directories(mnist_numcpp PUBLIC "${TBB_PATH}/lib")
-    endif(WIN32)
+    endif (WIN32)
 endif ()
 if (NC_USE_MULTITHREAD)
     message("NumCpp to use MultiThread")
     target_compile_definitions(mnist_numcpp PUBLIC NUMCPP_USE_MULTITHREAD)
     # if installed `oneTBB`, NUMCPP_USE_MULTITHREAD forces to use `tbb` lib
     target_link_libraries(mnist_numcpp TBB::tbb)
-    if(WIN32)
+    if (WIN32)
         target_link_directories(mnist_numcpp PUBLIC "${TBB_PATH}/lib")
-    endif(WIN32)
+    endif (WIN32)
 endif ()
 target_link_libraries(mnist_numcpp "mnist;neuralnetnc")
 install(TARGETS mnist_numcpp
@@ -157,10 +157,10 @@ if (USE_TBB)
     # https://github.com/xtensor-stack/xtensor/issues/2736
     target_compile_definitions(mnist_xtensor PUBLIC XTENSOR_USE_TBB)
     target_link_libraries(mnist_xtensor TBB::tbb)
-    if(WIN32)
+    if (WIN32)
         target_include_directories(mnist_xtensor PUBLIC "${TBB_PATH}/include")
         target_link_directories(mnist_xtensor PUBLIC "${TBB_PATH}/lib")
-    endif(WIN32)
+    endif (WIN32)
 endif ()
 install(TARGETS mnist_xtensor
         CONFIGURATIONS Debug;Release
@@ -174,11 +174,11 @@ function(print_cmake_variables_matching pattern)
     get_cmake_property(_variableNames VARIABLES)
     foreach (_variableName ${_variableNames})
         if (_variableName MATCHES "${pattern}")
-        message(STATUS "${_variableName}=${${_variableName}}")
-        endif()
-    endforeach()
+            message(STATUS "${_variableName}=${${_variableName}}")
+        endif ()
+    endforeach ()
 endfunction()
-      
+
 message(STATUS "")
 message(STATUS "Generated with config types: ${CMAKE_CONFIGURATION_TYPES}")
 message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
