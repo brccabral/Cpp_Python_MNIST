@@ -24,7 +24,8 @@ Files: train images, train labels, test images, test labels
       https://docs.opencv.org/4.6.0/d7/d9f/tutorial_linux_install.html  
       Library to save images on disk (not used to train/test)  
       I used `OpenCV 4.6.0`. There is no need to compile all opencv shared libraries, only `opencv_core`,
-      `opencv_imgcodecs` and `opencv_imgproc` (dependency of _imgcodecs_).
+      `opencv_imgcodecs` and `opencv_imgproc` (dependency of _imgcodecs_).  
+      On Windows, you may need to compile both `Debug` and `Release`.  
     - **SimpleIni**  
       https://github.com/brofield/simpleini/  
       Parse and use `config.ini`  
@@ -39,10 +40,18 @@ Files: train images, train labels, test images, test labels
       One more math library (similar to `numpy`)  
       Header only library
       ```shell
-      sudo apt install xtensor-dev libxtensor-blas-dev
+      sudo apt install xtensor-dev
       ```
-      To enable SIMD optimizations, need to install **xsimd**
-      To enable parallel assignment loop, need to install **oneTBB**
+      To enable SIMD optimizations, need to install **xsimd**  
+      To enable parallel assignment loop, need to install **oneTBB**  
+    - **xtensor-blas**  
+      https://github.com/xtensor-stack/xtensor-blas  
+      An _xtensor_ extension for linear algebra _BLAS (Basic Linear Algebra Subprograms)_  
+      Header only library
+      ```shell
+      sudo apt install libxtensor-blas-dev
+      ```
+      On Windows, we need `OpenBLAS`  
     - **xsimd**  
       https://github.com/xtensor-stack/xsimd  
       SIMD optimizations for xtensor
@@ -69,11 +78,17 @@ Files: train images, train labels, test images, test labels
     - **C++ Libtorch**  
       https://pytorch.org/get-started/locally/  
       Download `libtorch` : PyTorch C++ library C++ ABI  
+      `libtorch-cxx11-abi-shared-with-deps-1.13.0+cpu.zip`  
       I downloaded CPU version 2.0.1, GPU is 1.8 GB compacted. Also, to use GPU need to install CUDA libs 7 GB.  
-      libtorch-cxx11-abi-shared-with-deps-1.13.0+cpu.zip  
-      do NOT download the "pre-cxx11 ABI"  
-      the CXX_FLAGS needs to have "-D_GLIBCXX_USE_CXX11_ABI=1", not 0  
-      Unzip to this workspace (`./workspace/libtorch`), or somewhere in your path (`/usr/local` or `$HOME/.local`)
+      Do NOT download the "pre-cxx11 ABI".  
+      The CXX_FLAGS needs to have "-D_GLIBCXX_USE_CXX11_ABI=1", not 0  
+      Unzip to this workspace (`./workspace/libtorch`), or somewhere in your path (`/usr/local` or `$HOME/.local`).  
+      On Windows, you may need to download both `Debug` and `Release`.  
+    - **OpenBLAS**
+      https://www.openblas.net/  
+      An implementation of _BLAS (Basic Linear Algebra Subprograms)_  
+      I had to download it on Windows, I guess Linux has it as dependency of other libraries.  
+      Add to your `%PATH%` and set `-DOpenBLAS_DIR` on _cmake_.  
 
 - Python
     - **Python PyTorch**  
@@ -127,4 +142,4 @@ https://discuss.pytorch.org/t/data-transfer-between-libtorch-c-and-eigen/54156/6
 ## Windows
 
 On Windows I could only build the project in Visual Studio cmake generator, couldn't make it work with MinGW/Unix
-Makefiles. OpenCV also needs to be built with Visual Studio cmake generator.
+Makefiles. OpenCV also needs to be built with Visual Studio cmake generator. Also, if needed, compile OpenCV as both `Debug` and `Release`, and download both Libtorch `Debug` and `Release`. Setup `%PATH%` accordingly.  

@@ -3,10 +3,11 @@ project(MNISTCpp)
 
 include(GNUInstallDirs)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 20) # needed for NumCpp
 
 find_package(Eigen3 REQUIRED)
 find_package(Torch REQUIRED)
+set(OPENCV_MAP_IMPORTED_CONFIG "") # this is needed for compiling with OpenCV in Debug
 find_package(OpenCV REQUIRED)
 find_package(xtensor REQUIRED)
 
@@ -14,7 +15,7 @@ if(WIN32)
     find_package(xtl REQUIRED)
     add_definitions(-DHAVE_CBLAS=1)
     find_package(OpenBLAS REQUIRED)
-    list(APPEND CMAKE_PREFIX_PATH "${OpenBLAS_DIR}/../../../")
+    list(APPEND CMAKE_PREFIX_PATH "${OpenBLAS_DIR}/../../../") # needed for xtensor-blas to find OpenBLAS
     find_package(xtensor-blas REQUIRED)
 endif()
 
@@ -62,8 +63,6 @@ add_library(mnist
 target_include_directories(mnist PUBLIC 
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/dependencies
-    ${PROJECT_SOURCE_DIR}/dependencies/nc
-    ${EIGEN3_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
 )
 target_link_libraries(mnist PUBLIC ${OpenCV_LIBRARIES})
@@ -72,7 +71,7 @@ add_executable(mnist_math mnist_math.cpp)
 if (USE_SIMD)
     target_compile_options(mnist_math PUBLIC "-march=native" "-mtune=native")
 endif ()
-target_link_libraries(mnist_math mnist;neuralnet)
+target_link_libraries(mnist_math mnist;neuralnet;${OpenCV_LIBRARIES})
 install(TARGETS mnist_math
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
@@ -81,6 +80,7 @@ add_executable(mnist_torch mnist_torch.cpp)
 if (USE_SIMD)
     target_compile_options(mnist_torch PUBLIC "-march=native" "-mtune=native")
 endif ()
+target_include_directories(mnist_torch PUBLIC ${EIGEN3_INCLUDE_DIRS})
 target_link_libraries(mnist_torch "mnist;${TORCH_LIBRARIES}")
 install(TARGETS mnist_torch
         CONFIGURATIONS Debug;Release
@@ -157,6 +157,7 @@ message("TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
 message("TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
 message("TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
 message("OpenCV_DIR: ${OpenCV_DIR}")
+message("OpenCV_VERSION ${OpenCV_VERSION}")
 message("OpenCV_LIBRARIES: ${OpenCV_LIBRARIES}")
 message("OpenCV_INCLUDE_DIRS: ${OpenCV_INCLUDE_DIRS}")
 message("EIGEN3_INCLUDE_DIRS: ${EIGEN3_INCLUDE_DIRS}")
