@@ -78,6 +78,11 @@ Files: train images, train labels, test images, test labels
       cmake -DCMAKE_BUILD_TYPE=Release -G Ninja -DTBB_TEST:BOOL=OFF ..
       cmake --install .
       ```
+      On Windows, run `cmake *** --target install` and add to `%PATH%` both installation folder and `*\bin`  
+    - **xtl**
+      https://github.com/xtensor-stack/xtl  
+      "stl" for "xtensor" (containers, algorithms)  
+      I had to install on Windows, but on Linux it may be a dependency of previous packages.  
       On Windows, run `cmake *** --target install` and add to `%PATH%`  
     - **C++ Libtorch**  
       https://pytorch.org/get-started/locally/  
