@@ -1,6 +1,9 @@
-#if WIN32
+#if _MSC_VER
+#ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#endif
+
 #include "NumCpp.hpp"
 #include <SimpleIni/SimpleIni.h>
 #include <MNIST/MNIST_Dataset.hpp>

@@ -1,4 +1,4 @@
-#if WIN32
+#if _MSC_VER
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
