@@ -45,6 +45,7 @@ Files: train images, train labels, test images, test labels
       To enable SIMD optimizations, need to install **xsimd**  
       To enable parallel assignment loop, need to install **oneTBB**  
       On Windows, run `cmake *** --target install` and add to `%PATH%`  
+      On Windows, check if this PR has been merged https://github.com/xtensor-stack/xtensor/pull/2799  
     - **xtensor-blas**  
       https://github.com/xtensor-stack/xtensor-blas  
       An _xtensor_ extension for linear algebra _BLAS (Basic Linear Algebra Subprograms)_  
