@@ -43,7 +43,7 @@ Files: train images, train labels, test images, test labels
       sudo apt install xtensor-dev
       ```
       To enable SIMD optimizations, need to install **xsimd**  
-      To enable parallel assignment loop, need to install **oneTBB**  
+      To enable parallel assignment loop, need to install **tbb** (Linux) or **oneTBB** (Windows).  
       On Windows, run `cmake *** --target install` and add to `%PATH%`  
       On Windows, check if this PR has been merged https://github.com/xtensor-stack/xtensor/pull/2799  
     - **xtensor-blas**  
@@ -59,6 +59,9 @@ Files: train images, train labels, test images, test labels
       https://github.com/xtensor-stack/xsimd  
       SIMD optimizations for xtensor  
       ```shell
+      sudo apt install libxsimd-dev
+      ```
+      ```shell
       git clone --depth 1 https://github.com/xtensor-stack/xsimd.git
       cd xsimd
       mkdir cmake-build-release
@@ -67,6 +70,12 @@ Files: train images, train labels, test images, test labels
       sudo make install -j 10
       ```
       On Windows, run `cmake *** --target install` and add to `%PATH%`  
+    - **tbb**
+      Allow parallelism/multi-threads for C++  
+      On Windows, use **oneTBB**
+      ```shell
+      sudo apt install libtbb-dev
+      ```
     - **oneTBB**  
       https://github.com/oneapi-src/oneTBB/  
       _oneTBB is a flexible C++ library that simplifies the work of adding parallelism to complex applications, even if you are not a threading expert._ 
