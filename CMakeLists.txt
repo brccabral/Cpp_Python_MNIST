@@ -181,7 +181,7 @@ install(FILES config.ini
         DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 add_executable(mnist_openblas mnist_openblas.cpp)
-target_link_libraries(mnist_openblas mnist)
+target_link_libraries(mnist_openblas mnist ${OpenBLAS_LIBRARIES})
 
 function(print_cmake_variables_matching pattern)
     get_cmake_property(_variableNames VARIABLES)

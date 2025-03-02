@@ -1,5 +1,6 @@
 #include <SimpleIni/SimpleIni.h>
 #include <MNIST/MNIST_Dataset.hpp>
+#include <cblas.h>
 
 #define PRINT_VAR(x) #x << "=" << x
 
@@ -32,6 +33,15 @@ MatrixDouble *to_openblas(const std::vector<MNIST_Image> &_images)
         }
     }
     return mat;
+}
+
+MatrixDouble *get_Y(const MatrixDouble *mat)
+{
+    auto *Y = (MatrixDouble *) malloc(sizeof(MatrixDouble) * mat->rows);
+    Y->rows = mat->rows;
+    Y->cols = 1;
+    cblas_dcopy(mat->rows, mat->data, mat->cols, Y->data, 1);
+    return Y;
 }
 
 int main()
@@ -82,7 +92,9 @@ int main()
 
     auto train_mat = to_openblas(train_dataset._images);
 
+    auto Y_train_float = get_Y(train_mat);
 
+    free(Y_train_float);
     free(train_mat);
     return 0;
 }
