@@ -47,12 +47,12 @@ MatrixDouble *to_openblas(const std::vector<MNIST_Image> &_images)
 
     mat->rows = number_images;
     mat->cols = number_pixels;
-    for (int img = 0; img < number_images; img++)
+    for (int img = 0; img < mat->rows; img++)
     {
-        mat->data[img * number_images + 0] = float(_images.at(img)._label);
+        mat->data[img * mat->cols + 0] = float(_images.at(img)._label);
         for (int pix = 0; pix < number_pixels; pix++)
         {
-            mat->data[img * number_images + pix + 1] = (unsigned char) _images.at(img)._pixels[pix];
+            mat->data[img * mat->cols + pix + 1] = (unsigned char) _images.at(img)._pixels[pix];
         }
     }
     return mat;
