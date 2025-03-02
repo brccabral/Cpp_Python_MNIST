@@ -16,6 +16,7 @@ MNIST_Dataset::MNIST_Dataset(
       _label_magic(label_magic)
 {}
 
+#ifdef CV_SAVE_IMAGES
 void MNIST_Dataset::save_dataset_as_png(const std::string &save_dir)
 {
     for (const MNIST_Image &img: _images)
@@ -23,6 +24,7 @@ void MNIST_Dataset::save_dataset_as_png(const std::string &save_dir)
         img.save_as_png(save_dir);
     }
 }
+#endif // CV_SAVE_IMAGES
 
 void MNIST_Dataset::save_dataset_as_csv(const std::string &save_filename)
 {

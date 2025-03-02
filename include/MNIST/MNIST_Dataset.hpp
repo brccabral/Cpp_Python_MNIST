@@ -18,7 +18,9 @@ public:
             const char *image_filename, const char *label_filename, int image_magic,
             int label_magic);
 
+#ifdef CV_SAVE_IMAGES
     void save_dataset_as_png(const std::string &save_dir);
+#endif // CV_SAVE_IMAGES
     void save_dataset_as_csv(const std::string &save_filename);
 
     void read_mnist_db(const int max_items);

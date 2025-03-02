@@ -87,8 +87,10 @@ int main()
     std::cout << PRINT_VAR(train_dataset.get_images_length()) << std::endl;
     std::cout << PRINT_VAR(train_dataset.get_label_from_index(4)) << std::endl;
 
+#ifdef CV_SAVE_IMAGES
     if (save_img)
         train_dataset.save_dataset_as_png(save_dir);
+#endif // CV_SAVE_IMAGES
 
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 
@@ -149,8 +151,10 @@ int main()
             img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
     test_dataset.read_mnist_db(max_items);
 
+#ifdef CV_SAVE_IMAGES
     if (save_img)
         test_dataset.save_dataset_as_png(save_dir);
+#endif // CV_SAVE_IMAGES
 
     test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
 

@@ -122,8 +122,10 @@ int main()
     std::cout << PRINT_VAR(train_dataset.get_images_length()) << std::endl;
     std::cout << PRINT_VAR(train_dataset.get_label_from_index(4)) << std::endl;
 
+#ifdef CV_SAVE_IMAGES
     if (save_img)
         train_dataset.save_dataset_as_png(save_dir);
+#endif // CV_SAVE_IMAGES
 
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 

@@ -10,6 +10,7 @@ option(USE_SIMD "Enables XTENSOR_USE_XSIMD - SIMD optimizations" OFF)
 option(USE_TBB "Enables XTENSOR_USE_TBB - parallelism" OFF)
 option(NC_USE_MULTITHREAD "Passes NUMCPP_USE_MULTITHREAD to NumCpp" OFF)
 option(NC_NO_USE_BOOST "Passes NUMCPP_NO_USE_BOOST to NumCpp" OFF)
+option(SAVE_IMAGES "Use OpenCV to save images" OFF)
 
 if (USE_SIMD)
     set(XTENSOR_USE_XSIMD 1)
@@ -20,8 +21,10 @@ endif ()
 
 find_package(Eigen3 REQUIRED)
 find_package(Torch REQUIRED)
-set(OPENCV_MAP_IMPORTED_CONFIG "") # this is needed for compiling with OpenCV in Debug
-find_package(OpenCV REQUIRED)
+if (SAVE_IMAGES)
+    set(OPENCV_MAP_IMPORTED_CONFIG "") # this is needed for compiling with OpenCV in Debug
+    find_package(OpenCV REQUIRED)
+endif (SAVE_IMAGES)
 find_package(xtensor REQUIRED)
 find_package(OpenBLAS REQUIRED)
 
@@ -88,15 +91,18 @@ add_library(mnist
 target_include_directories(mnist PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/dependencies
-        ${OpenCV_INCLUDE_DIRS}
 )
-target_link_libraries(mnist PUBLIC ${OpenCV_LIBRARIES})
+if (SAVE_IMAGES)
+    target_include_directories(mnist PUBLIC ${OpenCV_INCLUDE_DIRS})
+    target_link_libraries(mnist PUBLIC ${OpenCV_LIBRARIES})
+    target_compile_definitions(mnist PUBLIC CV_SAVE_IMAGES)
+endif (SAVE_IMAGES)
 
 add_executable(mnist_math mnist_math.cpp)
 if (USE_SIMD)
     target_compile_options(mnist_math PUBLIC ${SIMD_FLAGS})
 endif ()
-target_link_libraries(mnist_math mnist;neuralnet;${OpenCV_LIBRARIES})
+target_link_libraries(mnist_math mnist;neuralnet)
 install(TARGETS mnist_math
         CONFIGURATIONS Debug;Release
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})

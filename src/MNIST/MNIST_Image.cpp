@@ -1,5 +1,8 @@
 #include <MNIST/MNIST_Image.hpp>
+#ifdef CV_SAVE_IMAGES
 #include <opencv2/opencv.hpp>
+#endif // CV_SAVE_IMAGES
+#include <cstring>
 #include <fstream>
 
 std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
@@ -12,7 +15,8 @@ std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
     return outs;
 }
 
-MNIST_Image::MNIST_Image(const uint32_t rows, const uint32_t cols, const int label, const char *pixels,
+MNIST_Image::MNIST_Image(
+        const uint32_t rows, const uint32_t cols, const int label, const char *pixels,
         const int item_id)
     : _rows(rows), _cols(cols), _label(label), _db_item_id(item_id)
 {
@@ -32,6 +36,7 @@ MNIST_Image::~MNIST_Image()
     delete[] _pixels;
 }
 
+#ifdef CV_SAVE_IMAGES
 void MNIST_Image::save_as_png(const std::string &save_dir) const
 {
     const cv::Mat image_tmp(_rows, _cols, CV_8UC1, _pixels);
@@ -39,6 +44,7 @@ void MNIST_Image::save_as_png(const std::string &save_dir) const
             save_dir + "/" + std::to_string(_db_item_id) + "_" + std::to_string(_label) + ".png";
     cv::imwrite(filename, image_tmp);
 }
+#endif // CV_SAVE_IMAGES
 
 void MNIST_Image::save_as_csv(const std::string &save_filename) const
 {
