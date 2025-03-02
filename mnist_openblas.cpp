@@ -67,6 +67,20 @@ MatrixDouble *get_Y(const MatrixDouble *mat)
     return Y;
 }
 
+MatrixDouble *get_X(const MatrixDouble *mat)
+{
+    auto *X = create_matrix(mat->rows, mat->cols - 1);
+    X->rows = mat->rows;
+    X->cols = mat->cols - 1;
+
+    for (int j = 1; j < mat->cols; j++)
+    {
+        cblas_dcopy(mat->rows, &mat->data[j], mat->cols, &X->data[j - 1], mat->rows);
+    }
+
+    return X;
+}
+
 int main()
 {
     CSimpleIniA ini;
@@ -116,9 +130,18 @@ int main()
     auto train_mat = to_openblas(train_dataset._images);
 
     auto Y_train_float = get_Y(train_mat);
+    auto X_train = get_X(train_mat);
+    cblas_dscal(X_train->rows * X_train->cols, 1 / 255.0, X_train->data, 1);
 
-    free(Y_train_float);
-    free(train_mat);
+    printf("%g\n", Y_train_float->data[4 * Y_train_float->cols + 0]);
+    printf("%d,%d\n", X_train->cols, X_train->rows);
+    for (int c = 0; c < X_train->cols; ++c)
+    {
+        printf("%g ", X_train->data[4 * X_train->cols + c]);
+    }
+    printf("\n");
+
+    free_matrix(X_train);
     free_matrix(Y_train_float);
     free_matrix(train_mat);
     return 0;
