@@ -141,6 +141,10 @@ int main()
     }
     printf("\n");
 
+    double categories =
+            Y_train_float->data[cblas_idmax(Y_train_float->rows, Y_train_float->data, 1)] + 1;
+    printf("%g\n", categories);
+
     free_matrix(X_train);
     free_matrix(Y_train_float);
     free_matrix(train_mat);
