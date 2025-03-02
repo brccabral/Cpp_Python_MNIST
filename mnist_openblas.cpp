@@ -8,6 +8,22 @@
 #define TEST_IMAGE_MAGIC 2051
 #define TEST_LABEL_MAGIC 2049
 
+double *to_openblas(const std::vector<MNIST_Image> &_images)
+{
+    const int number_images = _images.size();
+    const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
+
+    auto *mat = (double *) malloc(sizeof(double) * number_images * (number_pixels + 1));
+    for (int img = 0; img < number_images; img++)
+    {
+        mat[img * number_images + 0] = float(_images.at(img)._label);
+        for (int pix = 0; pix < number_pixels; pix++)
+        {
+            mat[img * number_images + pix + 1] = (unsigned char) _images.at(img)._pixels[pix];
+        }
+    }
+    return mat;
+}
 
 int main()
 {
@@ -53,4 +69,10 @@ int main()
         train_dataset.save_dataset_as_png(save_dir);
 
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
+
+    auto train_mat = to_openblas(train_dataset._images);
+
+
+    free(train_mat);
+    return 0;
 }
