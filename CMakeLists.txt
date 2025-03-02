@@ -23,11 +23,11 @@ find_package(Torch REQUIRED)
 set(OPENCV_MAP_IMPORTED_CONFIG "") # this is needed for compiling with OpenCV in Debug
 find_package(OpenCV REQUIRED)
 find_package(xtensor REQUIRED)
+find_package(OpenBLAS REQUIRED)
 
 if (WIN32)
     find_package(xtl REQUIRED)
     add_definitions(-DHAVE_CBLAS=1)
-    find_package(OpenBLAS REQUIRED)
     list(APPEND CMAKE_PREFIX_PATH "${OpenBLAS_DIR}/../../../") # needed for xtensor-blas to find OpenBLAS
     find_package(xtensor-blas REQUIRED)
     find_package(xsimd REQUIRED)
@@ -179,6 +179,9 @@ install(TARGETS mnist_xtensor
 configure_file("${PROJECT_SOURCE_DIR}/config.ini" "${CMAKE_CURRENT_BINARY_DIR}/config.ini" COPYONLY)
 install(FILES config.ini
         DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+
+add_executable(mnist_openblas mnist_openblas.cpp)
+target_link_libraries(mnist_openblas mnist)
 
 function(print_cmake_variables_matching pattern)
     get_cmake_property(_variableNames VARIABLES)
