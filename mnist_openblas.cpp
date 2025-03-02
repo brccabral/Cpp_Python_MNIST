@@ -30,7 +30,7 @@ int main()
     CSimpleIniA ini;
     ini.SetUnicode();
 
-    SI_Error rc = ini.LoadFile("config.ini");
+    const SI_Error rc = ini.LoadFile("config.ini");
     if (rc < 0)
     {
         std::cout << "Error loading config.ini" << std::endl;
@@ -38,19 +38,20 @@ int main()
     }
     SI_ASSERT(rc == SI_OK);
 
-    auto num_generations = (int) ini.GetLongValue("MNIST", "GENERATIONS", 5);
-    auto max_items = (int) ini.GetLongValue("MNIST", "MAX_ITEMS", 15);
-    bool save_img = ini.GetBoolValue("MNIST", "SAVE_IMG", false);
-    auto alpha = (float) ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
-    auto hidden_layer_size = (int) ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
+    const auto num_generations = (int) ini.GetLongValue("MNIST", "GENERATIONS", 5);
+    const auto max_items = (int) ini.GetLongValue("MNIST", "MAX_ITEMS", 15);
+    const bool save_img = ini.GetBoolValue("MNIST", "SAVE_IMG", false);
+    const auto alpha = (float) ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
+    const auto hidden_layer_size = (int) ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
 
-    std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
-    std::string save_dir = base_dir + "/train";
-    std::string img_filename = ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images-idx3-ubyte");
-    std::string img_path = base_dir + "/" + img_filename;
-    std::string label_filename =
+    const std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
+    const std::string save_dir = base_dir + "/train";
+    const std::string img_filename =
+            ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images-idx3-ubyte");
+    const std::string img_path = base_dir + "/" + img_filename;
+    const std::string label_filename =
             ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels-idx1-ubyte");
-    std::string label_path = base_dir + "/" + label_filename;
+    const std::string label_path = base_dir + "/" + label_filename;
 
     std::cout << PRINT_VAR(num_generations) << " " << PRINT_VAR(max_items) << " "
               << PRINT_VAR(save_img) << " " << PRINT_VAR(alpha) << " "
