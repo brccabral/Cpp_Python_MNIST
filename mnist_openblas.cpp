@@ -16,12 +16,35 @@ typedef struct MatrixDouble
     double *data;
 } MatrixDouble;
 
+MatrixDouble *create_matrix(uint rows, uint cols)
+{
+    auto *mat = (MatrixDouble *) malloc(sizeof(MatrixDouble));
+    mat->data = (double *) malloc(rows * cols * sizeof(double));
+    return mat;
+}
+
+void free_matrix(MatrixDouble *mat)
+{
+    if (mat == NULL)
+    {
+        return;
+    }
+    if (mat->data != NULL)
+    {
+        free(mat->data);
+        mat->data = NULL;
+    }
+    free(mat);
+    mat = NULL;
+}
+
 MatrixDouble *to_openblas(const std::vector<MNIST_Image> &_images)
 {
     const int number_images = _images.size();
     const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
 
-    auto *mat = (MatrixDouble *) malloc(sizeof(MatrixDouble) * number_images * (number_pixels + 1));
+    auto *mat = create_matrix(number_images, number_pixels + 1);
+
     mat->rows = number_images;
     mat->cols = number_pixels;
     for (int img = 0; img < number_images; img++)
@@ -37,7 +60,7 @@ MatrixDouble *to_openblas(const std::vector<MNIST_Image> &_images)
 
 MatrixDouble *get_Y(const MatrixDouble *mat)
 {
-    auto *Y = (MatrixDouble *) malloc(sizeof(MatrixDouble) * mat->rows);
+    auto *Y = create_matrix(mat->rows, 1);
     Y->rows = mat->rows;
     Y->cols = 1;
     cblas_dcopy(mat->rows, mat->data, mat->cols, Y->data, 1);
@@ -96,5 +119,7 @@ int main()
 
     free(Y_train_float);
     free(train_mat);
+    free_matrix(Y_train_float);
+    free_matrix(train_mat);
     return 0;
 }
