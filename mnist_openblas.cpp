@@ -1,6 +1,6 @@
 #include <SimpleIni/SimpleIni.h>
 #include <MNIST/MNIST_Dataset.hpp>
-#include <cblas.h>
+#include <NeuralNet/NeuralNetOpenBLAS.h>
 
 #define PRINT_VAR(x) #x << "=" << x
 
@@ -8,35 +8,6 @@
 #define TRAIN_LABEL_MAGIC 2049
 #define TEST_IMAGE_MAGIC 2051
 #define TEST_LABEL_MAGIC 2049
-
-typedef struct MatrixDouble
-{
-    uint rows;
-    uint cols;
-    double *data;
-} MatrixDouble;
-
-MatrixDouble *create_matrix(uint rows, uint cols)
-{
-    auto *mat = (MatrixDouble *) malloc(sizeof(MatrixDouble));
-    mat->data = (double *) malloc(rows * cols * sizeof(double));
-    return mat;
-}
-
-void free_matrix(MatrixDouble *mat)
-{
-    if (mat == NULL)
-    {
-        return;
-    }
-    if (mat->data != NULL)
-    {
-        free(mat->data);
-        mat->data = NULL;
-    }
-    free(mat);
-    mat = NULL;
-}
 
 MatrixDouble *to_openblas(const std::vector<MNIST_Image> &_images)
 {
@@ -146,6 +117,10 @@ int main()
     double categories =
             Y_train_float->data[cblas_idmax(Y_train_float->rows, Y_train_float->data, 1)] + 1;
     printf("%g\n", categories);
+
+    // cblas does not have a Transpose function, but when multiplying matrices, we tell the mul()
+    // that X is transposed
+
 
     free_matrix(X_train);
     free_matrix(Y_train_float);

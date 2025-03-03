@@ -85,6 +85,14 @@ if (USE_TBB)
 endif ()
 target_include_directories(neuralnetxt PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/dependencies/nc ${xtensor_INCLUDE_DIRS})
 
+add_library(neuralnetopenblas
+        ${PROJECT_SOURCE_DIR}/src/NeuralNet/NeuralNetOpenBLAS.cpp)
+target_link_libraries(neuralnetopenblas PUBLIC ${OpenBLAS_LIBRARIES})
+if (USE_SIMD)
+    target_compile_options(neuralnetopenblas PUBLIC ${SIMD_FLAGS})
+endif ()
+target_include_directories(neuralnetopenblas PUBLIC ${PROJECT_SOURCE_DIR}/include)
+
 add_library(mnist
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Dataset.cpp
         ${PROJECT_SOURCE_DIR}/src/MNIST/MNIST_Image.cpp)
@@ -187,7 +195,7 @@ install(FILES config.ini
         DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 add_executable(mnist_openblas mnist_openblas.cpp)
-target_link_libraries(mnist_openblas mnist ${OpenBLAS_LIBRARIES})
+target_link_libraries(mnist_openblas mnist neuralnetopenblas)
 
 function(print_cmake_variables_matching pattern)
     get_cmake_property(_variableNames VARIABLES)
