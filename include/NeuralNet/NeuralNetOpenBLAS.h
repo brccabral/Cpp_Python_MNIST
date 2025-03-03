@@ -10,24 +10,20 @@ typedef struct MatrixDouble
     double *data;
 } MatrixDouble;
 
-MatrixDouble *create_matrix(uint rows, uint cols)
+typedef struct VectorDouble
 {
-    auto *mat = (MatrixDouble *) malloc(sizeof(MatrixDouble));
-    mat->data = (double *) malloc(rows * cols * sizeof(double));
-    return mat;
-}
+    uint rows;
+    uint cols;
+    double *data;
+} VectorDouble;
 
-void free_matrix(MatrixDouble *mat)
+typedef struct NeuralNetOpenBLAS
 {
-    if (mat == NULL)
-    {
-        return;
-    }
-    if (mat->data != NULL)
-    {
-        free(mat->data);
-        mat->data = NULL;
-    }
-    free(mat);
-    mat = NULL;
-}
+    MatrixDouble *W1, *W2;
+    VectorDouble *b1, *b2;
+} NeuralNetOpenBLAS;
+
+MatrixDouble *create_matrix(uint rows, uint cols);
+VectorDouble *create_vector(uint n);
+void free_matrix(MatrixDouble *mat);
+void free_vector(VectorDouble *vec);
