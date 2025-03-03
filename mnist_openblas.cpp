@@ -16,8 +16,6 @@ MatrixDouble *to_openblas(const std::vector<MNIST_Image> &_images)
 
     auto *mat = create_matrix(number_images, number_pixels + 1);
 
-    mat->rows = number_images;
-    mat->cols = number_pixels;
     for (int img = 0; img < mat->rows; img++)
     {
         mat->data[img * mat->cols + 0] = float(_images.at(img)._label);
@@ -32,8 +30,6 @@ MatrixDouble *to_openblas(const std::vector<MNIST_Image> &_images)
 MatrixDouble *get_Y(const MatrixDouble *mat)
 {
     auto *Y = create_matrix(mat->rows, 1);
-    Y->rows = mat->rows;
-    Y->cols = 1;
     cblas_dcopy(mat->rows, mat->data, mat->cols, Y->data, 1);
     return Y;
 }
@@ -41,8 +37,6 @@ MatrixDouble *get_Y(const MatrixDouble *mat)
 MatrixDouble *get_X(const MatrixDouble *mat)
 {
     auto *X = create_matrix(mat->rows, mat->cols - 1);
-    X->rows = mat->rows;
-    X->cols = mat->cols - 1;
 
     for (int j = 1; j < mat->cols; j++)
     {

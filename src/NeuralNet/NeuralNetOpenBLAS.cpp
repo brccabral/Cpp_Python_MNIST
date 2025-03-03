@@ -3,6 +3,8 @@
 MatrixDouble *create_matrix(const uint rows, const uint cols)
 {
     auto *mat = (MatrixDouble *) malloc(sizeof(MatrixDouble));
+    mat->rows = rows;
+    mat->cols = cols;
     mat->data = (double *) malloc(rows * cols * sizeof(double));
     return mat;
 }
@@ -61,6 +63,10 @@ void free_neuralnet_openblas(NeuralNetOpenBLAS *nn)
 
 void fill_random_matrix(const MatrixDouble *mat, const double offset)
 {
+    if (mat == NULL)
+    {
+        return;
+    }
     for (int i = 0; i < mat->rows * mat->cols; i++)
     {
         mat->data[i] = drand48() + offset;
