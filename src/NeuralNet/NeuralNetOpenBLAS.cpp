@@ -7,11 +7,23 @@ MatrixDouble *create_matrix(const uint rows, const uint cols)
     return mat;
 }
 
-VectorDouble *create_vector(const uint n)
+NeuralNetOpenBLAS *create_neuralnet_openblas(
+        const unsigned int num_features, const unsigned int hidden_layer_size,
+        const unsigned int categories)
 {
-    auto *vec = (VectorDouble *) malloc(sizeof(VectorDouble));
-    vec->data = (double *) malloc(n * sizeof(double));
-    return vec;
+    auto *nn = (NeuralNetOpenBLAS *) malloc(sizeof(NeuralNetOpenBLAS));
+    nn->num_inputs = num_features;
+    nn->num_hidden_layers = hidden_layer_size;
+    nn->num_outputs = categories;
+    nn->W1 = create_matrix(nn->num_hidden_layers, nn->num_inputs);
+    nn->b1 = create_matrix(nn->num_hidden_layers, 1);
+    nn->W2 = create_matrix(nn->num_outputs, nn->num_hidden_layers);
+    nn->b2 = create_matrix(nn->num_outputs, 1);
+    fill_random_matrix(nn->W1, -0.5);
+    fill_random_matrix(nn->b1, -0.5);
+    fill_random_matrix(nn->W2, -0.5);
+    fill_random_matrix(nn->b2, -0.5);
+    return nn;
 }
 
 void free_matrix(MatrixDouble *mat)
@@ -29,17 +41,33 @@ void free_matrix(MatrixDouble *mat)
     mat = NULL;
 }
 
-void free_vector(VectorDouble *vec)
+void free_neuralnet_openblas(NeuralNetOpenBLAS *nn)
 {
-    if (vec == NULL)
+    if (nn == NULL)
     {
         return;
     }
-    if (vec->data != NULL)
+    if (nn->W1 != NULL)
     {
-        free(vec->data);
-        vec->data = NULL;
+        free_matrix(nn->W1);
     }
-    free(vec);
-    vec = NULL;
+    if (nn->W2 != NULL)
+    {
+        free_matrix(nn->W2);
+    }
+    free(nn);
+    nn = NULL;
+}
+
+void fill_random_matrix(const MatrixDouble *mat, const double offset)
+{
+    for (int i = 0; i < mat->rows * mat->cols; i++)
+    {
+        mat->data[i] = drand48() + offset;
+    }
+}
+
+void seed(const size_t value)
+{
+    srand48(value);
 }

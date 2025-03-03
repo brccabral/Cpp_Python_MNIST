@@ -121,9 +121,12 @@ int main()
     // cblas does not have a Transpose function, but when multiplying matrices, we tell the mul()
     // that X is transposed
 
+    auto *neural_net = create_neuralnet_openblas(X_train->cols, hidden_layer_size, categories);
+
 
     free_matrix(X_train);
     free_matrix(Y_train_float);
     free_matrix(train_mat);
+    free_neuralnet_openblas(neural_net);
     return 0;
 }

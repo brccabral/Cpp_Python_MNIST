@@ -10,20 +10,18 @@ typedef struct MatrixDouble
     double *data;
 } MatrixDouble;
 
-typedef struct VectorDouble
-{
-    uint rows;
-    uint cols;
-    double *data;
-} VectorDouble;
-
 typedef struct NeuralNetOpenBLAS
 {
-    MatrixDouble *W1, *W2;
-    VectorDouble *b1, *b2;
+    MatrixDouble *W1, *W2, *b1, *b2;
+    uint num_inputs;
+    uint num_hidden_layers;
+    uint num_outputs;
 } NeuralNetOpenBLAS;
 
 MatrixDouble *create_matrix(uint rows, uint cols);
-VectorDouble *create_vector(uint n);
+NeuralNetOpenBLAS *create_neuralnet_openblas(
+        unsigned int num_features, unsigned int hidden_layer_size, unsigned int categories);
+void fill_random_matrix(const MatrixDouble *mat, double offset);
 void free_matrix(MatrixDouble *mat);
-void free_vector(VectorDouble *vec);
+void free_neuralnet_openblas(NeuralNetOpenBLAS *nn);
+void seed(size_t value);
