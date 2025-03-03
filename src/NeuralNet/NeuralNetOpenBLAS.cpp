@@ -1,3 +1,4 @@
+#include <cstring>
 #include <NeuralNet/NeuralNetOpenBLAS.h>
 
 MatrixDouble *create_matrix(const uint rows, const uint cols)
@@ -76,4 +77,22 @@ void fill_random_matrix(const MatrixDouble *mat, const double offset)
 void seed(const size_t value)
 {
     srand48(value);
+}
+
+MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint column)
+{
+    uint32_t num_classes = mat->data[cblas_idmax(mat->rows, mat->data + column, mat->cols)] + 1;
+    MatrixDouble *one_hot_Y = create_matrix(mat->rows, num_classes);
+
+    memset(one_hot_Y->data, 0, mat->rows * num_classes * sizeof(int));
+
+    for (int i = 0; i < one_hot_Y->rows; ++i)
+    {
+        const double value = (mat->data[i * mat->cols + column]);
+        if (value >= 0 && value < num_classes)
+        {
+            one_hot_Y->data[uint32_t(i * num_classes + value)] = 1.0;
+        }
+    }
+    return one_hot_Y;
 }

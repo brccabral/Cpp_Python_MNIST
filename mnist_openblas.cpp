@@ -116,11 +116,12 @@ int main()
     // that X is transposed
 
     auto *neural_net = create_neuralnet_openblas(X_train->cols, hidden_layer_size, categories);
-
+    auto *one_hot_Y = one_hot_encode(Y_train_float, 0);
 
     free_matrix(X_train);
     free_matrix(Y_train_float);
     free_matrix(train_mat);
+    free_matrix(one_hot_Y);
     free_neuralnet_openblas(neural_net);
     return 0;
 }
