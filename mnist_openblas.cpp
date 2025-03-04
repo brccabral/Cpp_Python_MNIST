@@ -122,21 +122,20 @@ int main()
     auto *neural_net = create_neuralnet_openblas(X_train->cols, hidden_layer_size, categories);
     auto *one_hot_Y = one_hot_encode(Y_train_float, 0);
 
-    MatrixDouble *output;
-
     int correct_prediction = 0;
     float acc = 0.0f;
-
-    auto *prediction = create_matrix(X_train->rows, 1);
 
     DESCRIBE_NN(neural_net);
 
     for (int generation = 0; generation < num_generations; generation++)
     {
-        output = forward_prop(neural_net, X_train);
+        forward_prop(neural_net, X_train);
 
         if (generation % 50 == 0)
         {
+            get_predictions(neural_net);
+            correct_prediction = get_correct_prediction(neural_net, Y_train_float);
+            acc = correct_prediction / Y_train_float->rows;
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction,
                    acc);
         }
@@ -146,7 +145,6 @@ int main()
     free_matrix(Y_train_float);
     free_matrix(train_mat);
     free_matrix(one_hot_Y);
-    free_matrix(prediction);
     free_neuralnet_openblas(neural_net);
     return 0;
 }

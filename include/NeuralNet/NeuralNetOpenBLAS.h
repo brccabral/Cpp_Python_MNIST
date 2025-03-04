@@ -26,8 +26,13 @@ typedef struct MatrixDouble
 
 typedef struct NeuralNetOpenBLAS
 {
+    // layers
     MatrixDouble *W1, *W2, *b1, *b2;
-    MatrixDouble *Z1, *Z2, *A1, *A2, *A2ones, *A2result = NULL;
+    // derivatives
+    MatrixDouble *Z1, *Z2, *A1, *A2 = NULL;
+    // auxiliaries
+    MatrixDouble *A2ones, *A2sum, *predictions = NULL;
+
     uint num_inputs;
     uint num_hidden_layers;
     uint num_outputs;
@@ -42,7 +47,9 @@ void free_neuralnet_openblas(NeuralNetOpenBLAS *nn);
 void seed(size_t value);
 
 MatrixDouble *one_hot_encode(const MatrixDouble *mat, uint column);
-MatrixDouble *forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs);
+void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs);
 void relu_ewise(const MatrixDouble *M);
 void exp_ewise(const MatrixDouble *M);
 void add_vector_to_matrix(const MatrixDouble *M, const MatrixDouble *V);
+void get_predictions(NeuralNetOpenBLAS *nn);
+uint get_correct_prediction(NeuralNetOpenBLAS *nn, MatrixDouble *labels);
