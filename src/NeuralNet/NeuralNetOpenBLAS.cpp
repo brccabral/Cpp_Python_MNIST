@@ -4,10 +4,21 @@
 
 MatrixDouble *create_matrix(const uint rows, const uint cols)
 {
+    assert(rows > 0 && cols > 0);
+
     auto *mat = (MatrixDouble *) malloc(sizeof(MatrixDouble));
+    if (mat == NULL)
+    {
+        return NULL;
+    }
     mat->rows = rows;
     mat->cols = cols;
     mat->data = (double *) malloc(rows * cols * sizeof(double));
+    if (mat->data == NULL)
+    {
+        free(mat);
+        return NULL;
+    }
     return mat;
 }
 
@@ -15,14 +26,40 @@ NeuralNetOpenBLAS *create_neuralnet_openblas(
         const unsigned int num_features, const unsigned int hidden_layer_size,
         const unsigned int categories)
 {
+    assert(num_features > 0 && hidden_layer_size > 0 && categories > 0);
+
     auto *nn = (NeuralNetOpenBLAS *) malloc(sizeof(NeuralNetOpenBLAS));
+    if (nn == NULL)
+    {
+        return NULL;
+    }
     nn->num_inputs = num_features;
     nn->num_hidden_layers = hidden_layer_size;
     nn->num_outputs = categories;
     nn->W1 = create_matrix(nn->num_hidden_layers, nn->num_inputs);
+    if (nn->W1 == NULL)
+    {
+        free_neuralnet_openblas(nn);
+        return NULL;
+    }
     nn->b1 = create_matrix(nn->num_hidden_layers, 1);
+    if (nn->b1 == NULL)
+    {
+        free_neuralnet_openblas(nn);
+        return NULL;
+    }
     nn->W2 = create_matrix(nn->num_outputs, nn->num_hidden_layers);
+    if (nn->W2 == NULL)
+    {
+        free_neuralnet_openblas(nn);
+        return NULL;
+    }
     nn->b2 = create_matrix(nn->num_outputs, 1);
+    if (nn->b2 == NULL)
+    {
+        free_neuralnet_openblas(nn);
+        return NULL;
+    }
     fill_random_matrix(nn->W1, -0.5);
     fill_random_matrix(nn->b1, -0.5);
     fill_random_matrix(nn->W2, -0.5);
@@ -61,22 +98,27 @@ void free_neuralnet_openblas(NeuralNetOpenBLAS *nn)
     if (nn->W1 != NULL)
     {
         free_matrix(nn->W1);
+        nn->W1 = NULL;
     }
     if (nn->W2 != NULL)
     {
         free_matrix(nn->W2);
+        nn->W2 = NULL;
     }
     if (nn->b1 != NULL)
     {
         free_matrix(nn->b1);
+        nn->b1 = NULL;
     }
     if (nn->b2 != NULL)
     {
         free_matrix(nn->b2);
+        nn->b2 = NULL;
     }
     if (nn->Z1 != NULL)
     {
         free_matrix(nn->Z1);
+        nn->Z1 = NULL;
     }
     if (nn->A1 != NULL)
     {
@@ -89,14 +131,17 @@ void free_neuralnet_openblas(NeuralNetOpenBLAS *nn)
     if (nn->A2 != NULL)
     {
         free_matrix(nn->A2);
+        nn->A2 = NULL;
     }
     if (nn->A2ones != NULL)
     {
         free_matrix(nn->A2ones);
+        nn->A2ones = NULL;
     }
     if (nn->A2sum != NULL)
     {
         free_matrix(nn->A2sum);
+        nn->A2sum = NULL;
     }
     if (nn->predictions != NULL)
     {
@@ -125,6 +170,12 @@ void seed(const size_t value)
 
 MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint column)
 {
+    if (mat == NULL)
+    {
+        return NULL;
+    }
+    assert(column < mat->cols);
+
     const uint32_t num_classes =
             mat->data[cblas_idmax(mat->rows, mat->data + column, mat->cols)] + 1;
     MatrixDouble *one_hot_Y = create_matrix(mat->rows, num_classes);
@@ -236,6 +287,14 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
     // A1 = NeuralNetNC::ReLU(Z1);
     // Z2 = W2.dot(A1) + b2;
     // A2 = NeuralNetNC::Softmax(Z2);
+    if (nn == NULL)
+    {
+        return;
+    }
+    if (inputs == NULL)
+    {
+        return;
+    }
 
     assert(nn->W1->cols == inputs->cols); // inputs will be transposed in function call
 

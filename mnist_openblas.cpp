@@ -15,6 +15,10 @@ MatrixDouble *to_openblas(const std::vector<MNIST_Image> &_images)
     const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
 
     auto *mat = create_matrix(number_images, number_pixels + 1);
+    if (mat == NULL)
+    {
+        return NULL;
+    }
 
     for (int img = 0; img < mat->rows; img++)
     {
@@ -29,14 +33,30 @@ MatrixDouble *to_openblas(const std::vector<MNIST_Image> &_images)
 
 MatrixDouble *get_Y(const MatrixDouble *mat)
 {
+    if (mat == NULL)
+    {
+        return NULL;
+    }
     auto *Y = create_matrix(mat->rows, 1);
+    if (Y == NULL)
+    {
+        return NULL;
+    }
     cblas_dcopy(mat->rows, mat->data, mat->cols, Y->data, 1);
     return Y;
 }
 
 MatrixDouble *get_X(const MatrixDouble *mat)
 {
+    if (mat == NULL)
+    {
+        return NULL;
+    }
     auto *X = create_matrix(mat->rows, mat->cols - 1);
+    if (X == NULL)
+    {
+        return NULL;
+    }
 
     for (int row = 0; row < mat->rows; row++)
     {
@@ -97,9 +117,24 @@ int main()
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 
     auto train_mat = to_openblas(train_dataset._images);
+    if (train_mat == NULL)
+    {
+        printf("Failed to convert dataset to OpenBLAS\n");
+        exit(EXIT_FAILURE);
+    }
 
     auto Y_train_float = get_Y(train_mat);
+    if (Y_train_float == NULL)
+    {
+        printf("Failed to convert get Y from dataset\n");
+        exit(EXIT_FAILURE);
+    }
     auto X_train = get_X(train_mat);
+    if (X_train == NULL)
+    {
+        printf("Failed to convert get X from dataset\n");
+        exit(EXIT_FAILURE);
+    }
     cblas_dscal(X_train->rows * X_train->cols, 1 / 255.0, X_train->data, 1);
 
     printf("%g\n", Y_train_float->data[4 * Y_train_float->cols + 0]);
