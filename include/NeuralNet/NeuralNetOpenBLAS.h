@@ -1,10 +1,7 @@
 #pragma once
 #include <cblas.h>
 #include <lapacke.h>
-#include <stdlib.h>
 #include <sys/types.h>
-#include <immintrin.h>
-#include <omp.h>
 
 #define DESCRIBE_MATRIX(m) printf("%s: %d,%d\n", #m, (m)->rows, (m)->cols)
 

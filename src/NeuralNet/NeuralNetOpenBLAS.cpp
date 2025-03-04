@@ -1,6 +1,8 @@
 #include <cassert>
 #include <cstring>
 #include <NeuralNet/NeuralNetOpenBLAS.h>
+#include <immintrin.h>
+#include <omp.h>
 
 MatrixDouble *create_matrix(const uint rows, const uint cols)
 {
@@ -27,6 +29,8 @@ NeuralNetOpenBLAS *create_neuralnet_openblas(
         const unsigned int categories)
 {
     assert(num_features > 0 && hidden_layer_size > 0 && categories > 0);
+
+    omp_set_num_threads(std::max(omp_get_max_threads() - 2, 1));
 
     auto *nn = (NeuralNetOpenBLAS *) malloc(sizeof(NeuralNetOpenBLAS));
     if (nn == NULL)
