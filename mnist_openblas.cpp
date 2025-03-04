@@ -174,6 +174,8 @@ int main()
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction,
                    acc);
         }
+
+        back_prop(neural_net, X_train, Y_train_float, one_hot_Y, alpha);
     }
 
     free_matrix(X_train);

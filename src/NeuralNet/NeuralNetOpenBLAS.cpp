@@ -70,8 +70,10 @@ NeuralNetOpenBLAS *create_neuralnet_openblas(
     fill_random_matrix(nn->b2, -0.5);
     nn->Z1 = NULL;
     nn->A1 = NULL;
-    nn->Z2 = NULL;
     nn->A2 = NULL;
+    nn->dW1 = NULL;
+    nn->dW2 = NULL;
+    nn->dZ1 = NULL;
     nn->A2ones = NULL;
     nn->A2sum = NULL;
     nn->predictions = NULL;
@@ -127,10 +129,7 @@ void free_neuralnet_openblas(NeuralNetOpenBLAS *nn)
     if (nn->A1 != NULL)
     {
         free_matrix(nn->A1);
-    }
-    if (nn->Z2 != NULL)
-    {
-        free_matrix(nn->Z2);
+        nn->A1 = NULL;
     }
     if (nn->A2 != NULL)
     {
@@ -150,6 +149,22 @@ void free_neuralnet_openblas(NeuralNetOpenBLAS *nn)
     if (nn->predictions != NULL)
     {
         free_matrix(nn->predictions);
+        nn->predictions = NULL;
+    }
+    if (nn->dW1 != NULL)
+    {
+        free_matrix(nn->dW1);
+        nn->dW1 = NULL;
+    }
+    if (nn->dW2 != NULL)
+    {
+        free_matrix(nn->dW2);
+        nn->dW2 = NULL;
+    }
+    if (nn->dZ1 != NULL)
+    {
+        free_matrix(nn->dZ1);
+        nn->dZ1 = NULL;
     }
     free(nn);
     nn = NULL;
@@ -305,19 +320,23 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
     if (nn->Z1 == NULL || nn->Z1->cols != inputs->rows)
     {
         free_matrix(nn->Z1);
-        free_matrix(nn->A1);
-        free_matrix(nn->Z2);
-        free_matrix(nn->A2);
-        free_matrix(nn->A2ones);
-        free_matrix(nn->A2sum);
-        free_matrix(nn->predictions);
         nn->Z1 = create_matrix(nn->W1->rows, inputs->rows);
+        free_matrix(nn->A1);
         nn->A1 = create_matrix(nn->W1->rows, inputs->rows);
-        nn->Z2 = create_matrix(nn->W2->rows, inputs->rows);
+        free_matrix(nn->A2);
         nn->A2 = create_matrix(nn->W2->rows, inputs->rows);
-        nn->A2ones = create_matrix(nn->A2->cols, 1);
+        free_matrix(nn->A2sum);
         nn->A2sum = create_matrix(nn->A2->cols, 1);
+        free_matrix(nn->predictions);
         nn->predictions = create_matrix(nn->A2->cols, 1);
+        free_matrix(nn->dZ1);
+        nn->dZ1 = create_matrix(nn->Z1->rows, nn->Z1->cols);
+        free_matrix(nn->dW1);
+        nn->dW1 = create_matrix(nn->W1->rows, nn->W1->cols);
+        free_matrix(nn->dW2);
+        nn->dW2 = create_matrix(nn->W2->rows, nn->W2->cols);
+        free_matrix(nn->A2ones);
+        nn->A2ones = create_matrix(nn->A2->cols, 1);
 #pragma omp parallel for simd
         for (int i = 0; i < nn->A2ones->rows * nn->A2ones->cols; ++i)
         {
@@ -339,12 +358,11 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
     // Z2 = W2.dot(A1) + b2;
     cblas_dgemm(
             CblasRowMajor, CblasNoTrans, CblasNoTrans, nn->W2->rows, nn->A1->cols, nn->A1->rows,
-            1.0, nn->W2->data, nn->W2->cols, nn->A1->data, nn->A1->cols, 0.0, nn->Z2->data,
-            nn->Z2->cols);
-    add_vector_to_matrix(nn->Z2, nn->b2);
+            1.0, nn->W2->data, nn->W2->cols, nn->A1->data, nn->A1->cols, 0.0, nn->A2->data,
+            nn->A2->cols);
+    add_vector_to_matrix(nn->A2, nn->b2);
 
     // A2 = NeuralNetNC::Softmax(Z2);
-    memcpy(nn->A2->data, nn->Z2->data, nn->Z2->rows * nn->Z2->cols * sizeof(double));
     exp_ewise(nn->A2);
     // A x VecOf1 = Sum(A, row)
     // multiplying a matrix A of a vector of 1's does the sum of A for each row
@@ -396,4 +414,195 @@ uint get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *lab
     }
 
     return correct_count;
+}
+
+void deriv_ReLU_ewise(const MatrixDouble *M)
+{
+    if (M == NULL)
+    {
+        return;
+    }
+
+    const int size = M->rows * M->cols;
+
+    int i;
+    // Process 4 elements at a time with SSE
+    for (i = 0; i <= size - 4; i += 4)
+    {
+        // Load 4 values from input into a 128-bit register
+        const __m256d data = _mm256_loadu_pd(&M->data[i]);
+
+        // Compare the values with zero and set the result to 1.0 for positive, 0.0 for negative
+        __m256d result = _mm256_setzero_pd(); // Start with zero
+        result = _mm256_cmp_pd(
+                data, result, _CMP_GT_OS); // Set 1.0 for positive values, 0.0 for others
+
+        // Store the result back into the output array
+        _mm256_storeu_pd(&M->data[i], result);
+    }
+
+    // Process remaining elements (if any)
+    for (; i < size; ++i)
+    {
+        M->data[i] = (M->data[i] > 0) ? 1.0f : 0.0f;
+    }
+}
+
+// element-wise multiplication (Hadamard product) using AVX2 (double precision)
+void product_ewise(const MatrixDouble *D, const MatrixDouble *Z)
+{
+    if (D == NULL)
+    {
+        return;
+    }
+    if (Z == NULL)
+    {
+        return;
+    }
+    assert(D->rows == Z->rows);
+    assert(D->cols == Z->cols);
+
+    const int total_elements = D->rows * D->cols;
+
+    // Process 4 elements at a time using AVX2 (256-bit registers hold 4 doubles)
+    int i = 0;
+    for (; i <= total_elements - 4; i += 4)
+    {
+        const __m256d d_vals = _mm256_loadu_pd(&D->data[i]); // Load 4 elements of D
+        const __m256d z_vals = _mm256_loadu_pd(&Z->data[i]); // Load 4 elements of Z
+        const __m256d res_vals = _mm256_mul_pd(d_vals, z_vals); // Multiply element-wise
+        _mm256_storeu_pd(&D->data[i], res_vals); // Store the result
+    }
+
+    // Handle the remaining elements if not a multiple of 4
+    for (; i < total_elements; i++)
+    {
+        D->data[i] = D->data[i] * Z->data[i];
+    }
+}
+
+void subtraction_ewise(const MatrixDouble *W, const MatrixDouble *Z)
+{
+    if (W == NULL)
+    {
+        return;
+    }
+    if (Z == NULL)
+    {
+        return;
+    }
+    assert(W->rows == Z->rows);
+    assert(W->cols == Z->cols);
+    const int size = W->rows * W->cols;
+    int i;
+
+    // Process elements in chunks of 4 (since AVX operates on 256-bit wide registers, which can hold
+    // 4 doubles)
+    for (i = 0; i < size / 4 * 4; i += 4)
+    {
+        const __m256d w = _mm256_loadu_pd(&W->data[i]); // Load 4 elements from W
+        const __m256d d = _mm256_loadu_pd(&Z->data[i]); // Load 4 elements from D
+        const __m256d res = _mm256_sub_pd(w, d); // Subtract the two vectors
+        _mm256_storeu_pd(&W->data[i], res); // Store the result
+    }
+
+    // Handle remaining elements (if any)
+    for (; i < size; ++i)
+    {
+        W->data[i] = W->data[i] - Z->data[i];
+    }
+}
+
+void subtract_scalar(const MatrixDouble *M, const double scalar)
+{
+    if (M == NULL)
+    {
+        return;
+    }
+    const int size = M->rows * M->cols;
+
+    // Load the scalar value into an AVX register. Since SIMD works on 256-bit registers,
+    // we need to load 4 doubles at a time.
+    const __m256d scalar_vector = _mm256_set1_pd(scalar);
+
+    // Iterate over the matrix, processing 4 elements at a time
+    for (int i = 0; i < size; i += 4)
+    {
+        // Load 4 elements from the matrix into an AVX register
+        const __m256d mat_vector = _mm256_loadu_pd(&M->data[i]);
+
+        // Subtract scalar_vector from mat_vector
+        const __m256d result = _mm256_sub_pd(mat_vector, scalar_vector);
+
+        // Store the result back into the matrix
+        _mm256_storeu_pd(&M->data[i], result);
+    }
+}
+
+void back_prop(
+        const NeuralNetOpenBLAS *nn, const MatrixDouble *inputs, const MatrixDouble *labels,
+        const MatrixDouble *one_hot_Y, const double alpha)
+{
+    const int y_size = labels->rows;
+
+    // const Eigen::MatrixXf dZ2 = A2 - one_hot_Y;
+    // reuse A2 as dZ2
+    // A2 = categ x images
+    // one_hot = categ, images
+    cblas_daxpy(nn->A2->rows * nn->A2->cols, -1.0f, one_hot_Y->data, 1, nn->A2->data, 1);
+
+    // dW2 = dZ2 * A1.transpose() / y_size;
+    // dZ2/A2 = categ, images
+    // A1 = hidden, images
+    // A1_t = images, hidden
+    // dW2 = categ, hidden
+    cblas_dgemm(
+            CblasRowMajor, CblasNoTrans, CblasTrans, nn->A2->rows, nn->A1->cols, nn->A2->cols, 1.0,
+            nn->A2->data, nn->A2->cols, nn->A1->data, nn->A1->cols, 0.0, nn->dW2->data,
+            nn->dW2->cols);
+
+    // db2 = dZ2.sum() / y_size;
+    const double db2 = cblas_dasum(nn->A2->rows * nn->A2->cols, nn->A2->data, 1) / y_size;
+
+    // const Eigen::MatrixXf dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
+    // w2 categ, hidden
+    // dZ2 categ, images
+    // dZ1 hidden, images
+    // Z1 hidden, images
+    deriv_ReLU_ewise(nn->Z1);
+    cblas_dgemm(
+            CblasRowMajor, CblasTrans, CblasNoTrans, nn->W2->cols, nn->A2->cols, nn->W2->rows, 1.0,
+            nn->W2->data, nn->W2->cols, nn->A2->data, nn->A2->cols, 0.0, nn->dZ1->data,
+            nn->dZ1->cols);
+    product_ewise(nn->dZ1, nn->Z1);
+
+
+    // dW1 = dZ1 * X / y_size;
+    // dZ1 hidden, images
+    // X images, features
+    // dW1 hidden, features
+    cblas_dgemm(
+            CblasRowMajor, CblasNoTrans, CblasNoTrans, nn->dZ1->rows, inputs->rows, nn->dZ1->cols,
+            1.0, nn->dZ1->data, nn->dZ1->cols, inputs->data, inputs->cols, 0.0, nn->dW1->data,
+            nn->dW1->cols);
+    cblas_dscal(nn->dW1->rows * nn->dW1->cols, 1.0 / y_size, nn->dW1->data, 1);
+
+    // db1 = dZ1.sum() / y_size;
+    const double db1 = cblas_dasum(nn->dZ1->rows * nn->dZ1->cols, nn->dZ1->data, 1) / y_size;
+
+    // W1 = W1 - dW1 * alpha;
+    // W1 hidden, features
+    // dW1 hidden, features
+    cblas_dscal(nn->dZ1->rows * nn->dZ1->cols, alpha, nn->dZ1->data, 1);
+    subtraction_ewise(nn->W1, nn->dW1);
+
+    // b1 = b1.array() - db1 * alpha;
+    subtract_scalar(nn->b1, db1 * alpha);
+
+    // W2 = W2 - dW2 * alpha;
+    cblas_dscal(nn->dW2->rows * nn->dW2->cols, alpha, nn->dW2->data, 1);
+    subtraction_ewise(nn->W2, nn->dW2);
+
+    // b2 = b2.array() - db2 * alpha;
+    subtract_scalar(nn->b2, db2 * alpha);
 }

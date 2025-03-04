@@ -47,7 +47,14 @@ void nn_seed(size_t value);
 MatrixDouble *one_hot_encode(const MatrixDouble *mat, uint column);
 void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs);
 void relu_ewise(const MatrixDouble *M);
+void deriv_ReLU_ewise(const MatrixDouble *M);
 void exp_ewise(const MatrixDouble *M);
 void add_vector_to_matrix(const MatrixDouble *M, const MatrixDouble *V);
 void get_predictions(const NeuralNetOpenBLAS *nn);
 uint get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *labels);
+void product_ewise(const MatrixDouble *D, const MatrixDouble *Z);
+void subtraction_ewise(const MatrixDouble *W, const MatrixDouble *Z);
+void subtract_scalar(const MatrixDouble *M, double scalar);
+void back_prop(
+        const NeuralNetOpenBLAS *nn, const MatrixDouble *inputs, const MatrixDouble *labels,
+        const MatrixDouble *one_hot_Y, double alpha);
