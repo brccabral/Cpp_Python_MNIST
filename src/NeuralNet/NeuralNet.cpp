@@ -21,7 +21,6 @@ Eigen::MatrixXf NeuralNet::ReLU(const Eigen::MatrixXf &Z)
 
 Eigen::MatrixXf NeuralNet::Softmax(Eigen::MatrixXf &Z)
 {
-    static bool passed = false;
     Eigen::MatrixXf e = Z.array().exp();
     Eigen::MatrixXf s = e.colwise().sum();
     for (int c = 0; c < e.cols(); c++)
@@ -78,7 +77,7 @@ void NeuralNet::back_prop(
     db2 = dZ2.sum() / y_size;
 
     const Eigen::MatrixXf dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
-    dW1 = dZ1 * X.transpose() / y_size;
+    dW1 = dZ1 * X / y_size;
     db1 = dZ1.sum() / y_size;
 
     W1 = W1 - dW1 * alpha;

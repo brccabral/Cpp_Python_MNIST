@@ -59,7 +59,7 @@ void NeuralNetNC::back_prop(
     db2 = (1.0f / m * nc::sum(dZ2)).item();
 
     const auto dZ1 = W2.transpose().dot(dZ2) * NeuralNetNC::deriv_ReLU(Z1);
-    dW1 = 1.0f / m * dZ1.dot(X.transpose());
+    dW1 = 1.0f / m * dZ1.dot(X);
     db1 = (1.0f / m * nc::sum(dZ1)).item();
 
     W1 = W1 - alpha * dW1;

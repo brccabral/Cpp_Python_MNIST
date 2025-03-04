@@ -137,7 +137,7 @@ int main()
                    acc);
         }
 
-        neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha);
+        neural_net.back_prop(X_train, Y_train, one_hot_Y, alpha);
     }
 
 

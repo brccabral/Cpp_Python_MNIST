@@ -125,27 +125,13 @@ int main()
                    acc);
         }
 
-        neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha);
+        neural_net.back_prop(X_train, Y_train, one_hot_Y, alpha);
     }
     output = neural_net.forward_prop(X_train_T);
     prediction = NeuralNet::get_predictions(output);
     correct_prediction = NeuralNet::get_correct_prediction(prediction, Y_train);
     acc = NeuralNet::get_accuracy(correct_prediction, Y_train.rows());
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
-
-    printf("train\n");
-    printf("train_mat %ld,%ld\n", train_mat.rows(), train_mat.cols());
-    printf("Y_train %ld,%ld\n", Y_train.rows(), Y_train.cols());
-    printf("X_train %ld,%ld\n", X_train.rows(), X_train.cols());
-    printf("X_train_T %ld,%ld\n", X_train_T.rows(), X_train_T.cols());
-    printf("W1 %ld,%ld\n", neural_net.W1.rows(), neural_net.W1.cols());
-    printf("b1 %ld,%ld\n", neural_net.b1.rows(), neural_net.b1.cols());
-    printf("W2 %ld,%ld\n", neural_net.W2.rows(), neural_net.W2.cols());
-    printf("b2 %ld,%ld\n", neural_net.b2.rows(), neural_net.b2.cols());
-    printf("Z1 %ld,%ld\n", neural_net.Z1.rows(), neural_net.Z1.cols());
-    printf("A1 %ld,%ld\n", neural_net.A1.rows(), neural_net.A1.cols());
-    printf("Z2 %ld,%ld\n", neural_net.Z2.rows(), neural_net.Z2.cols());
-    printf("A2 %ld,%ld\n", neural_net.A2.rows(), neural_net.A2.cols());
 
     save_dir = base_dir + "/test";
     img_filename = ini.GetValue("MNIST", "TEST_IMAGE_FILE", "t10k-images-idx3-ubyte");
@@ -173,20 +159,6 @@ int main()
     Eigen::MatrixXf X_test_T = X_test.transpose();
 
     output = neural_net.forward_prop(X_test_T);
-
-    printf("test\n");
-    printf("test_mat %ld,%ld\n", test_mat.rows(), test_mat.cols());
-    printf("Y_test %ld,%ld\n", Y_test.rows(), Y_test.cols());
-    printf("X_test %ld,%ld\n", X_test.rows(), X_test.cols());
-    printf("X_test_T %ld,%ld\n", X_test_T.rows(), X_test_T.cols());
-    printf("W1 %ld,%ld\n", neural_net.W1.rows(), neural_net.W1.cols());
-    printf("b1 %ld,%ld\n", neural_net.b1.rows(), neural_net.b1.cols());
-    printf("W2 %ld,%ld\n", neural_net.W2.rows(), neural_net.W2.cols());
-    printf("b2 %ld,%ld\n", neural_net.b2.rows(), neural_net.b2.cols());
-    printf("Z1 %ld,%ld\n", neural_net.Z1.rows(), neural_net.Z1.cols());
-    printf("A1 %ld,%ld\n", neural_net.A1.rows(), neural_net.A1.cols());
-    printf("Z2 %ld,%ld\n", neural_net.Z2.rows(), neural_net.Z2.cols());
-    printf("A2 %ld,%ld\n", neural_net.A2.rows(), neural_net.A2.cols());
 
     prediction = NeuralNet::get_predictions(output);
     correct_prediction = NeuralNet::get_correct_prediction(prediction, Y_test);
