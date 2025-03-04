@@ -347,13 +347,14 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
     memcpy(nn->A2->data, nn->Z2->data, nn->Z2->rows * nn->Z2->cols * sizeof(double));
     exp_ewise(nn->A2);
     // A x VecOf1 = Sum(A, row)
+    // multiplying a matrix A of a vector of 1's does the sum of A for each row
     cblas_dgemv(
             CblasRowMajor, CblasNoTrans, nn->A2->rows, nn->A2->cols, 1.0, nn->A2->data,
             nn->A2->cols, nn->A2ones->data, 1, 0.0, nn->A2sum->data, 1);
     matrix_div_vector_rwise(nn->A2, nn->A2sum);
 }
 
-void get_predictions(NeuralNetOpenBLAS *nn)
+void get_predictions(const NeuralNetOpenBLAS *nn)
 {
     if (nn == NULL)
     {
@@ -369,7 +370,7 @@ void get_predictions(NeuralNetOpenBLAS *nn)
     }
 }
 
-uint get_correct_prediction(NeuralNetOpenBLAS *nn, MatrixDouble *labels)
+uint get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *labels)
 {
     if (nn == NULL)
     {

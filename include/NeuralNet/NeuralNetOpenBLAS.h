@@ -49,5 +49,5 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs);
 void relu_ewise(const MatrixDouble *M);
 void exp_ewise(const MatrixDouble *M);
 void add_vector_to_matrix(const MatrixDouble *M, const MatrixDouble *V);
-void get_predictions(NeuralNetOpenBLAS *nn);
-uint get_correct_prediction(NeuralNetOpenBLAS *nn, MatrixDouble *labels);
+void get_predictions(const NeuralNetOpenBLAS *nn);
+uint get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *labels);
