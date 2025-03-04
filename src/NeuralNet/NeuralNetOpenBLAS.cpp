@@ -258,7 +258,7 @@ void exp_ewise(const MatrixDouble *M)
     }
 
 #pragma omp parallel for simd
-    for (int i = 0; i < M->rows * M->rows; i++)
+    for (int i = 0; i < M->rows * M->cols; i++)
     {
         M->data[i] = exp(M->data[i]);
     }
