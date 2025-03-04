@@ -1,10 +1,12 @@
 #pragma once
 
+#include <immintrin.h>
+#include <omp.h>
 #include <Eigen/Dense>
 
 class NeuralNet
 {
-private:
+public:
 
     // layers
     Eigen::MatrixXf W1;

@@ -21,6 +21,7 @@ Eigen::MatrixXf NeuralNet::ReLU(const Eigen::MatrixXf &Z)
 
 Eigen::MatrixXf NeuralNet::Softmax(Eigen::MatrixXf &Z)
 {
+    static bool passed = false;
     Eigen::MatrixXf e = Z.array().exp();
     Eigen::MatrixXf s = e.colwise().sum();
     for (int c = 0; c < e.cols(); c++)

@@ -38,9 +38,9 @@ MatrixDouble *get_X(const MatrixDouble *mat)
 {
     auto *X = create_matrix(mat->rows, mat->cols - 1);
 
-    for (int j = 1; j < mat->cols; j++)
+    for (int row = 0; row < mat->rows; row++)
     {
-        cblas_dcopy(mat->rows, &mat->data[j], mat->cols, &X->data[j - 1], mat->rows);
+        cblas_dcopy(X->cols, &mat->data[row * mat->cols + 1], 1, &X->data[row], 1);
     }
 
     return X;
@@ -48,6 +48,8 @@ MatrixDouble *get_X(const MatrixDouble *mat)
 
 int main()
 {
+    omp_set_num_threads(std::max(omp_get_max_threads() - 2, 1));
+
     CSimpleIniA ini;
     ini.SetUnicode();
 
@@ -101,7 +103,9 @@ int main()
     cblas_dscal(X_train->rows * X_train->cols, 1 / 255.0, X_train->data, 1);
 
     printf("%g\n", Y_train_float->data[4 * Y_train_float->cols + 0]);
-    printf("%d,%d\n", X_train->cols, X_train->rows);
+    DESCRIBE_MATRIX(train_mat);
+    DESCRIBE_MATRIX(Y_train_float);
+    DESCRIBE_MATRIX(X_train);
     for (int c = 0; c < X_train->cols; ++c)
     {
         printf("%g ", X_train->data[4 * X_train->cols + c]);
@@ -118,10 +122,31 @@ int main()
     auto *neural_net = create_neuralnet_openblas(X_train->cols, hidden_layer_size, categories);
     auto *one_hot_Y = one_hot_encode(Y_train_float, 0);
 
+    MatrixDouble *output;
+
+    int correct_prediction = 0;
+    float acc = 0.0f;
+
+    auto *prediction = create_matrix(X_train->rows, 1);
+
+    DESCRIBE_NN(neural_net);
+
+    for (int generation = 0; generation < num_generations; generation++)
+    {
+        output = forward_prop(neural_net, X_train);
+
+        if (generation % 50 == 0)
+        {
+            printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction,
+                   acc);
+        }
+    }
+
     free_matrix(X_train);
     free_matrix(Y_train_float);
     free_matrix(train_mat);
     free_matrix(one_hot_Y);
+    free_matrix(prediction);
     free_neuralnet_openblas(neural_net);
     return 0;
 }
