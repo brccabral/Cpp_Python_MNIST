@@ -163,7 +163,7 @@ void fill_random_matrix(const MatrixDouble *mat, const double offset)
     }
 }
 
-void seed(const size_t value)
+void nn_seed(const size_t value)
 {
     srand48(value);
 }

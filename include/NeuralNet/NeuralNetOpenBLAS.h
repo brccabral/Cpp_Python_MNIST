@@ -45,7 +45,7 @@ NeuralNetOpenBLAS *create_neuralnet_openblas(
 void fill_random_matrix(const MatrixDouble *mat, double offset);
 void free_matrix(MatrixDouble *mat);
 void free_neuralnet_openblas(NeuralNetOpenBLAS *nn);
-void seed(size_t value);
+void nn_seed(size_t value);
 
 MatrixDouble *one_hot_encode(const MatrixDouble *mat, uint column);
 void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs);

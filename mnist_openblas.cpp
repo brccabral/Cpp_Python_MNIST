@@ -68,7 +68,7 @@ MatrixDouble *get_X(const MatrixDouble *mat)
 
 int main()
 {
-    omp_set_num_threads(std::max(omp_get_max_threads() - 2, 1));
+    nn_seed(time(NULL));
 
     CSimpleIniA ini;
     ini.SetUnicode();
