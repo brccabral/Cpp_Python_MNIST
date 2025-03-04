@@ -27,15 +27,16 @@ typedef struct MatrixDouble
 typedef struct NeuralNetOpenBLAS
 {
     // layers
-    MatrixDouble *W1, *W2, *b1, *b2;
+    MatrixDouble *W1 = NULL, *W2 = NULL, *b1 = NULL, *b2 = NULL;
     // derivatives
-    MatrixDouble *Z1, *Z2, *A1, *A2 = NULL;
+    MatrixDouble *Z1 = NULL, *A1 = NULL, *A2 = NULL;
+    MatrixDouble *dW1 = NULL, *dW2 = NULL, *dZ1 = NULL;
     // auxiliaries
-    MatrixDouble *A2ones, *A2sum, *predictions = NULL;
+    MatrixDouble *A2ones = NULL, *A2sum = NULL, *predictions = NULL;
 
-    uint num_inputs;
-    uint num_hidden_layers;
-    uint num_outputs;
+    uint num_inputs = 0;
+    uint num_hidden_layers = 0;
+    uint num_outputs = 0;
 } NeuralNetOpenBLAS;
 
 MatrixDouble *create_matrix(uint rows, uint cols);
