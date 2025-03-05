@@ -496,7 +496,7 @@ void subtraction_ewise(const MatrixDouble *W, const MatrixDouble *Z)
 
     // Process elements in chunks of 4 (since AVX operates on 256-bit wide registers, which can hold
     // 4 doubles)
-    for (i = 0; i < size / 4 * 4; i += 4)
+    for (i = 0; i <= size - 4; i += 4)
     {
         const __m256d w = _mm256_loadu_pd(&W->data[i]); // Load 4 elements from W
         const __m256d d = _mm256_loadu_pd(&Z->data[i]); // Load 4 elements from D
