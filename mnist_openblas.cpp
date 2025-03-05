@@ -60,7 +60,7 @@ MatrixDouble *get_X(const MatrixDouble *mat)
 
     for (int row = 0; row < mat->rows; row++)
     {
-        cblas_dcopy(X->cols, &mat->data[row * mat->cols + 1], 1, &X->data[row], 1);
+        cblas_dcopy(X->cols, &mat->data[row * mat->cols + 1], 1, &X->data[row * X->cols], 1);
     }
 
     return X;
