@@ -198,6 +198,10 @@ MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint column)
     const double num_classes = mat->data[cblas_idmax(mat->rows, mat->data + column, mat->cols)] + 1;
     // one_hot_Y is transposed
     MatrixDouble *one_hot_Y = create_matrix(num_classes, mat->rows);
+    if (one_hot_Y == NULL)
+    {
+        return NULL;
+    }
 
     memset(one_hot_Y->data, 0, one_hot_Y->rows * one_hot_Y->cols * sizeof(double));
 

@@ -127,12 +127,15 @@ int main()
     if (Y_train_float == NULL)
     {
         printf("Failed to convert get Y from dataset\n");
+        free_matrix(train_mat);
         exit(EXIT_FAILURE);
     }
     auto X_train = get_X(train_mat);
     if (X_train == NULL)
     {
         printf("Failed to convert get X from dataset\n");
+        free_matrix(train_mat);
+        free_matrix(Y_train_float);
         exit(EXIT_FAILURE);
     }
     cblas_dscal(X_train->rows * X_train->cols, 1 / 255.0, X_train->data, 1);
@@ -155,7 +158,24 @@ int main()
     // that X is transposed
 
     auto *neural_net = create_neuralnet_openblas(X_train->cols, hidden_layer_size, categories);
+    if (neural_net == NULL)
+    {
+        printf("Failed create neural net\n");
+        free_matrix(train_mat);
+        free_matrix(Y_train_float);
+        free_matrix(X_train);
+        exit(EXIT_FAILURE);
+    }
     auto *one_hot_Y = one_hot_encode(Y_train_float, 0);
+    if (one_hot_Y == NULL)
+    {
+        printf("Failed to get One Hot Encode\n");
+        free_matrix(train_mat);
+        free_matrix(Y_train_float);
+        free_matrix(X_train);
+        free_neuralnet_openblas(neural_net);
+        exit(EXIT_FAILURE);
+    }
 
     int correct_prediction = 0;
     float acc = 0.0f;
