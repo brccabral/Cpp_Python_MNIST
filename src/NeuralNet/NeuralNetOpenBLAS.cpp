@@ -346,11 +346,8 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
         }
     }
 
-    // Z1 = W1.dot(X) + b1;
-    cblas_dgemm(
-            CblasRowMajor, CblasNoTrans, CblasTrans, nn->W1->rows, inputs->rows, inputs->cols, 1.0,
-            nn->W1->data, nn->W1->cols, inputs->data, inputs->cols, 0.0, nn->Z1->data,
-            nn->Z1->cols);
+    // Z1 = W1.dot(Xt) + b1;
+    multiply_ABt(nn->W1, inputs, nn->Z1);
     add_vector_to_matrix(nn->Z1, nn->b1);
 
     // A1 = NeuralNetNC::ReLU(Z1);
@@ -358,10 +355,7 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
     relu_ewise(nn->A1);
 
     // Z2 = W2.dot(A1) + b2;
-    cblas_dgemm(
-            CblasRowMajor, CblasNoTrans, CblasNoTrans, nn->W2->rows, nn->A1->cols, nn->A1->rows,
-            1.0, nn->W2->data, nn->W2->cols, nn->A1->data, nn->A1->cols, 0.0, nn->A2->data,
-            nn->A2->cols);
+    multiply_AB(nn->W2, nn->A1, nn->A2);
     add_vector_to_matrix(nn->A2, nn->b2);
 
     // A2 = NeuralNetNC::Softmax(Z2);
@@ -564,6 +558,7 @@ void back_prop(
             CblasRowMajor, CblasNoTrans, CblasTrans, nn->A2->rows, nn->A1->cols, nn->A2->cols, 1.0,
             nn->A2->data, nn->A2->cols, nn->A1->data, nn->A1->cols, 0.0, nn->dW2->data,
             nn->dW2->cols);
+    multiply_ABt(nn->A2, nn->A1, nn->dW2);
 
     // db2 = dZ2.sum() / y_size;
     const double db2 = cblas_dasum(nn->A2->rows * nn->A2->cols, nn->A2->data, 1) / y_size;
@@ -574,10 +569,7 @@ void back_prop(
     // dZ1 hidden, images
     // Z1 hidden, images
     deriv_ReLU_ewise(nn->Z1);
-    cblas_dgemm(
-            CblasRowMajor, CblasTrans, CblasNoTrans, nn->W2->cols, nn->A2->cols, nn->W2->rows, 1.0,
-            nn->W2->data, nn->W2->cols, nn->A2->data, nn->A2->cols, 0.0, nn->dZ1->data,
-            nn->dZ1->cols);
+    multiply_AtB(nn->W2, nn->A2, nn->dZ1);
     product_ewise(nn->dZ1, nn->Z1);
 
 
@@ -585,10 +577,7 @@ void back_prop(
     // dZ1 hidden, images
     // X images, features
     // dW1 hidden, features
-    cblas_dgemm(
-            CblasRowMajor, CblasNoTrans, CblasNoTrans, nn->dZ1->rows, inputs->rows, nn->dZ1->cols,
-            1.0, nn->dZ1->data, nn->dZ1->cols, inputs->data, inputs->cols, 0.0, nn->dW1->data,
-            nn->dW1->cols);
+    multiply_AB(nn->dZ1, inputs, nn->dW1);
     cblas_dscal(nn->dW1->rows * nn->dW1->cols, 1.0 / y_size, nn->dW1->data, 1);
 
     // db1 = dZ1.sum() / y_size;
@@ -609,4 +598,43 @@ void back_prop(
 
     // b2 = b2.array() - db2 * alpha;
     subtract_scalar(nn->b2, db2 * alpha);
+}
+
+void multiply_AB(const MatrixDouble *A, const MatrixDouble *B, const MatrixDouble *result)
+{
+    assert(A);
+    assert(B);
+    assert(result);
+    assert(A->cols == B->rows);
+    assert(A->rows == result->rows);
+    assert(B->cols == result->cols);
+    cblas_dgemm(
+            CblasRowMajor, CblasNoTrans, CblasNoTrans, A->rows, B->cols, A->cols, 1.0, A->data,
+            A->cols, B->data, B->cols, 0.0, result->data, result->cols);
+}
+
+void multiply_AtB(const MatrixDouble *A, const MatrixDouble *B, const MatrixDouble *result)
+{
+    assert(A);
+    assert(B);
+    assert(result);
+    assert(A->rows == B->rows);
+    assert(A->cols == result->rows);
+    assert(B->cols == result->cols);
+    cblas_dgemm(
+            CblasRowMajor, CblasTrans, CblasNoTrans, A->cols, B->cols, A->rows, 1.0, A->data,
+            A->cols, B->data, B->cols, 0.0, result->data, result->cols);
+}
+
+void multiply_ABt(const MatrixDouble *A, const MatrixDouble *B, const MatrixDouble *result)
+{
+    assert(A);
+    assert(B);
+    assert(result);
+    assert(A->cols == B->cols);
+    assert(A->rows == result->rows);
+    assert(B->rows == result->cols);
+    cblas_dgemm(
+            CblasRowMajor, CblasNoTrans, CblasTrans, A->rows, B->rows, A->cols, 1.0, A->data,
+            A->cols, B->data, B->cols, 0.0, result->data, result->cols);
 }
