@@ -82,10 +82,7 @@ NeuralNetOpenBLAS *create_neuralnet_openblas(
 
 void free_matrix(MatrixDouble *mat)
 {
-    if (mat == NULL)
-    {
-        return;
-    }
+    assert(mat);
     if (mat->data != NULL)
     {
         free(mat->data);
@@ -97,10 +94,7 @@ void free_matrix(MatrixDouble *mat)
 
 void free_neuralnet_openblas(NeuralNetOpenBLAS *nn)
 {
-    if (nn == NULL)
-    {
-        return;
-    }
+    assert(nn);
     if (nn->W1 != NULL)
     {
         free_matrix(nn->W1);
@@ -172,10 +166,7 @@ void free_neuralnet_openblas(NeuralNetOpenBLAS *nn)
 
 void fill_random_matrix(const MatrixDouble *mat, const double offset)
 {
-    if (mat == NULL)
-    {
-        return;
-    }
+    assert(mat);
     for (int i = 0; i < mat->rows * mat->cols; i++)
     {
         mat->data[i] = drand48() + offset;
@@ -189,10 +180,7 @@ void nn_seed(const size_t value)
 
 MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint column)
 {
-    if (mat == NULL)
-    {
-        return NULL;
-    }
+    assert(mat);
     assert(column < mat->cols);
 
     const double num_classes = mat->data[cblas_idmax(mat->rows, mat->data + column, mat->cols)] + 1;
@@ -219,10 +207,7 @@ MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint column)
 
 void relu_ewise(const MatrixDouble *M)
 {
-    if (M == NULL)
-    {
-        return;
-    }
+    assert(M);
     const __m256d zero_vec = _mm256_setzero_pd(); // Load zero into AVX register
 
     const int size = M->rows * M->cols;
@@ -249,14 +234,8 @@ void relu_ewise(const MatrixDouble *M)
 // V is a vector with size i, to be added to each column of M
 void add_vector_to_matrix(const MatrixDouble *M, const MatrixDouble *V)
 {
-    if (M == NULL)
-    {
-        return;
-    }
-    if (V == NULL)
-    {
-        return;
-    }
+    assert(M);
+    assert(V);
     assert(V->cols == 1);
     assert(M->rows == V->rows);
 
@@ -271,10 +250,7 @@ void add_vector_to_matrix(const MatrixDouble *M, const MatrixDouble *V)
 
 void exp_ewise(const MatrixDouble *M)
 {
-    if (M == NULL)
-    {
-        return;
-    }
+    assert(M);
 
 #pragma omp parallel for default(none) shared(M)
     for (int i = 0; i < M->rows * M->cols; i++)
@@ -285,14 +261,8 @@ void exp_ewise(const MatrixDouble *M)
 
 void matrix_div_vector_rwise(const MatrixDouble *M, const MatrixDouble *V)
 {
-    if (M == NULL)
-    {
-        return;
-    }
-    if (V == NULL)
-    {
-        return;
-    }
+    assert(M);
+    assert(V);
     assert(V->cols == 1);
     assert(M->cols == V->rows);
 
@@ -312,25 +282,60 @@ void create_aux(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
     assert(inputs->cols > 0);
     if (nn->Z1 == NULL || nn->Z1->cols != inputs->rows)
     {
-        free_matrix(nn->Z1);
+        if (nn->Z1)
+        {
+            free_matrix(nn->Z1);
+        }
         nn->Z1 = create_matrix(nn->W1->rows, inputs->rows);
-        free_matrix(nn->A1);
+
+        if (nn->A1)
+        {
+            free_matrix(nn->A1);
+        }
         nn->A1 = create_matrix(nn->W1->rows, inputs->rows);
-        free_matrix(nn->A2);
+
+        if (nn->A2)
+        {
+            free_matrix(nn->A2);
+        }
         nn->A2 = create_matrix(nn->W2->rows, inputs->rows);
-        free_matrix(nn->A2sum);
+
+        if (nn->A2sum)
+        {
+            free_matrix(nn->A2sum);
+        }
         nn->A2sum = create_matrix(nn->A2->cols, 1);
-        free_matrix(nn->predictions);
+
+        if (nn->predictions)
+        {
+            free_matrix(nn->predictions);
+        }
         nn->predictions = create_matrix(nn->A2->cols, 1);
         memset(nn->predictions->data, 0,
                nn->predictions->rows * nn->predictions->cols * sizeof(double));
-        free_matrix(nn->dZ1);
+
+        if (nn->dZ1)
+        {
+            free_matrix(nn->dZ1);
+        }
         nn->dZ1 = create_matrix(nn->Z1->rows, nn->Z1->cols);
-        free_matrix(nn->dW1);
+
+        if (nn->dW1)
+        {
+            free_matrix(nn->dW1);
+        }
         nn->dW1 = create_matrix(nn->W1->rows, nn->W1->cols);
-        free_matrix(nn->dW2);
+
+        if (nn->dW2)
+        {
+            free_matrix(nn->dW2);
+        }
         nn->dW2 = create_matrix(nn->W2->rows, nn->W2->cols);
-        free_matrix(nn->A2ones);
+
+        if (nn->A2ones)
+        {
+            free_matrix(nn->A2ones);
+        }
         nn->A2ones = create_matrix(nn->A2->rows, 1);
 #pragma omp parallel for default(none) shared(nn)
         for (int i = 0; i < nn->A2ones->rows * nn->A2ones->cols; ++i)
@@ -346,24 +351,14 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
     // A1 = NeuralNetNC::ReLU(Z1);
     // Z2 = W2.dot(A1) + b2;
     // A2 = NeuralNetNC::Softmax(Z2);
-    if (nn == NULL)
-    {
-        return;
-    }
-    if (inputs == NULL)
-    {
-        return;
-    }
-
+    assert(nn);
+    assert(inputs);
     assert(nn->W1->cols == inputs->cols); // inputs will be transposed in function call
 
     if (nn->Z1 == NULL || nn->Z1->cols != inputs->rows)
     {
         create_aux(nn, inputs);
     }
-
-
-    // printf("2\n");
 
     // Z1 = W1.dot(Xt) + b1;
     multiply_ABt(nn->W1, inputs, nn->Z1);
@@ -389,10 +384,7 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
 
 void get_predictions(const NeuralNetOpenBLAS *nn)
 {
-    if (nn == NULL)
-    {
-        return;
-    }
+    assert(nn);
     assert(nn->predictions);
     assert(nn->predictions->cols == 1);
     memset(nn->predictions->data, 0,
@@ -408,14 +400,8 @@ void get_predictions(const NeuralNetOpenBLAS *nn)
 
 uint get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *labels)
 {
-    if (nn == NULL)
-    {
-        return 0;
-    }
-    if (labels == NULL)
-    {
-        return 0;
-    }
+    assert(nn);
+    assert(labels);
     assert(nn->predictions->rows == labels->rows);
     assert(nn->predictions->cols == labels->cols);
     assert(nn->predictions->cols == 1);
@@ -436,10 +422,7 @@ uint get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *lab
 
 void deriv_ReLU_ewise(const MatrixDouble *M)
 {
-    if (M == NULL)
-    {
-        return;
-    }
+    assert(M);
 
     const int size = M->rows * M->cols;
 
@@ -469,14 +452,8 @@ void deriv_ReLU_ewise(const MatrixDouble *M)
 // element-wise multiplication (Hadamard product) using AVX2 (double precision)
 void product_ewise(const MatrixDouble *D, const MatrixDouble *Z)
 {
-    if (D == NULL)
-    {
-        return;
-    }
-    if (Z == NULL)
-    {
-        return;
-    }
+    assert(D);
+    assert(Z);
     assert(D->rows == Z->rows);
     assert(D->cols == Z->cols);
 
@@ -501,10 +478,8 @@ void product_ewise(const MatrixDouble *D, const MatrixDouble *Z)
 
 void subtract_scalar(const MatrixDouble *M, const double scalar)
 {
-    if (M == NULL)
-    {
-        return;
-    }
+    assert(M);
+
     const int size = M->rows * M->cols;
 
     // Load the scalar value into an AVX register. Since SIMD works on 256-bit registers,
@@ -535,7 +510,6 @@ void back_prop(
         NeuralNetOpenBLAS *nn, const MatrixDouble *inputs, const MatrixDouble *labels,
         const MatrixDouble *one_hot_Y, const double alpha)
 {
-    // printf("b1\n");
     assert(nn);
     assert(inputs);
     assert(labels);
