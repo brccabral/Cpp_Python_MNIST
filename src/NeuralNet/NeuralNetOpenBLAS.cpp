@@ -270,7 +270,7 @@ void matrix_div_vector_rwise(const MatrixDouble *M, const MatrixDouble *V)
     for (int col = 0; col < M->cols; ++col)
     {
         const double scale = 1.0 / V->data[col]; // Convert division into multiplication
-        cblas_dscal(M->rows, scale, &M->data[col * M->rows], 1); // Scale row i
+        cblas_dscal(M->rows, scale, &M->data[col], M->cols);
     }
 }
 
