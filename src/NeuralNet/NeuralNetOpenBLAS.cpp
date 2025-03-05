@@ -564,15 +564,13 @@ void back_prop(
     // W1 = W1 - dW1 * alpha;
     // W1 hidden, features
     // dW1 hidden, features
-    cblas_dscal(nn->dW1->rows * nn->dW1->cols, alpha, nn->dW1->data, 1);
-    cblas_daxpy(nn->W1->rows * nn->W1->cols, -1.0f, nn->dW1->data, 1, nn->W1->data, 1);
+    cblas_daxpy(nn->W1->rows * nn->W1->cols, -alpha, nn->dW1->data, 1, nn->W1->data, 1);
 
     // b1 = b1.array() - db1 * alpha;
     subtract_scalar(nn->b1, db1 * alpha);
 
     // W2 = W2 - dW2 * alpha;
-    cblas_dscal(nn->dW2->rows * nn->dW2->cols, alpha, nn->dW2->data, 1);
-    cblas_daxpy(nn->W2->rows * nn->W2->cols, -1.0f, nn->dW2->data, 1, nn->W2->data, 1);
+    cblas_daxpy(nn->W2->rows * nn->W2->cols, -alpha, nn->dW2->data, 1, nn->W2->data, 1);
 
     // b2 = b2.array() - db2 * alpha;
     subtract_scalar(nn->b2, db2 * alpha);
