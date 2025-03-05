@@ -195,11 +195,12 @@ MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint column)
 
 #pragma omp parallel for default(none) shared(mat, one_hot_Y, column)
     for (int i = 0; i < one_hot_Y->cols; ++i)
+    for (int i = 0; i < mat->rows; ++i)
     {
         const double value = (mat->data[i * mat->cols + column]);
         if (value >= 0 && value < one_hot_Y->rows)
         {
-            one_hot_Y->data[uint32_t(i * one_hot_Y->rows + value)] = 1.0;
+            one_hot_Y->data[uint32_t(one_hot_Y->cols * value + i)] = 1.0;
         }
     }
     return one_hot_Y;
