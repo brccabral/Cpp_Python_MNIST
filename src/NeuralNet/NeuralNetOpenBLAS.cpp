@@ -300,23 +300,12 @@ void matrix_div_vector_rwise(const MatrixDouble *M, const MatrixDouble *V)
     }
 }
 
-void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
+void create_aux(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
 {
-    // Z1 = W1.dot(X) + b1;
-    // A1 = NeuralNetNC::ReLU(Z1);
-    // Z2 = W2.dot(A1) + b2;
-    // A2 = NeuralNetNC::Softmax(Z2);
-    if (nn == NULL)
-    {
-        return;
-    }
-    if (inputs == NULL)
-    {
-        return;
-    }
-
-    assert(nn->W1->cols == inputs->cols); // inputs will be transposed in function call
-
+    assert(nn);
+    assert(inputs);
+    assert(inputs->rows > 0);
+    assert(inputs->cols > 0);
     if (nn->Z1 == NULL || nn->Z1->cols != inputs->rows)
     {
         free_matrix(nn->Z1);
@@ -339,12 +328,38 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
         nn->dW2 = create_matrix(nn->W2->rows, nn->W2->cols);
         free_matrix(nn->A2ones);
         nn->A2ones = create_matrix(nn->A2->rows, 1);
-#pragma omp parallel for simd
+        // #pragma omp parallel for
         for (int i = 0; i < nn->A2ones->rows * nn->A2ones->cols; ++i)
         {
             nn->A2ones->data[i] = 1.0;
         }
     }
+}
+
+void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
+{
+    // Z1 = W1.dot(X) + b1;
+    // A1 = NeuralNetNC::ReLU(Z1);
+    // Z2 = W2.dot(A1) + b2;
+    // A2 = NeuralNetNC::Softmax(Z2);
+    if (nn == NULL)
+    {
+        return;
+    }
+    if (inputs == NULL)
+    {
+        return;
+    }
+
+    assert(nn->W1->cols == inputs->cols); // inputs will be transposed in function call
+
+    if (nn->Z1 == NULL || nn->Z1->cols != inputs->rows)
+    {
+        create_aux(nn, inputs);
+    }
+
+
+    // printf("2\n");
 
     // Z1 = W1.dot(Xt) + b1;
     multiply_ABt(nn->W1, inputs, nn->Z1);
@@ -544,9 +559,22 @@ void subtract_scalar(const MatrixDouble *M, const double scalar)
 }
 
 void back_prop(
-        const NeuralNetOpenBLAS *nn, const MatrixDouble *inputs, const MatrixDouble *labels,
+        NeuralNetOpenBLAS *nn, const MatrixDouble *inputs, const MatrixDouble *labels,
         const MatrixDouble *one_hot_Y, const double alpha)
 {
+    // printf("b1\n");
+    assert(nn);
+    assert(inputs);
+    assert(labels);
+    assert(one_hot_Y);
+    assert(nn->W1->cols == inputs->cols);
+    assert(inputs->rows == labels->rows);
+    assert(nn->W2->rows == one_hot_Y->rows);
+    assert(labels->rows == one_hot_Y->cols);
+    if (nn->Z1 == NULL || nn->Z1->cols != inputs->rows)
+    {
+        create_aux(nn, inputs);
+    }
     const int y_size = labels->rows;
 
     // const Eigen::MatrixXf dZ2 = A2 - one_hot_Y;

@@ -56,7 +56,7 @@ void product_ewise(const MatrixDouble *D, const MatrixDouble *Z);
 void subtraction_ewise(const MatrixDouble *W, const MatrixDouble *Z);
 void subtract_scalar(const MatrixDouble *M, double scalar);
 void back_prop(
-        const NeuralNetOpenBLAS *nn, const MatrixDouble *inputs, const MatrixDouble *labels,
+        NeuralNetOpenBLAS *nn, const MatrixDouble *inputs, const MatrixDouble *labels,
         const MatrixDouble *one_hot_Y, double alpha);
 void multiply_AB(const MatrixDouble *A, const MatrixDouble *B, const MatrixDouble *result);
 void multiply_AtB(const MatrixDouble *A, const MatrixDouble *B, const MatrixDouble *result);
