@@ -393,7 +393,7 @@ void get_predictions(const NeuralNetOpenBLAS *nn)
 #pragma omp parallel for default(none) shared(nn)
     for (int col = 0; col < nn->A2->cols; ++col)
     {
-        const int index = cblas_idamax(nn->A2->rows, &nn->A2->data[col * nn->A2->rows], 1);
+        const int index = cblas_idmax(nn->A2->rows, &nn->A2->data[col], nn->A2->cols);
         nn->predictions->data[col] = index % nn->A2->rows;
     }
 }
