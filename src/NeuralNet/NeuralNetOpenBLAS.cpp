@@ -195,19 +195,19 @@ MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint column)
     }
     assert(column < mat->cols);
 
-    const uint32_t num_classes =
-            mat->data[cblas_idmax(mat->rows, mat->data + column, mat->cols)] + 1;
-    MatrixDouble *one_hot_Y = create_matrix(mat->rows, num_classes);
+    const double num_classes = mat->data[cblas_idmax(mat->rows, mat->data + column, mat->cols)] + 1;
+    // one_hot_Y is transposed
+    MatrixDouble *one_hot_Y = create_matrix(num_classes, mat->rows);
 
-    memset(one_hot_Y->data, 0, mat->rows * num_classes * sizeof(int));
+    memset(one_hot_Y->data, 0, one_hot_Y->rows * one_hot_Y->cols * sizeof(double));
 
 #pragma omp parallel for simd
-    for (int i = 0; i < one_hot_Y->rows; ++i)
+    for (int i = 0; i < one_hot_Y->cols; ++i)
     {
         const double value = (mat->data[i * mat->cols + column]);
         if (value >= 0 && value < num_classes)
         {
-            one_hot_Y->data[uint32_t(i * num_classes + value)] = 1.0;
+            one_hot_Y->data[uint32_t(i * one_hot_Y->rows + value)] = 1.0;
         }
     }
     return one_hot_Y;
