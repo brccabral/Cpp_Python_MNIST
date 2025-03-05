@@ -513,6 +513,7 @@ void back_prop(
     assert(inputs);
     assert(labels);
     assert(one_hot_Y);
+    assert(labels->rows > 0);
     assert(nn->W1->cols == inputs->cols);
     assert(inputs->rows == labels->rows);
     assert(nn->W2->rows == one_hot_Y->rows);
