@@ -338,7 +338,7 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
         free_matrix(nn->dW2);
         nn->dW2 = create_matrix(nn->W2->rows, nn->W2->cols);
         free_matrix(nn->A2ones);
-        nn->A2ones = create_matrix(nn->A2->cols, 1);
+        nn->A2ones = create_matrix(nn->A2->rows, 1);
 #pragma omp parallel for simd
         for (int i = 0; i < nn->A2ones->rows * nn->A2ones->cols; ++i)
         {
@@ -361,10 +361,10 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
     // A2 = NeuralNetNC::Softmax(Z2);
     exp_ewise(nn->A2);
     // A x VecOf1 = Sum(A, row)
-    // multiplying a matrix A of a vector of 1's does the sum of A for each row
+    // multiplying a matrix A of a vector of 1's does the sum of A for each column
     cblas_dgemv(
-            CblasRowMajor, CblasNoTrans, nn->A2->rows, nn->A2->cols, 1.0, nn->A2->data,
-            nn->A2->cols, nn->A2ones->data, 1, 0.0, nn->A2sum->data, 1);
+            CblasRowMajor, CblasTrans, nn->A2->rows, nn->A2->cols, 1.0, nn->A2->data, nn->A2->cols,
+            nn->A2ones->data, 1, 0.0, nn->A2sum->data, 1);
     matrix_div_vector_rwise(nn->A2, nn->A2sum);
 }
 
@@ -554,11 +554,8 @@ void back_prop(
     // A1 = hidden, images
     // A1_t = images, hidden
     // dW2 = categ, hidden
-    cblas_dgemm(
-            CblasRowMajor, CblasNoTrans, CblasTrans, nn->A2->rows, nn->A1->cols, nn->A2->cols, 1.0,
-            nn->A2->data, nn->A2->cols, nn->A1->data, nn->A1->cols, 0.0, nn->dW2->data,
-            nn->dW2->cols);
     multiply_ABt(nn->A2, nn->A1, nn->dW2);
+    cblas_dscal(nn->dW2->rows * nn->dW2->cols, 1.0 / y_size, nn->dW2->data, 1);
 
     // db2 = dZ2.sum() / y_size;
     const double db2 = cblas_dasum(nn->A2->rows * nn->A2->cols, nn->A2->data, 1) / y_size;
