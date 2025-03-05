@@ -519,8 +519,8 @@ void subtraction_ewise(const MatrixDouble *W, const MatrixDouble *Z)
     for (i = 0; i <= size - 4; i += 4)
     {
         const __m256d w = _mm256_loadu_pd(&W->data[i]); // Load 4 elements from W
-        const __m256d d = _mm256_loadu_pd(&Z->data[i]); // Load 4 elements from D
-        const __m256d res = _mm256_sub_pd(w, d); // NOLINT Subtract the two vectors
+        const __m256d z = _mm256_loadu_pd(&Z->data[i]); // Load 4 elements from Z
+        const __m256d res = _mm256_sub_pd(w, z); // NOLINT Subtract the two vectors
         _mm256_storeu_pd(&W->data[i], res); // Store the result
     }
 
