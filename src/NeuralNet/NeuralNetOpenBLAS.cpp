@@ -468,7 +468,7 @@ void product_ewise(const MatrixDouble *D, const MatrixDouble *Z)
     {
         const __m256d d_vals = _mm256_loadu_pd(&D->data[i]); // Load 4 elements of D
         const __m256d z_vals = _mm256_loadu_pd(&Z->data[i]); // Load 4 elements of Z
-        const __m256d res_vals = _mm256_mul_pd(d_vals, z_vals); // Multiply element-wise
+        const __m256d res_vals = _mm256_mul_pd(d_vals, z_vals); // NOLINT Multiply element-wise
         _mm256_storeu_pd(&D->data[i], res_vals); // Store the result
     }
 
@@ -500,7 +500,7 @@ void subtraction_ewise(const MatrixDouble *W, const MatrixDouble *Z)
     {
         const __m256d w = _mm256_loadu_pd(&W->data[i]); // Load 4 elements from W
         const __m256d d = _mm256_loadu_pd(&Z->data[i]); // Load 4 elements from D
-        const __m256d res = _mm256_sub_pd(w, d); // Subtract the two vectors
+        const __m256d res = _mm256_sub_pd(w, d); // NOLINT Subtract the two vectors
         _mm256_storeu_pd(&W->data[i], res); // Store the result
     }
 
@@ -531,7 +531,7 @@ void subtract_scalar(const MatrixDouble *M, const double scalar)
         const __m256d mat_vector = _mm256_loadu_pd(&M->data[i]);
 
         // Subtract scalar_vector from mat_vector
-        const __m256d result = _mm256_sub_pd(mat_vector, scalar_vector);
+        const __m256d result = _mm256_sub_pd(mat_vector, scalar_vector); // NOLINT
 
         // Store the result back into the matrix
         _mm256_storeu_pd(&M->data[i], result);
