@@ -53,7 +53,6 @@ void add_vector_to_matrix(const MatrixDouble *M, const MatrixDouble *V);
 void get_predictions(const NeuralNetOpenBLAS *nn);
 uint get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *labels);
 void product_ewise(const MatrixDouble *D, const MatrixDouble *Z);
-void subtraction_ewise(const MatrixDouble *W, const MatrixDouble *Z);
 void subtract_scalar(const MatrixDouble *M, double scalar);
 void back_prop(
         NeuralNetOpenBLAS *nn, const MatrixDouble *inputs, const MatrixDouble *labels,

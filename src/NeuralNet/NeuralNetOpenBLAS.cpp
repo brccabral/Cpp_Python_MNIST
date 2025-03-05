@@ -499,38 +499,6 @@ void product_ewise(const MatrixDouble *D, const MatrixDouble *Z)
     }
 }
 
-void subtraction_ewise(const MatrixDouble *W, const MatrixDouble *Z)
-{
-    if (W == NULL)
-    {
-        return;
-    }
-    if (Z == NULL)
-    {
-        return;
-    }
-    assert(W->rows == Z->rows);
-    assert(W->cols == Z->cols);
-    const int size = W->rows * W->cols;
-    int i;
-
-    // Process elements in chunks of 4 (since AVX operates on 256-bit wide registers, which can hold
-    // 4 doubles)
-    for (i = 0; i <= size - 4; i += 4)
-    {
-        const __m256d w = _mm256_loadu_pd(&W->data[i]); // Load 4 elements from W
-        const __m256d z = _mm256_loadu_pd(&Z->data[i]); // Load 4 elements from Z
-        const __m256d res = _mm256_sub_pd(w, z); // NOLINT Subtract the two vectors
-        _mm256_storeu_pd(&W->data[i], res); // Store the result
-    }
-
-    // Handle remaining elements (if any)
-    for (; i < size; ++i)
-    {
-        W->data[i] = W->data[i] - Z->data[i];
-    }
-}
-
 void subtract_scalar(const MatrixDouble *M, const double scalar)
 {
     if (M == NULL)
@@ -622,15 +590,15 @@ void back_prop(
     // W1 = W1 - dW1 * alpha;
     // W1 hidden, features
     // dW1 hidden, features
-    cblas_dscal(nn->dZ1->rows * nn->dZ1->cols, alpha, nn->dZ1->data, 1);
-    subtraction_ewise(nn->W1, nn->dW1);
+    cblas_dscal(nn->dW1->rows * nn->dW1->cols, alpha, nn->dW1->data, 1);
+    cblas_daxpy(nn->W1->rows * nn->W1->cols, -1.0f, nn->dW1->data, 1, nn->W1->data, 1);
 
     // b1 = b1.array() - db1 * alpha;
     subtract_scalar(nn->b1, db1 * alpha);
 
     // W2 = W2 - dW2 * alpha;
     cblas_dscal(nn->dW2->rows * nn->dW2->cols, alpha, nn->dW2->data, 1);
-    subtraction_ewise(nn->W2, nn->dW2);
+    cblas_daxpy(nn->W2->rows * nn->W2->cols, -1.0f, nn->dW2->data, 1, nn->W2->data, 1);
 
     // b2 = b2.array() - db2 * alpha;
     subtract_scalar(nn->b2, db2 * alpha);
