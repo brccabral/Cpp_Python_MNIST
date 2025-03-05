@@ -193,8 +193,7 @@ MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint column)
 
     memset(one_hot_Y->data, 0, one_hot_Y->rows * one_hot_Y->cols * sizeof(double));
 
-#pragma omp parallel for default(none) shared(mat, one_hot_Y, column)
-    for (int i = 0; i < one_hot_Y->cols; ++i)
+    // #pragma omp parallel for default(none) shared(mat, one_hot_Y, column)
     for (int i = 0; i < mat->rows; ++i)
     {
         const double value = (mat->data[i * mat->cols + column]);
@@ -245,7 +244,7 @@ void add_vector_to_matrix(const MatrixDouble *M, const MatrixDouble *V)
     {
         // Perform: M[row][col] += V[row] for each row
         // cblas_daxpy does: y = alpha * x + y, where x is V and y is M[:, col]
-        cblas_daxpy(M->rows, 1.0, V->data, 1, &M->data[col * M->rows], 1);
+        cblas_daxpy(M->rows, 1.0, V->data, 1, &M->data[col], M->cols);
     }
 }
 
