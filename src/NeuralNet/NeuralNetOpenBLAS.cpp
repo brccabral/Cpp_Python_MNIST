@@ -329,6 +329,8 @@ void forward_prop(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
         nn->A2sum = create_matrix(nn->A2->cols, 1);
         free_matrix(nn->predictions);
         nn->predictions = create_matrix(nn->A2->cols, 1);
+        memset(nn->predictions->data, 0,
+               nn->predictions->rows * nn->predictions->cols * sizeof(double));
         free_matrix(nn->dZ1);
         nn->dZ1 = create_matrix(nn->Z1->rows, nn->Z1->cols);
         free_matrix(nn->dW1);
@@ -379,6 +381,8 @@ void get_predictions(const NeuralNetOpenBLAS *nn)
         return;
     }
     assert(nn->predictions->cols == 1);
+    memset(nn->predictions->data, 0,
+           nn->predictions->rows * nn->predictions->cols * sizeof(double));
 
 #pragma omp parallel for simd
     for (int row = 0; row < nn->A2->rows; ++row)
