@@ -434,9 +434,8 @@ void deriv_ReLU_ewise(const MatrixDouble *M)
         const __m256d data = _mm256_loadu_pd(&M->data[i]);
 
         // Compare the values with zero and set the result to 1.0 for positive, 0.0 for negative
-        __m256d result = _mm256_setzero_pd(); // Start with zero
-        result = _mm256_cmp_pd(
-                data, result, _CMP_GT_OS); // Set 1.0 for positive values, 0.0 for others
+        const auto mask = _mm256_cmp_pd(data, _mm256_setzero_pd(), _CMP_GT_OS);
+        const __m256d result = _mm256_and_pd(mask, _mm256_set1_pd(1.0));
 
         // Store the result back into the output array
         _mm256_storeu_pd(&M->data[i], result);
