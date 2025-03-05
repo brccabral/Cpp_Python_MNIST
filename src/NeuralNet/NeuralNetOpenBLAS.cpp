@@ -205,11 +205,11 @@ MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint column)
 
     memset(one_hot_Y->data, 0, one_hot_Y->rows * one_hot_Y->cols * sizeof(double));
 
-#pragma omp parallel for simd
+#pragma omp parallel for default(none) shared(mat, one_hot_Y, column)
     for (int i = 0; i < one_hot_Y->cols; ++i)
     {
         const double value = (mat->data[i * mat->cols + column]);
-        if (value >= 0 && value < num_classes)
+        if (value >= 0 && value < one_hot_Y->rows)
         {
             one_hot_Y->data[uint32_t(i * one_hot_Y->rows + value)] = 1.0;
         }
@@ -260,7 +260,7 @@ void add_vector_to_matrix(const MatrixDouble *M, const MatrixDouble *V)
     assert(V->cols == 1);
     assert(M->rows == V->rows);
 
-#pragma omp parallel for simd
+#pragma omp parallel for default(none) shared(M, V)
     for (int col = 0; col < M->cols; col++)
     {
         // Perform: M[row][col] += V[row] for each row
@@ -276,7 +276,7 @@ void exp_ewise(const MatrixDouble *M)
         return;
     }
 
-#pragma omp parallel for simd
+#pragma omp parallel for default(none) shared(M)
     for (int i = 0; i < M->rows * M->cols; i++)
     {
         M->data[i] = exp(M->data[i]);
@@ -296,7 +296,7 @@ void matrix_div_vector_rwise(const MatrixDouble *M, const MatrixDouble *V)
     assert(V->cols == 1);
     assert(M->cols == V->rows);
 
-#pragma omp parallel for simd
+#pragma omp parallel for default(none) shared(M, V)
     for (int col = 0; col < M->cols; ++col)
     {
         const double scale = 1.0 / V->data[col]; // Convert division into multiplication
@@ -332,7 +332,7 @@ void create_aux(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
         nn->dW2 = create_matrix(nn->W2->rows, nn->W2->cols);
         free_matrix(nn->A2ones);
         nn->A2ones = create_matrix(nn->A2->rows, 1);
-        // #pragma omp parallel for
+#pragma omp parallel for default(none) shared(nn)
         for (int i = 0; i < nn->A2ones->rows * nn->A2ones->cols; ++i)
         {
             nn->A2ones->data[i] = 1.0;
@@ -397,7 +397,7 @@ void get_predictions(const NeuralNetOpenBLAS *nn)
     memset(nn->predictions->data, 0,
            nn->predictions->rows * nn->predictions->cols * sizeof(double));
 
-#pragma omp parallel for simd
+#pragma omp parallel for default(none) shared(nn)
     for (int row = 0; row < nn->A2->rows; ++row)
     {
         const int index = cblas_idmax(nn->A2->cols, &nn->A2->data[row * nn->A2->cols], 1);
@@ -421,12 +421,12 @@ uint get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *lab
 
     int correct_count = 0;
 
-#pragma omp parallel for simd reduction(+ : correct_count)
+#pragma omp parallel for default(none) shared(nn, labels) reduction(+ : correct_count)
     for (int row = 0; row < nn->predictions->rows; ++row)
     {
         if (nn->predictions->data[row] == labels->data[row])
         {
-            correct_count++;
+            ++correct_count;
         }
     }
 
