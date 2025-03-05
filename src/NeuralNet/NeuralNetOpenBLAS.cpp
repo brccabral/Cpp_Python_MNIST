@@ -393,15 +393,16 @@ void get_predictions(const NeuralNetOpenBLAS *nn)
     {
         return;
     }
+    assert(nn->predictions);
     assert(nn->predictions->cols == 1);
     memset(nn->predictions->data, 0,
            nn->predictions->rows * nn->predictions->cols * sizeof(double));
 
 #pragma omp parallel for default(none) shared(nn)
-    for (int row = 0; row < nn->A2->rows; ++row)
+    for (int col = 0; col < nn->A2->cols; ++col)
     {
-        const int index = cblas_idmax(nn->A2->cols, &nn->A2->data[row * nn->A2->cols], 1);
-        nn->predictions->data[row] = index;
+        const int index = cblas_idamax(nn->A2->rows, &nn->A2->data[col * nn->A2->rows], 1);
+        nn->predictions->data[col] = index % nn->A2->rows;
     }
 }
 
