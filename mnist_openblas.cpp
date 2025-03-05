@@ -170,7 +170,7 @@ int main()
         {
             get_predictions(neural_net);
             correct_prediction = get_correct_prediction(neural_net, Y_train_float);
-            acc = correct_prediction / Y_train_float->rows;
+            acc = 1.0 * correct_prediction / Y_train_float->rows;
             printf("Generation %d\t Correct %d\tAccuracy %.4f\n", generation, correct_prediction,
                    acc);
         }
