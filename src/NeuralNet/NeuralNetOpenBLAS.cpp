@@ -524,7 +524,8 @@ void subtract_scalar(const MatrixDouble *M, const double scalar)
     const __m256d scalar_vector = _mm256_set1_pd(scalar);
 
     // Iterate over the matrix, processing 4 elements at a time
-    for (int i = 0; i < size; i += 4)
+    int i;
+    for (i = 0; i <= size - 4; i += 4)
     {
         // Load 4 elements from the matrix into an AVX register
         const __m256d mat_vector = _mm256_loadu_pd(&M->data[i]);
@@ -534,6 +535,11 @@ void subtract_scalar(const MatrixDouble *M, const double scalar)
 
         // Store the result back into the matrix
         _mm256_storeu_pd(&M->data[i], result);
+    }
+
+    for (; i < size; ++i)
+    {
+        M->data[i] = M->data[i] - scalar;
     }
 }
 
