@@ -199,6 +199,11 @@ int main()
 
         back_prop(neural_net, X_train, Y_train_float, one_hot_Y, alpha);
     }
+    forward_prop(neural_net, X_train);
+    get_predictions(neural_net);
+    correct_prediction = get_correct_prediction(neural_net, Y_train_float);
+    acc = 1.0 * correct_prediction / Y_train_float->rows;
+    printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
     free_matrix(X_train);
     free_matrix(Y_train_float);
