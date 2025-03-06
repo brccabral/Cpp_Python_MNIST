@@ -207,6 +207,9 @@ add_executable(mnist_openblas mnist_openblas.cpp)
 target_compile_options(mnist_openblas PUBLIC ${SIMD_FLAGS})
 target_link_options(mnist_openblas PUBLIC ${SIMD_FLAGS})
 target_link_libraries(mnist_openblas mnist neuralnetopenblas)
+install(TARGETS mnist_openblas
+        CONFIGURATIONS Debug;Release
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 configure_file("${PROJECT_SOURCE_DIR}/config.ini" "${CMAKE_CURRENT_BINARY_DIR}/config.ini" COPYONLY)
 install(FILES config.ini
