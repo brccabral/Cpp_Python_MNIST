@@ -539,7 +539,7 @@ void back_prop(
     cblas_dscal(nn->dW2->rows * nn->dW2->cols, 1.0 / y_size, nn->dW2->data, 1);
 
     // db2 = dZ2.sum() / y_size;
-    const double db2 = cblas_dasum(nn->A2->rows * nn->A2->cols, nn->A2->data, 1) / y_size;
+    const double db2 = cblas_dsum(nn->A2->rows * nn->A2->cols, nn->A2->data, 1) / y_size;
 
     // const Eigen::MatrixXf dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
     // w2 categ, hidden
@@ -559,7 +559,7 @@ void back_prop(
     cblas_dscal(nn->dW1->rows * nn->dW1->cols, 1.0 / y_size, nn->dW1->data, 1);
 
     // db1 = dZ1.sum() / y_size;
-    const double db1 = cblas_dasum(nn->dZ1->rows * nn->dZ1->cols, nn->dZ1->data, 1) / y_size;
+    const double db1 = cblas_dsum(nn->dZ1->rows * nn->dZ1->cols, nn->dZ1->data, 1) / y_size;
 
     // W1 = W1 - dW1 * alpha;
     // W1 hidden, features
