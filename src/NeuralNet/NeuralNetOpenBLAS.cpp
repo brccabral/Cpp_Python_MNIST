@@ -239,7 +239,8 @@ void add_vector_to_matrix(const MatrixDouble *M, const MatrixDouble *V)
     assert(V->cols == 1);
     assert(M->rows == V->rows);
 
-#pragma omp parallel for default(none) shared(M, V)
+    // omp makes this loop slow
+    // #pragma omp parallel for default(none) shared(M, V)
     for (int col = 0; col < M->cols; col++)
     {
         // Perform: M[row][col] += V[row] for each row
@@ -252,7 +253,8 @@ void exp_ewise(const MatrixDouble *M)
 {
     assert(M);
 
-#pragma omp parallel for default(none) shared(M)
+    // omp makes this loop slow
+    // #pragma omp parallel for default(none) shared(M)
     for (int i = 0; i < M->rows * M->cols; i++)
     {
         M->data[i] = exp(M->data[i]);
@@ -266,7 +268,8 @@ void matrix_div_vector_rwise(const MatrixDouble *M, const MatrixDouble *V)
     assert(V->cols == 1);
     assert(M->cols == V->rows);
 
-#pragma omp parallel for default(none) shared(M, V)
+    // omp makes this loop slow
+    // #pragma omp parallel for default(none) shared(M, V)
     for (int col = 0; col < M->cols; ++col)
     {
         const double scale = 1.0 / V->data[col]; // Convert division into multiplication
