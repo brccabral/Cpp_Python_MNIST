@@ -10,8 +10,8 @@ uint32_t swap_endian(uint32_t val)
 }
 
 MNIST_Dataset::MNIST_Dataset(
-        const char *image_filename, const char *label_filename, const int image_magic,
-        const int label_magic)
+        const char *image_filename, const char *label_filename, const uint image_magic,
+        const uint label_magic)
     : _image_filename(image_filename), _label_filename(label_filename), _image_magic(image_magic),
       _label_magic(label_magic)
 {}
@@ -34,7 +34,7 @@ void MNIST_Dataset::save_dataset_as_csv(const std::string &save_filename)
 }
 #endif // CV_SAVE_IMAGES
 
-void MNIST_Dataset::read_mnist_db(const int max_items)
+void MNIST_Dataset::read_mnist_db(const uint max_items)
 {
     // Open files
     std::ifstream image_file(_image_filename, std::ios::in | std::ios::binary);
