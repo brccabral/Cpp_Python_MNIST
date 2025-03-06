@@ -111,9 +111,8 @@ int main()
 #ifdef CV_SAVE_IMAGES
     if (save_img)
         train_dataset.save_dataset_as_png(save_dir);
-#endif // CV_SAVE_IMAGES
-
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
+#endif // CV_SAVE_IMAGES
 
     auto train_mat = to_openblas(train_dataset._images);
     if (train_mat == NULL)
