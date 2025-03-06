@@ -20,8 +20,8 @@ public:
 
 #ifdef CV_SAVE_IMAGES
     void save_dataset_as_png(const std::string &save_dir);
-#endif // CV_SAVE_IMAGES
     void save_dataset_as_csv(const std::string &save_filename);
+#endif // CV_SAVE_IMAGES
 
     void read_mnist_db(const int max_items);
     size_t get_images_length() const;

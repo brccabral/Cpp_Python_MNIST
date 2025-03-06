@@ -24,7 +24,6 @@ void MNIST_Dataset::save_dataset_as_png(const std::string &save_dir)
         img.save_as_png(save_dir);
     }
 }
-#endif // CV_SAVE_IMAGES
 
 void MNIST_Dataset::save_dataset_as_csv(const std::string &save_filename)
 {
@@ -33,6 +32,7 @@ void MNIST_Dataset::save_dataset_as_csv(const std::string &save_filename)
         img.save_as_csv(save_filename);
     }
 }
+#endif // CV_SAVE_IMAGES
 
 void MNIST_Dataset::read_mnist_db(const int max_items)
 {

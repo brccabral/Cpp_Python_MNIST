@@ -90,9 +90,9 @@ int main()
 #ifdef CV_SAVE_IMAGES
     if (save_img)
         train_dataset.save_dataset_as_png(save_dir);
+    train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 #endif // CV_SAVE_IMAGES
 
-    train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 
     nc::NdArray<float> train_mat = to_numcpp(train_dataset._images);
 
@@ -154,9 +154,9 @@ int main()
 #ifdef CV_SAVE_IMAGES
     if (save_img)
         test_dataset.save_dataset_as_png(save_dir);
+    test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
 #endif // CV_SAVE_IMAGES
 
-    test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
 
     auto test_mat = to_numcpp(test_dataset._images);
 
