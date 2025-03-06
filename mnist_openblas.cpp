@@ -123,14 +123,14 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    auto Y_train_float = get_Y(train_mat);
+    auto *Y_train_float = get_Y(train_mat);
     if (Y_train_float == NULL)
     {
         printf("Failed to convert get Y from dataset\n");
         free_matrix(train_mat);
         exit(EXIT_FAILURE);
     }
-    auto X_train = get_X(train_mat);
+    auto *X_train = get_X(train_mat);
     if (X_train == NULL)
     {
         printf("Failed to convert get X from dataset\n");
@@ -138,7 +138,6 @@ int main()
         free_matrix(Y_train_float);
         exit(EXIT_FAILURE);
     }
-    cblas_dscal(X_train->rows * X_train->cols, 1 / 255.0, X_train->data, 1);
 
     printf("%g\n", Y_train_float->data[4 * Y_train_float->cols + 0]);
     DESCRIBE_MATRIX(train_mat);
@@ -150,12 +149,15 @@ int main()
     }
     printf("\n");
 
-    double categories =
+    const double max_X = X_train->data[cblas_idmax(X_train->rows, X_train->data, 1)];
+    cblas_dscal(X_train->rows * X_train->cols, 1.0 / max_X, X_train->data, 1);
+
+    const double categories =
             Y_train_float->data[cblas_idmax(Y_train_float->rows, Y_train_float->data, 1)] + 1;
     printf("%g\n", categories);
 
-    // cblas does not have a Transpose function, but when multiplying matrices, we tell the mul()
-    // that X is transposed
+    // cblas does not have a Transpose function, but when multiplying matrices, we tell the
+    // mul() that X is transposed
 
     auto *neural_net = create_neuralnet_openblas(X_train->cols, hidden_layer_size, categories);
     if (neural_net == NULL)
