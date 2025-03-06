@@ -87,14 +87,13 @@ int main()
     const auto alpha = (float) ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
     const auto hidden_layer_size = (int) ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
 
-    const std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
-    const std::string save_dir = base_dir + "/train";
-    const std::string img_filename =
-            ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images-idx3-ubyte");
-    const std::string img_path = base_dir + "/" + img_filename;
-    const std::string label_filename =
+    std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
+    std::string save_dir = base_dir + "/train";
+    std::string img_filename = ini.GetValue("MNIST", "TRAIN_IMAGE_FILE", "train-images-idx3-ubyte");
+    std::string img_path = base_dir + "/" + img_filename;
+    std::string label_filename =
             ini.GetValue("MNIST", "TRAIN_LABEL_FILE", "train-labels-idx1-ubyte");
-    const std::string label_path = base_dir + "/" + label_filename;
+    std::string label_path = base_dir + "/" + label_filename;
 
     std::cout << PRINT_VAR(num_generations) << " " << PRINT_VAR(max_items) << " "
               << PRINT_VAR(save_img) << " " << PRINT_VAR(alpha) << " "
@@ -205,9 +204,60 @@ int main()
     acc = 1.0 * correct_prediction / Y_train_float->rows;
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
+    save_dir = base_dir + "/test";
+    img_filename = ini.GetValue("MNIST", "TEST_IMAGE_FILE", "t10k-images-idx3-ubyte");
+    img_path = base_dir + "/" + img_filename;
+    label_filename = ini.GetValue("MNIST", "TEST_LABEL_FILE", "t10k-labels-idx1-ubyte");
+    label_path = base_dir + "/" + label_filename;
+
+    MNIST_Dataset test_dataset(
+            img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
+    test_dataset.read_mnist_db(max_items);
+
+#ifdef CV_SAVE_IMAGES
+    if (save_img)
+        test_dataset.save_dataset_as_png(save_dir);
+    test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
+#endif // CV_SAVE_IMAGES
+
+
+    auto test_mat = to_openblas(test_dataset._images);
+    if (test_mat == NULL)
+    {
+        printf("Failed to convert dataset to OpenBLAS\n");
+        exit(EXIT_FAILURE);
+    }
+
+    auto *Y_test_float = get_Y(test_mat);
+    if (Y_test_float == NULL)
+    {
+        printf("Failed to convert get Y from dataset\n");
+        free_matrix(test_mat);
+        exit(EXIT_FAILURE);
+    }
+    auto *X_test = get_X(test_mat);
+    if (X_test == NULL)
+    {
+        printf("Failed to convert get X from dataset\n");
+        free_matrix(test_mat);
+        free_matrix(Y_test_float);
+        exit(EXIT_FAILURE);
+    }
+
+    cblas_dscal(X_test->rows * X_test->cols, 1.0 / max_X, X_test->data, 1);
+
+    forward_prop(neural_net, X_test);
+    get_predictions(neural_net);
+    correct_prediction = get_correct_prediction(neural_net, Y_test_float);
+    acc = 1.0 * correct_prediction / Y_test_float->rows;
+    printf("Test \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
+
     free_matrix(X_train);
     free_matrix(Y_train_float);
     free_matrix(train_mat);
+    free_matrix(X_test);
+    free_matrix(Y_test_float);
+    free_matrix(test_mat);
     free_matrix(one_hot_Y);
     free_neuralnet_openblas(neural_net);
     return 0;
