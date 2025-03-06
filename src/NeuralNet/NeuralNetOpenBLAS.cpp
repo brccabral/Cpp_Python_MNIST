@@ -193,7 +193,7 @@ MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint column)
 
     memset(one_hot_Y->data, 0, one_hot_Y->rows * one_hot_Y->cols * sizeof(double));
 
-    // #pragma omp parallel for default(none) shared(mat, one_hot_Y, column)
+#pragma omp parallel for default(none) shared(mat, one_hot_Y, column)
     for (int i = 0; i < mat->rows; ++i)
     {
         const double value = (mat->data[i * mat->cols + column]);
