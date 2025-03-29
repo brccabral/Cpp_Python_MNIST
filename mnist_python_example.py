@@ -65,6 +65,7 @@ correct_prediction = 0
 acc = 0.0
 
 # %%
+prediction = torch.Tensor()
 for generation in range(500):
     optimizer.zero_grad()
     prediction = model.forward(X_train)

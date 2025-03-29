@@ -38,9 +38,7 @@ public:
 
     static xt::xarray<float> deriv_ReLU(const xt::xarray<float> &Z);
 
-    void back_prop(
-            const xt::xarray<float> &X, const xt::xarray<int> &Y, const xt::xarray<int> &one_hot_Y,
-            float alpha);
+    void back_prop(const xt::xarray<float> &X, const xt::xarray<int> &one_hot_Y, float alpha);
 
     static xt::xarray<int> get_predictions(const xt::xarray<float> &P);
 

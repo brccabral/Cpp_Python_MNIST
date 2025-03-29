@@ -1,7 +1,5 @@
 #pragma once
 
-#include <immintrin.h>
-#include <omp.h>
 #include <Eigen/Dense>
 
 class NeuralNet
@@ -40,9 +38,7 @@ public:
 
     static Eigen::MatrixXf deriv_ReLU(Eigen::MatrixXf &Z);
 
-    void back_prop(
-            const Eigen::MatrixXf &X, const Eigen::VectorXf &Y, const Eigen::MatrixXf &one_hot_Y,
-            float alpha);
+    void back_prop(const Eigen::MatrixXf &X, const Eigen::MatrixXf &target, float alpha);
 
     static Eigen::VectorXf get_predictions(Eigen::MatrixXf &P);
 

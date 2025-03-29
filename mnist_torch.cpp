@@ -185,7 +185,11 @@ int main()
                    acc);
         }
     }
-    prediction_train = net.forward(x_tensor_train);
+    net.eval();
+    {
+        torch::NoGradGuard no_grad;
+        prediction_train = net.forward(x_tensor_train);
+    }
 
     tm_train = torch::max(prediction_train, 1);
     indices_train = std::get<1>(tm_train);
@@ -202,7 +206,6 @@ int main()
     label_filename = ini.GetValue("MNIST", "TEST_LABEL_FILE", "t10k-labels-idx1-ubyte");
     label_path = base_dir + "/" + label_filename;
 
-    net.eval();
     MNIST_Dataset test_dataset(
             img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
     test_dataset.read_mnist_db(max_items);

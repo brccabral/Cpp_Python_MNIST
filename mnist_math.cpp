@@ -125,7 +125,7 @@ int main()
                    acc);
         }
 
-        neural_net.back_prop(X_train, Y_train, one_hot_Y, alpha);
+        neural_net.back_prop(X_train, one_hot_Y, alpha);
     }
     output = neural_net.forward_prop(X_train_T);
     prediction = NeuralNet::get_predictions(output);

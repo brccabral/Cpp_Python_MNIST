@@ -195,7 +195,7 @@ int main()
                    acc);
         }
 
-        back_prop(neural_net, X_train, Y_train_float, one_hot_Y, alpha);
+        back_prop(neural_net, X_train, one_hot_Y, alpha);
     }
     forward_prop(neural_net, X_train);
     get_predictions(neural_net);

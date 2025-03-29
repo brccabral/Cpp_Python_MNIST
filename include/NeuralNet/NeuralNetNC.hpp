@@ -39,9 +39,7 @@ public:
 
     static nc::NdArray<float> deriv_ReLU(const nc::NdArray<float> &Z);
 
-    void back_prop(
-            const nc::NdArray<float> &X, const nc::NdArray<int> &Y,
-            const nc::NdArray<int> &one_hot_Y, float alpha);
+    void back_prop(const nc::NdArray<float> &X, const nc::NdArray<int> &one_hot_Y, float alpha);
 
     static nc::NdArray<unsigned> get_predictions(const nc::NdArray<float> &P);
 

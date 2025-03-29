@@ -509,23 +509,19 @@ void subtract_scalar(const MatrixDouble *M, const double scalar)
 }
 
 void back_prop(
-        NeuralNetOpenBLAS *nn, const MatrixDouble *inputs, const MatrixDouble *labels,
-        const MatrixDouble *one_hot_Y, const double alpha)
+        NeuralNetOpenBLAS *nn, const MatrixDouble *inputs, const MatrixDouble *one_hot_Y,
+        const double alpha)
 {
     assert(nn);
     assert(inputs);
-    assert(labels);
     assert(one_hot_Y);
-    assert(labels->rows > 0);
     assert(nn->W1->cols == inputs->cols);
-    assert(inputs->rows == labels->rows);
     assert(nn->W2->rows == one_hot_Y->rows);
-    assert(labels->rows == one_hot_Y->cols);
     if (nn->Z1 == NULL || nn->Z1->cols != inputs->rows)
     {
         create_aux(nn, inputs);
     }
-    const int y_size = labels->rows;
+    const int y_size = one_hot_Y->cols;
 
     // const Eigen::MatrixXf dZ2 = A2 - one_hot_Y;
     // reuse A2 as dZ2
