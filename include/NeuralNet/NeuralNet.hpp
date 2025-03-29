@@ -20,9 +20,9 @@ public:
 
     // gradients
     Eigen::MatrixXf dW1;
-    float db1{};
+    Eigen::VectorXf db1;
     Eigen::MatrixXf dW2;
-    float db2{};
+    Eigen::VectorXf db2;
 
 public:
 

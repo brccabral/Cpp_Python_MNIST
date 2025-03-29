@@ -21,29 +21,19 @@ Eigen::MatrixXf NeuralNet::ReLU(const Eigen::MatrixXf &Z)
 
 Eigen::MatrixXf NeuralNet::Softmax(Eigen::MatrixXf &Z)
 {
-    Eigen::MatrixXf e = Z.array().exp();
-    Eigen::MatrixXf s = e.colwise().sum();
-    for (int c = 0; c < e.cols(); c++)
-    {
-        e.col(c) = e.col(c) / s(c);
-    }
+    Eigen::MatrixXf e = (Z.rowwise() - Z.colwise().maxCoeff()).array().exp();
+    e = e.array().rowwise() / e.array().colwise().sum();
     return e;
 }
 
 Eigen::MatrixXf NeuralNet::forward_prop(const Eigen::MatrixXf &X)
 {
     Z1 = W1 * X;
-    for (int c = 0; c < Z1.cols(); c++)
-    {
-        Z1.col(c) = Z1.col(c) + b1;
-    }
+    Z1 = Z1.colwise() + b1;
     A1 = ReLU(Z1);
 
     Z2 = W2 * A1;
-    for (int c = 0; c < Z2.cols(); c++)
-    {
-        Z2.col(c) = Z2.col(c) + b2;
-    }
+    Z2 = Z2.colwise() + b2;
     A2 = Softmax(Z2);
 
     return A2;
@@ -62,8 +52,7 @@ Eigen::MatrixXf NeuralNet::one_hot_encode(Eigen::VectorXf &Z)
 
 Eigen::MatrixXf NeuralNet::deriv_ReLU(Eigen::MatrixXf &Z)
 {
-    const Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> b2 = (Z.array() > 0);
-    return b2.unaryExpr([](const bool x) { return x ? 1.0f : 0.0f; });
+    return (Z.array() > 0).cast<float>();
 }
 
 void NeuralNet::back_prop(
@@ -71,18 +60,18 @@ void NeuralNet::back_prop(
 {
     const int y_size = target.cols();
 
-    const Eigen::MatrixXf dZ2 = A2 - target;
-    dW2 = dZ2 * A1.transpose() / y_size;
-    db2 = dZ2.sum() / y_size;
+    const Eigen::MatrixXf dZ2 = (A2 - target) / y_size;
+    dW2 = dZ2 * A1.transpose();
+    db2 = dZ2.rowwise().sum();
 
     const Eigen::MatrixXf dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
-    dW1 = dZ1 * X / y_size;
-    db1 = dZ1.sum() / y_size;
+    dW1 = dZ1 * X;
+    db1 = dZ1.rowwise().sum();
 
     W1 = W1 - dW1 * alpha;
-    b1 = b1.array() - db1 * alpha;
+    b1 = b1 - db1 * alpha;
     W2 = W2 - dW2 * alpha;
-    b2 = b2.array() - db2 * alpha;
+    b2 = b2 - db2 * alpha;
 }
 
 Eigen::VectorXf NeuralNet::get_predictions(Eigen::MatrixXf &P)
