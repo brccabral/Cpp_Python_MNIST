@@ -42,7 +42,7 @@ check_cxx_compiler_flag("-fopenmp" COMPILER_SUPPORT_OMP)
 message("COMPILER_SUPPORT_OMP ${COMPILER_SUPPORT_OMP}")
 
 if (WIN32)
-    set(SIMD_FLAGS "/arch:AVX2")
+    set(SIMD_FLAGS "/arch:AVX2" "/arch:FMA")
 else ()
     set(SIMD_FLAGS "-march=native" "-mtune=native" "-fopenmp")
 endif (WIN32)
