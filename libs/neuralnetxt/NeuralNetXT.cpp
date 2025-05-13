@@ -1,4 +1,4 @@
-#include "NeuralNet/NeuralNetXT.hpp"
+#include <NeuralNetXT/NeuralNetXT.hpp>
 #include <xtensor/xrandom.hpp>
 #include <xtensor/xsort.hpp>
 #include <xtensor-blas/xlinalg.hpp>

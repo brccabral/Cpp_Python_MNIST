@@ -1,6 +1,6 @@
 #include <cassert>
 #include <cstring>
-#include <NeuralNet/NeuralNetOpenBLAS.h>
+#include <NeuralNetOpenBLAS/NeuralNetOpenBLAS.h>
 #include <immintrin.h>
 #include <omp.h>
 

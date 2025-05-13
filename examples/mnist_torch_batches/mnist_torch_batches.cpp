@@ -5,7 +5,6 @@
 #endif
 
 #include <SimpleIni/SimpleIni.h>
-#include <torch/torch.h>
 #include <iostream>
 #include <TorchNet/torchnet.hpp>
 

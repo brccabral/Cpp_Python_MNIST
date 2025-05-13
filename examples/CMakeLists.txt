@@ -1,0 +1,7 @@
+add_subdirectory(mnist_math)
+add_subdirectory(mnist_numcpp)
+add_subdirectory(mnist_openblas)
+add_subdirectory(mnist_torch)
+add_subdirectory(mnist_torch_batches)
+add_subdirectory(mnist_torch_example)
+add_subdirectory(mnist_xtensor)

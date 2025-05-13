@@ -8,7 +8,6 @@
 #include <iostream>
 #include <MNIST/MNIST_Dataset.hpp>
 #include <Eigen/Dense>
-#include <torch/torch.h>
 #include <TorchNet/torchnet.hpp>
 
 #define PRINT_VAR(x) #x << "=" << x
@@ -200,7 +199,6 @@ int main()
     acc = 1.0f * correct_prediction / Y_train.rows();
     printf("Final \t Correct %d\tAccuracy %.4f\n", correct_prediction, acc);
 
-    save_dir = base_dir + "/test";
     img_filename = ini.GetValue("MNIST", "TEST_IMAGE_FILE", "t10k-images-idx3-ubyte");
     img_path = base_dir + "/" + img_filename;
     label_filename = ini.GetValue("MNIST", "TEST_LABEL_FILE", "t10k-labels-idx1-ubyte");
@@ -211,6 +209,7 @@ int main()
     test_dataset.read_mnist_db(max_items);
 
 #ifdef CV_SAVE_IMAGES
+    save_dir = base_dir + "/test";
     if (save_img)
         test_dataset.save_dataset_as_png(save_dir);
     test_dataset.save_dataset_as_csv(save_dir + "/test.csv");

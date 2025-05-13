@@ -1,0 +1,6 @@
+add_subdirectory(mnist)
+add_subdirectory(neuralnet)
+add_subdirectory(neuralnetnc)
+add_subdirectory(neuralnetopenblas)
+add_subdirectory(neuralnetxt)
+add_subdirectory(torchnet)

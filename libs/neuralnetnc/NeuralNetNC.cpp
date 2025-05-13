@@ -1,4 +1,4 @@
-#include <NeuralNet/NeuralNetNC.hpp>
+#include <NeuralNetNC/NeuralNetNC.hpp>
 
 
 NeuralNetNC::NeuralNetNC(
