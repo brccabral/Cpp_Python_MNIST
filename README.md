@@ -25,39 +25,39 @@ Files: train images, train labels, test images, test labels
       Library to save images on disk (not used to train/test)  
       I used `OpenCV 4.6.0`. There is no need to compile all opencv shared libraries, only `opencv_core`,
       `opencv_imgcodecs` and `opencv_imgproc` (dependency of _imgcodecs_).  
-      On Windows, you may need to compile both `Debug` and `Release`.  
+      On Windows, you may need to compile both `Debug` and `Release`.
     - **SimpleIni**  
       https://github.com/brofield/simpleini/  
       Parse and use `config.ini`  
       Header only library  
-      I used `SimpleInit 4.19`.  
+      I used `SimpleInit 4.19`.
     - **NumCpp**  
       https://github.com/dpilger26/NumCpp  
       Another math library (similar to `numpy`)  
-      Header only library  
+      Header only library
     - **xtensor**  
       https://github.com/xtensor-stack/xtensor  
       One more math library (similar to `numpy`)  
-      Header only library  
+      Header only library
       ```shell
       sudo apt install xtensor-dev
       ```
       To enable SIMD optimizations, need to install **xsimd**  
       To enable parallel assignment loop, need to install **tbb** (Linux) or **oneTBB** (Windows).  
       On Windows, run `cmake *** --target install` and add to `%PATH%`  
-      On Windows, check if this PR has been merged https://github.com/xtensor-stack/xtensor/pull/2799  
+      On Windows, check if this PR has been merged https://github.com/xtensor-stack/xtensor/pull/2799
     - **xtensor-blas**  
       https://github.com/xtensor-stack/xtensor-blas  
       An _xtensor_ extension for linear algebra _BLAS (Basic Linear Algebra Subprograms)_  
-      Header only library  
+      Header only library
       ```shell
       sudo apt install libxtensor-blas-dev
       ```
       On Windows, we need `OpenBLAS`  
-      On Windows, run `cmake *** --target install` and add to `%PATH%`  
+      On Windows, run `cmake *** --target install` and add to `%PATH%`
     - **xsimd**  
       https://github.com/xtensor-stack/xsimd  
-      SIMD optimizations for xtensor  
+      SIMD optimizations for xtensor
       ```shell
       sudo apt install libxsimd-dev
       ```
@@ -69,7 +69,7 @@ Files: train images, train labels, test images, test labels
       cmake -DCMAKE_BUILD_TYPE=Release ..
       sudo make install -j 10
       ```
-      On Windows, run `cmake *** --target install` and add to `%PATH%`  
+      On Windows, run `cmake *** --target install` and add to `%PATH%`
     - **tbb**
       Allow parallelism/multi-threads for C++  
       On Windows, use **oneTBB**
@@ -78,7 +78,8 @@ Files: train images, train labels, test images, test labels
       ```
     - **oneTBB**  
       https://github.com/oneapi-src/oneTBB/  
-      _oneTBB is a flexible C++ library that simplifies the work of adding parallelism to complex applications, even if you are not a threading expert._ 
+      _oneTBB is a flexible C++ library that simplifies the work of adding parallelism to complex applications, even if
+      you are not a threading expert._
       ```shell
       git clone --depth 1 https://github.com/oneapi-src/oneTBB.git
       cd oneTBB
@@ -87,12 +88,12 @@ Files: train images, train labels, test images, test labels
       cmake -DCMAKE_BUILD_TYPE=Release -G Ninja -DTBB_TEST:BOOL=OFF ..
       cmake --install .
       ```
-      On Windows, run `cmake *** --target install` and add to `%PATH%` both installation folder and `*\bin`    
+      On Windows, run `cmake *** --target install` and add to `%PATH%` both installation folder and `*\bin`
     - **xtl**
       https://github.com/xtensor-stack/xtl  
       "stl" for "xtensor" (containers, algorithms)  
       I had to install on Windows, but on Linux it may be a dependency of previous packages.  
-      On Windows, run `cmake *** --target install` and add to `%PATH%`  
+      On Windows, run `cmake *** --target install` and add to `%PATH%`
     - **C++ Libtorch**  
       https://pytorch.org/get-started/locally/  
       Download `libtorch` : PyTorch C++ library C++ ABI  
@@ -101,17 +102,22 @@ Files: train images, train labels, test images, test labels
       Do NOT download the "pre-cxx11 ABI".  
       The CXX_FLAGS needs to have "-D_GLIBCXX_USE_CXX11_ABI=1", not 0  
       Unzip to this workspace (`./workspace/libtorch`), or somewhere in your path (`/usr/local` or `$HOME/.local`).  
-      On Windows, you may need to download both `Debug` and `Release`.  
+      On Windows, you may need to download both `Debug` and `Release`.
     - **OpenBLAS**
       https://www.openblas.net/  
       An implementation of _BLAS (Basic Linear Algebra Subprograms)_  
-      I had to download it on Windows, I guess Linux has it as dependency of other libraries.  
-      Add to your `%PATH%` and set `-DOpenBLAS_DIR` on _cmake_.  
+      I had to download it on Windows.  
+      Add to your `%PATH%` and set `-DOpenBLAS_DIR` on _cmake_.
+      On Linux it is a dependency of `xtensor`, but can be installed independently.
+      ```shell
+      sudo apt install libopenblas-dev liblapacke-dev
+      ```
 
 - Python
     - **Python PyTorch**  
       https://pytorch.org/get-started/locally/  
-      For this project I used `torch==2.0.1`, `torchvision==0.15.2`, `torchaudio==2.0.2`, but this project doesn't have any example of `torchaudio`, and `torchvision` is just to load the MNIST dataset.  
+      For this project I used `torch==2.0.1`, `torchvision==0.15.2`, `torchaudio==2.0.2`, but this project doesn't have
+      any example of `torchaudio`, and `torchvision` is just to load the MNIST dataset.
       ```shell
       pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
       ```
@@ -119,14 +125,15 @@ Files: train images, train labels, test images, test labels
       ```shell
       pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cpu
       ```
-      The `--index-url` is used to download the CPU version. If not passed as argument, it will download the GPU version (+4GB).  
-      It will download and install `numpy` and `pillow`. In my case it was downloaded `numpy 1.24.1` and `pillow 9.3.0`.  
+      The `--index-url` is used to download the CPU version. If not passed as argument, it will download the GPU
+      version (+4GB).  
+      It will download and install `numpy` and `pillow`. In my case it was downloaded `numpy 1.24.1` and `pillow 9.3.0`.
     - **numpy**  
       https://numpy.org/  
-      Math library (matrices algebra)  
+      Math library (matrices algebra)
     - **pillow**  
       https://pillow.readthedocs.io/en/stable/  
-      Library to save images to disk (not used to train/test)  
+      Library to save images to disk (not used to train/test)
 
 ## References
 
@@ -158,4 +165,5 @@ https://discuss.pytorch.org/t/data-transfer-between-libtorch-c-and-eigen/54156/6
 ## Windows
 
 On Windows I could only build the project in Visual Studio cmake generator, couldn't make it work with MinGW/Unix
-Makefiles. OpenCV also needs to be built with Visual Studio cmake generator. Also, if needed, compile OpenCV as both `Debug` and `Release`, and download both Libtorch `Debug` and `Release`. Setup `%PATH%` accordingly.  
+Makefiles. OpenCV also needs to be built with Visual Studio cmake generator. Also, if needed, compile OpenCV as both
+`Debug` and `Release`, and download both Libtorch `Debug` and `Release`. Setup `%PATH%` accordingly.  

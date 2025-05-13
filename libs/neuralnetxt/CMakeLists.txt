@@ -15,7 +15,6 @@ target_sources(neuralnetxt PRIVATE NeuralNetXT.cpp)
 target_include_directories(neuralnetxt
         PUBLIC
         include
-        ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/dependencies/nc
 )
 target_link_libraries(neuralnetxt PUBLIC xtensor)

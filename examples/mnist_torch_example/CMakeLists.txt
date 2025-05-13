@@ -6,8 +6,8 @@ target_include_directories(mnist_torch_example PRIVATE ${PROJECT_SOURCE_DIR}/dep
 target_link_libraries(mnist_torch_example PRIVATE "${TORCH_LIBRARIES}")
 
 if (USE_SIMD)
-    target_compile_options(mnist_torch_example PUBLIC ${SIMD_FLAGS})
-    target_link_options(mnist_torch_example PUBLIC ${SIMD_FLAGS})
+    target_compile_options(mnist_torch_example PRIVATE ${SIMD_FLAGS})
+    target_link_options(mnist_torch_example PRIVATE ${SIMD_FLAGS})
 endif ()
 
 configure_file("${PROJECT_SOURCE_DIR}/config.ini" "${CMAKE_CURRENT_BINARY_DIR}/config.ini" COPYONLY)

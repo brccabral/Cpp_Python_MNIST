@@ -10,7 +10,6 @@ target_include_directories(neuralnetopenblas
 )
 target_link_libraries(neuralnetopenblas PUBLIC ${OpenBLAS_LIBRARIES})
 
-if (USE_SIMD)
-    target_compile_options(neuralnetopenblas PUBLIC ${SIMD_FLAGS})
-    target_link_options(neuralnetopenblas PUBLIC ${SIMD_FLAGS})
-endif ()
+# neuralnetopenblas requires SIMD flags
+target_compile_options(neuralnetopenblas PUBLIC ${SIMD_FLAGS})
+target_link_options(neuralnetopenblas PUBLIC ${SIMD_FLAGS})
