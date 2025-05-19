@@ -1,7 +1,6 @@
 #include <SimpleIni/SimpleIni.h>
 #include <iostream>
 #include <MNIST/MNIST_Dataset.hpp>
-#include <Eigen/Dense>
 #include <NeuralNet/NeuralNet.hpp>
 
 #define PRINT_VAR(x) #x << "=" << x
