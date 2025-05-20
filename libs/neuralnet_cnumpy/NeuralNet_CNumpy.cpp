@@ -122,6 +122,19 @@ CNdArray &CNdArray::operator/=(const float div)
     return *this;
 }
 
+CNdArray CNdArray::operator-(const float sub) const
+{
+    auto result = CNdArray(dims[0], dims[1]);
+    const auto *data = (float *) PyArray_DATA(ndarray);
+    auto *result_data = (float *) PyArray_DATA(result.ndarray);
+    for (npy_intp i = 0; i < size; ++i)
+    {
+        result_data[i] = data[i] - sub;
+    }
+    return result;
+}
+
+
 CNdArray CNdArray::transpose() const
 {
     auto transposed = CNdArray(dims[1], dims[0]);
@@ -147,10 +160,11 @@ CNdArray &CNdArray::operator=(const CNdArray &other)
     return *this;
 }
 
-NeuralNet_CNumpy::NeuralNet_CNumpy(int num_features, int hidden_layer_size, int categories)
+NeuralNet_CNumpy::NeuralNet_CNumpy(
+        const int num_features, const int hidden_layer_size, const int categories)
 {
-    W1 = CNumpy::rand(hidden_layer_size, num_features);
-    b1 = CNumpy::rand(hidden_layer_size, 1);
-    W2 = CNumpy::rand(categories, hidden_layer_size);
-    b2 = CNumpy::rand(categories, 1);
+    W1 = CNumpy::rand(hidden_layer_size, num_features) - 0.5f;
+    b1 = CNumpy::rand(hidden_layer_size, 1) - 0.5f;
+    W2 = CNumpy::rand(categories, hidden_layer_size) - 0.5f;
+    b2 = CNumpy::rand(categories, 1) - 0.5f;
 }
