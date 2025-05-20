@@ -23,21 +23,23 @@ CNumpy::~CNumpy()
     Py_Finalize();
 }
 
-CNdArray CNumpy::ndarray(int nd, npy_intp const *dims, int ndtype) const
+CNdArray CNumpy::ndarray(npy_intp const dims[2])
 {
-    return {nd, dims, ndtype};
+    return CNdArray{dims};
 }
 
-CNdArray::CNdArray(const int nd, npy_intp const dims[2], const int ndtype)
-    : ndtype(ndtype), nd(nd), dims{dims[0], dims[1]}
+CNdArray::CNdArray(npy_intp const dims[2]) : dims{dims[0], dims[1]}
 {
-    ndarray = (PyArrayObject *) PyArray_SimpleNew(nd, dims, ndtype);
+    ndarray = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_FLOAT);
     size = PyArray_SIZE(ndarray);
 }
 
 CNdArray::~CNdArray()
 {
-    Py_DECREF(ndarray);
+    if (ndarray)
+    {
+        Py_DECREF(ndarray);
+    }
 }
 
 std::ostream &operator<<(std::ostream &os, const CNdArray &arr)
@@ -75,7 +77,7 @@ npy_intp CNdArray::cols() const
     return dims[1];
 }
 
-float CNumpy::max(const CNdArray &ndarray) const
+float CNumpy::max(const CNdArray &ndarray)
 {
     const auto *data = (float *) PyArray_DATA(ndarray.ndarray);
 
@@ -105,7 +107,7 @@ CNdArray &CNdArray::operator/=(const float div)
 CNdArray CNdArray::transpose() const
 {
     const npy_intp dims_t[] = {dims[1], dims[0]};
-    auto transposed = CNdArray(nd, dims_t, ndtype);
+    auto transposed = CNdArray(dims_t);
     transposed.ndarray = (PyArrayObject *) PyArray_Transpose(ndarray, NULL);
     return transposed;
 }

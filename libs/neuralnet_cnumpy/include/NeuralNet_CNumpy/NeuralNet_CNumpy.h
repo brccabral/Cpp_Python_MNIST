@@ -13,29 +13,28 @@ class CNdArray
 {
 public:
 
+    CNdArray() : ndarray(nullptr), dims{}, size() {};
+
     friend std::ostream &operator<<(std::ostream &os, const CNdArray &arr);
 
     float operator()(int y, int x) const;
     float &operator()(int y, int x);
     CNdArray &operator/=(float div);
-    CNdArray transpose() const;
+    [[nodiscard]] CNdArray transpose() const;
 
     ~CNdArray();
 
     [[nodiscard]] npy_intp rows() const;
     [[nodiscard]] npy_intp cols() const;
 
-    int ndtype;
-
 private:
 
     friend class CNumpy;
 
-    CNdArray(int nd, npy_intp const dims[2], int ndtype);
+    explicit CNdArray(npy_intp const dims[2]);
 
     PyArrayObject *ndarray;
 
-    int nd;
     npy_intp const dims[2];
     npy_intp size;
 };
@@ -54,8 +53,8 @@ public:
         return instance;
     }
 
-    CNdArray ndarray(int nd, npy_intp const *dims, int ndtype) const;
-    float max(const CNdArray &ndarray) const;
+    static CNdArray ndarray(npy_intp const dims[2]);
+    [[nodiscard]] static float max(const CNdArray &ndarray);
 
 private:
 
