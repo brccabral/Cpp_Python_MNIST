@@ -37,7 +37,23 @@ CNumpy::CNumpy()
     {
         PyErr_Print();
         finalize();
-        throw std::invalid_argument("Could not get numpy.zeros.");
+        throw std::invalid_argument("Could not get numpy.ndarray.");
+    }
+
+    cnumpy_random = PyImport_ImportModule("numpy.random");
+    if (!cnumpy_random)
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.random.");
+    }
+
+    cnumpy_random_rand = PyObject_GetAttrString(cnumpy_random, "rand");
+    if (!cnumpy_random_rand || !PyCallable_Check(cnumpy_random_rand))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.random.rand.");
     }
 
     cnumpy_zeros = PyObject_GetAttrString(cnumpy, "zeros");
@@ -64,6 +80,8 @@ CNumpy::~CNumpy()
 
 void CNumpy::finalize() const
 {
+    Py_XDECREF(cnumpy_random_rand);
+    Py_XDECREF(cnumpy_random);
     Py_XDECREF(cnumpy_ndarray);
     Py_XDECREF(cnumpy_zeros);
     Py_XDECREF(cnumpy_add);
@@ -88,12 +106,11 @@ CNdArray CNumpy::ndarray(const npy_intp rows, const npy_intp cols)
 CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
 {
     auto result = CNumpy::ndarray(rows, cols);
+    PyObject *args = PyTuple_Pack(2, PyLong_FromLong(rows), PyLong_FromLong(cols));
 
-    auto *data = (float *) PyArray_DATA(result.ndarray);
-    for (npy_intp i = 0; i < result.size; ++i)
-    {
-        data[i] = dist(gen);
-    }
+    result.ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_random_rand, args);
+
+    Py_DECREF(args);
     return result;
 }
 
@@ -257,6 +274,7 @@ NeuralNet_CNumpy::NeuralNet_CNumpy(
         const int num_features, const int hidden_layer_size, const int categories)
 {
     W1 = CNumpy::rand(hidden_layer_size, num_features) - 0.5f;
+    std::cout << W1 << std::endl;
     b1 = CNumpy::rand(hidden_layer_size, 1) - 0.5f;
     W2 = CNumpy::rand(categories, hidden_layer_size) - 0.5f;
     b2 = CNumpy::rand(categories, 1) - 0.5f;
@@ -278,5 +296,5 @@ CNdArray NeuralNet_CNumpy::forward_prop(const CNdArray &X)
     Z1 = W1 * X;
     Z1 = Z1 + b1;
 
-    return A2;
+    return Z1;
 }
