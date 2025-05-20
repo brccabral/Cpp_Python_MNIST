@@ -2,6 +2,11 @@
 #include <stdexcept>
 #include <climits>
 #include <cfloat>
+#include <random>
+
+std::random_device rd;
+std::mt19937 gen(rd());
+std::uniform_real_distribution<float> dist(0.0, 1.0);
 
 bool init_numpy()
 {
@@ -27,6 +32,19 @@ CNdArray CNumpy::ndarray(npy_intp rows, npy_intp cols)
 {
     return {rows, cols};
 }
+
+CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
+{
+    auto result = CNumpy::ndarray(rows, cols);
+    auto *data = (float *) PyArray_DATA(result.ndarray);
+
+    for (npy_intp i = 0; i < result.size; ++i)
+    {
+        data[i] = dist(gen);
+    }
+    return result;
+}
+
 
 CNdArray::CNdArray(const npy_intp rows, const npy_intp cols) : dims{rows, cols}
 {
