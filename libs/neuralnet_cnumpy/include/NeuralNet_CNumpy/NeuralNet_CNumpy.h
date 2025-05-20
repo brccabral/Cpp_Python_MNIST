@@ -20,6 +20,7 @@ public:
     float &operator()(int y, int x);
     CNdArray &operator/=(float div);
     CNdArray operator-(float sub) const;
+    CNdArray operator*(const CNdArray &mul) const;
     [[nodiscard]] CNdArray transpose() const;
 
     ~CNdArray();

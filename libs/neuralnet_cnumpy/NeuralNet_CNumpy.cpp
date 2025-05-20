@@ -145,6 +145,15 @@ CNdArray CNdArray::operator-(const float sub) const
     return result;
 }
 
+CNdArray CNdArray::operator*(const CNdArray &mul) const
+{
+    assert(dims[1] == mul.dims[0]);
+    auto result = CNdArray(dims[0], mul.dims[1]);
+    result.ndarray =
+            (PyArrayObject *) PyArray_MatrixProduct((PyObject *) ndarray, (PyObject *) mul.ndarray);
+    return result;
+}
+
 CNdArray CNdArray::transpose() const
 {
     auto transposed = CNdArray(dims[1], dims[0]);
