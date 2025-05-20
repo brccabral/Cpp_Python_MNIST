@@ -48,12 +48,28 @@ CNumpy::CNumpy()
         throw std::invalid_argument("Could not get numpy.random.");
     }
 
-    cnumpy_random_rand = PyObject_GetAttrString(cnumpy_random, "rand");
-    if (!cnumpy_random_rand || !PyCallable_Check(cnumpy_random_rand))
+    cnumpy_random_default_rng = PyObject_GetAttrString(cnumpy_random, "default_rng");
+    if (!cnumpy_random_default_rng || !PyCallable_Check(cnumpy_random_default_rng))
     {
         PyErr_Print();
         finalize();
-        throw std::invalid_argument("Could not get numpy.random.rand.");
+        throw std::invalid_argument("Could not get numpy.random.default_rng.");
+    }
+
+    rng = PyObject_CallObject(cnumpy_random_default_rng, NULL);
+    if (!rng)
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not call default_rng.");
+    }
+
+    rng_random = PyObject_GetAttrString(rng, "random");
+    if (!rng_random || !PyCallable_Check(rng_random))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get default_rng.random.");
     }
 
     cnumpy_zeros = PyObject_GetAttrString(cnumpy, "zeros");
@@ -80,7 +96,9 @@ CNumpy::~CNumpy()
 
 void CNumpy::finalize() const
 {
-    Py_XDECREF(cnumpy_random_rand);
+    Py_XDECREF(rng_random);
+    Py_XDECREF(rng);
+    Py_XDECREF(cnumpy_random_default_rng);
     Py_XDECREF(cnumpy_random);
     Py_XDECREF(cnumpy_ndarray);
     Py_XDECREF(cnumpy_zeros);
@@ -105,12 +123,20 @@ CNdArray CNumpy::ndarray(const npy_intp rows, const npy_intp cols)
 
 CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
 {
-    auto result = CNumpy::ndarray(rows, cols);
-    PyObject *args = PyTuple_Pack(2, PyLong_FromLong(rows), PyLong_FromLong(cols));
+    auto result = CNdArray(rows, cols);
+    PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(rows), PyLong_FromLong(cols));
+    PyObject *kwargs = PyDict_New();
+    PyDict_SetItemString(kwargs, "size", shape);
 
-    result.ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_random_rand, args);
+    // result.ndarray = (PyArrayObject *) PyObject_CallMethod(np.rng, "random", NULL, NULL, kwargs);
+    result.ndarray = (PyArrayObject *) PyObject_Call(np.rng_random, PyTuple_New(0), kwargs);
+    if (!result.ndarray)
+    {
+        PyErr_Print();
+    }
 
-    Py_DECREF(args);
+    Py_DECREF(kwargs);
+    Py_DECREF(shape);
     return result;
 }
 

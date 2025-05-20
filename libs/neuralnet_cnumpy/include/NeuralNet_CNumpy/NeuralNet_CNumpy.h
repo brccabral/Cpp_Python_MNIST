@@ -63,7 +63,9 @@ public:
     PyObject *cnumpy_ndarray{};
     static CNdArray ndarray(npy_intp rows, npy_intp cols);
     PyObject *cnumpy_random{};
-    PyObject *cnumpy_random_rand{};
+    PyObject *cnumpy_random_default_rng{};
+    PyObject *rng{};
+    PyObject *rng_random{};
     static CNdArray rand(npy_intp rows, npy_intp cols);
     PyObject *cnumpy_zeros{};
     static CNdArray zeros(npy_intp rows, npy_intp cols);
