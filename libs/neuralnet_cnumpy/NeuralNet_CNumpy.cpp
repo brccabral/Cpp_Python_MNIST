@@ -178,3 +178,14 @@ NeuralNet_CNumpy::NeuralNet_CNumpy(
     W2 = CNumpy::rand(categories, hidden_layer_size) - 0.5f;
     b2 = CNumpy::rand(categories, 1) - 0.5f;
 }
+
+CNdArray NeuralNet_CNumpy::one_hot_encode(const CNdArray &Z)
+{
+    auto o = CNumpy::zeros(Z.rows(), CNumpy::max(Z) + 1);
+
+    for (int r = 0; r < Z.rows() - 1; r++)
+    {
+        o(r, int(Z(r, 0))) = 1;
+    }
+    return o.transpose();
+}

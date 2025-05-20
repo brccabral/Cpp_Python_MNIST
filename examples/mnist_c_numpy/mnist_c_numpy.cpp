@@ -130,5 +130,8 @@ int main()
     auto neural_net = NeuralNet_CNumpy(X_train.cols(), hidden_layer_size, categories);
     std::cout << neural_net.W1 << std::endl;
 
+    auto one_hot_Y = NeuralNet_CNumpy::one_hot_encode(Y_train);
+    std::cout << one_hot_Y << std::endl;
+
     return EXIT_SUCCESS;
 }

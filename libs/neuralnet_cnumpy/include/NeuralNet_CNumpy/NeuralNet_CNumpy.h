@@ -74,6 +74,8 @@ public:
 
     NeuralNet_CNumpy(int num_features, int hidden_layer_size, int categories);
 
+    static CNdArray one_hot_encode(const CNdArray &Z);
+
     // layers
     CNdArray W1{}, b1{}, W2{}, b2{};
     // back prop
