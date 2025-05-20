@@ -146,3 +146,11 @@ CNdArray &CNdArray::operator=(const CNdArray &other)
     }
     return *this;
 }
+
+NeuralNet_CNumpy::NeuralNet_CNumpy(int num_features, int hidden_layer_size, int categories)
+{
+    W1 = CNumpy::rand(hidden_layer_size, num_features);
+    b1 = CNumpy::rand(hidden_layer_size, 1);
+    W2 = CNumpy::rand(categories, hidden_layer_size);
+    b2 = CNumpy::rand(categories, 1);
+}

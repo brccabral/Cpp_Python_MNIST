@@ -13,8 +13,7 @@ class CNdArray
 {
 public:
 
-    CNdArray() : ndarray(nullptr), dims{}, size() {};
-
+    CNdArray() : ndarray(nullptr), dims{}, size{} {};
     friend std::ostream &operator<<(std::ostream &os, const CNdArray &arr);
 
     float operator()(int y, int x) const;
@@ -32,6 +31,7 @@ public:
 private:
 
     friend class CNumpy;
+    friend class NeuralNet_CNumpy;
 
     CNdArray(npy_intp rows, npy_intp cols);
 
@@ -63,4 +63,19 @@ private:
 
     CNumpy();
     ~CNumpy();
+};
+
+
+class NeuralNet_CNumpy
+{
+public:
+
+    NeuralNet_CNumpy(int num_features, int hidden_layer_size, int categories);
+
+    // layers
+    CNdArray W1{}, b1{}, W2{}, b2{};
+    // back prop
+    CNdArray Z1{}, A1{}, Z2{}, A2{};
+    // gradients
+    CNdArray dW1{}, dB1{}, dW2{}, dB2{};
 };

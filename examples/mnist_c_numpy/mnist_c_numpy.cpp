@@ -127,5 +127,8 @@ int main()
         std::cout << X_train_T(4, c) << ", ";
     std::cout << std::endl;
 
+    auto neural_net = NeuralNet_CNumpy(X_train.cols(), hidden_layer_size, categories);
+    std::cout << neural_net.W1 << std::endl;
+
     return EXIT_SUCCESS;
 }
