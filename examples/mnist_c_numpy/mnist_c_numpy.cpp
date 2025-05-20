@@ -15,8 +15,7 @@ CNdArray to_matrix(const std::vector<MNIST_Image> &_images)
     const int number_images = _images.size();
     const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
 
-    const npy_intp dims[] = {number_images, number_pixels + 1};
-    auto mat = CNumpy::ndarray(dims);
+    auto mat = CNumpy::ndarray(number_images, number_pixels + 1);
     for (int img = 0; img < number_images; img++)
     {
         mat(img, 0) = float(_images.at(img)._label);
@@ -31,8 +30,7 @@ CNdArray to_matrix(const std::vector<MNIST_Image> &_images)
 CNdArray get_Y(const CNdArray &mat)
 {
     const npy_intp rows = mat.rows();
-    const npy_intp dims[] = {rows, 1};
-    auto Y = CNumpy::ndarray(dims);
+    auto Y = CNumpy::ndarray(rows, 1);
     for (npy_intp r = 0; r < rows; ++r)
     {
         Y(r, 0) = mat(r, 0);
@@ -44,8 +42,7 @@ CNdArray get_X(const CNdArray &mat)
 {
     const npy_intp rows = mat.rows();
     const npy_intp cols = mat.cols();
-    const npy_intp dims[] = {rows, cols - 1};
-    auto X = CNumpy::ndarray(dims);
+    auto X = CNumpy::ndarray(rows, cols - 1);
     for (npy_intp r = 0; r < rows; ++r)
     {
         for (npy_intp c = 1; c < cols; ++c)

@@ -23,12 +23,12 @@ CNumpy::~CNumpy()
     Py_Finalize();
 }
 
-CNdArray CNumpy::ndarray(npy_intp const dims[2])
+CNdArray CNumpy::ndarray(npy_intp rows, npy_intp cols)
 {
-    return CNdArray{dims};
+    return {rows, cols};
 }
 
-CNdArray::CNdArray(npy_intp const dims[2]) : dims{dims[0], dims[1]}
+CNdArray::CNdArray(const npy_intp rows, const npy_intp cols) : dims{rows, cols}
 {
     ndarray = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_FLOAT);
     size = PyArray_SIZE(ndarray);
@@ -106,8 +106,7 @@ CNdArray &CNdArray::operator/=(const float div)
 
 CNdArray CNdArray::transpose() const
 {
-    const npy_intp dims_t[] = {dims[1], dims[0]};
-    auto transposed = CNdArray(dims_t);
+    auto transposed = CNdArray(dims[1], dims[0]);
     transposed.ndarray = (PyArrayObject *) PyArray_Transpose(ndarray, NULL);
     return transposed;
 }

@@ -31,7 +31,7 @@ private:
 
     friend class CNumpy;
 
-    explicit CNdArray(npy_intp const dims[2]);
+    CNdArray(npy_intp rows, npy_intp cols);
 
     PyArrayObject *ndarray;
 
@@ -53,7 +53,7 @@ public:
         return instance;
     }
 
-    static CNdArray ndarray(npy_intp const dims[2]);
+    static CNdArray ndarray(npy_intp rows, npy_intp cols);
     [[nodiscard]] static float max(const CNdArray &ndarray);
 
 private:
