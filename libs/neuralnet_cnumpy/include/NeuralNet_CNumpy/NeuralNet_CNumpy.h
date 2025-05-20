@@ -13,7 +13,7 @@ class CNdArray
 {
 public:
 
-    CNdArray() : ndarray(nullptr), dims{}, size{} {};
+    CNdArray() = default;
     friend std::ostream &operator<<(std::ostream &os, const CNdArray &arr);
 
     float operator()(int y, int x) const;
@@ -38,10 +38,10 @@ private:
 
     CNdArray(npy_intp rows, npy_intp cols);
 
-    PyArrayObject *ndarray;
+    PyArrayObject *ndarray{};
 
-    npy_intp const dims[2];
-    npy_intp size;
+    npy_intp const dims[2]{};
+    npy_intp size{};
 };
 
 class CNumpy
@@ -60,6 +60,7 @@ public:
 
     PyObject *cnumpy{};
 
+    PyObject *cnumpy_ndarray{};
     static CNdArray ndarray(npy_intp rows, npy_intp cols);
     static CNdArray rand(npy_intp rows, npy_intp cols);
     PyObject *cnumpy_zeros{};

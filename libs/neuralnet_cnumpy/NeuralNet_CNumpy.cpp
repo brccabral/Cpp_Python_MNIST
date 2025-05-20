@@ -32,6 +32,14 @@ CNumpy::CNumpy()
         throw std::invalid_argument("Could not init numpy.");
     }
 
+    cnumpy_ndarray = PyObject_GetAttrString(cnumpy, "ndarray");
+    if (!cnumpy_ndarray || !PyCallable_Check(cnumpy_ndarray))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.zeros.");
+    }
+
     cnumpy_zeros = PyObject_GetAttrString(cnumpy, "zeros");
     if (!cnumpy_zeros || !PyCallable_Check(cnumpy_zeros))
     {
@@ -56,6 +64,7 @@ CNumpy::~CNumpy()
 
 void CNumpy::finalize() const
 {
+    Py_XDECREF(cnumpy_ndarray);
     Py_XDECREF(cnumpy_zeros);
     Py_XDECREF(cnumpy_add);
     Py_DECREF(cnumpy);
@@ -63,16 +72,24 @@ void CNumpy::finalize() const
 }
 
 
-CNdArray CNumpy::ndarray(npy_intp rows, npy_intp cols)
+CNdArray CNumpy::ndarray(const npy_intp rows, const npy_intp cols)
 {
-    return {rows, cols};
+    auto result = CNdArray(rows, cols);
+    PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(rows), PyLong_FromLong(cols));
+    PyObject *args = PyTuple_Pack(1, shape);
+
+    result.ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_ndarray, args);
+
+    Py_DECREF(args);
+    Py_DECREF(shape);
+    return result;
 }
 
 CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
 {
     auto result = CNumpy::ndarray(rows, cols);
-    auto *data = (float *) PyArray_DATA(result.ndarray);
 
+    auto *data = (float *) PyArray_DATA(result.ndarray);
     for (npy_intp i = 0; i < result.size; ++i)
     {
         data[i] = dist(gen);
@@ -82,9 +99,11 @@ CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
 
 CNdArray CNumpy::zeros(const npy_intp rows, const npy_intp cols)
 {
-    auto result = CNumpy::ndarray(rows, cols);
+    auto result = CNdArray(rows, cols);
+
     PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(rows), PyLong_FromLong(cols));
     PyObject *args = PyTuple_Pack(1, shape);
+
     result.ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_zeros, args);
 
     Py_DECREF(args);
@@ -94,25 +113,21 @@ CNdArray CNumpy::zeros(const npy_intp rows, const npy_intp cols)
 
 CNdArray CNumpy::add(const CNdArray &a, const CNdArray &b)
 {
-    auto result = CNumpy::ndarray(a.rows(), a.cols());
+    auto result = CNdArray(a.rows(), a.cols());
+
     result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
             np.cnumpy_add, a.ndarray, b.ndarray, NULL);
     return result;
 }
 
-
 CNdArray::CNdArray(const npy_intp rows, const npy_intp cols) : dims{rows, cols}
 {
-    ndarray = (PyArrayObject *) PyArray_SimpleNew(2, dims, NPY_FLOAT);
-    size = PyArray_SIZE(ndarray);
+    size = rows * cols;
 }
 
 CNdArray::~CNdArray()
 {
-    if (ndarray)
-    {
-        Py_DECREF(ndarray);
-    }
+    Py_XDECREF(ndarray);
 }
 
 std::ostream &operator<<(std::ostream &os, const CNdArray &arr)
@@ -179,7 +194,8 @@ CNdArray &CNdArray::operator/=(const float div)
 
 CNdArray CNdArray::operator-(const float sub) const
 {
-    auto result = CNdArray(dims[0], dims[1]);
+    auto result = CNumpy::ndarray(dims[0], dims[1]);
+
     const auto *data = (float *) PyArray_DATA(ndarray);
     auto *result_data = (float *) PyArray_DATA(result.ndarray);
     for (npy_intp i = 0; i < size; ++i)
@@ -218,8 +234,16 @@ CNdArray &CNdArray::operator=(const CNdArray &other)
         {
             Py_DECREF(ndarray);
         }
-        ndarray = (PyArrayObject *) PyArray_SimpleNew(2, other.dims, NPY_FLOAT);
         memcpy((void *) dims, other.dims, 2 * sizeof(npy_intp));
+
+        PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(dims[0]), PyLong_FromLong(dims[1]));
+        PyObject *args = PyTuple_Pack(1, shape);
+
+        ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_ndarray, args);
+
+        Py_DECREF(args);
+        Py_DECREF(shape);
+
         size = PyArray_SIZE(ndarray);
 
         auto *data = (float *) PyArray_DATA(ndarray);
