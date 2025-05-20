@@ -8,6 +8,8 @@ std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_real_distribution<float> dist(0.0, 1.0);
 
+const auto &np = CNumpy::instance();
+
 bool init_numpy()
 {
     import_array1(false);
@@ -21,12 +23,35 @@ CNumpy::CNumpy()
     {
         throw std::invalid_argument("Could not init numpy.");
     }
+
+    cnumpy = PyImport_ImportModule("numpy");
+    if (!cnumpy)
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not init numpy.");
+    }
+    cnumpy_add = PyObject_GetAttrString(cnumpy, "add");
+    if (!cnumpy_add || !PyCallable_Check(cnumpy_add))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.add.");
+    }
 }
 
 CNumpy::~CNumpy()
 {
+    finalize();
+}
+
+void CNumpy::finalize() const
+{
+    Py_XDECREF(CNumpy::cnumpy_add);
+    Py_DECREF(cnumpy);
     Py_Finalize();
 }
+
 
 CNdArray CNumpy::ndarray(npy_intp rows, npy_intp cols)
 {
@@ -56,6 +81,15 @@ CNdArray CNumpy::zeros(const npy_intp rows, const npy_intp cols)
     }
     return result;
 }
+
+CNdArray CNumpy::add(const CNdArray &a, const CNdArray &b)
+{
+    auto result = CNumpy::ndarray(a.rows(), a.cols());
+    result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+            np.cnumpy_add, a.ndarray, b.ndarray, NULL);
+    return result;
+}
+
 
 CNdArray::CNdArray(const npy_intp rows, const npy_intp cols) : dims{rows, cols}
 {
@@ -154,6 +188,11 @@ CNdArray CNdArray::operator*(const CNdArray &mul) const
     return result;
 }
 
+CNdArray CNdArray::operator+(const CNdArray &add) const
+{
+    return CNumpy::add(*this, add);
+}
+
 CNdArray CNdArray::transpose() const
 {
     auto transposed = CNdArray(dims[1], dims[0]);
@@ -203,9 +242,7 @@ CNdArray NeuralNet_CNumpy::one_hot_encode(const CNdArray &Z)
 CNdArray NeuralNet_CNumpy::forward_prop(const CNdArray &X)
 {
     Z1 = W1 * X;
-
-    std::cout << Z1.rows() << ',' << Z1.cols() << std::endl;
-    std::cout << Z1 << std::endl;
+    Z1 = Z1 + b1;
 
     return A2;
 }

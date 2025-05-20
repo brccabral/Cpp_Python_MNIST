@@ -101,8 +101,6 @@ int main()
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 #endif // CV_SAVE_IMAGES
 
-    const auto &np = CNumpy::instance();
-
     auto train_mat = to_matrix(train_dataset._images);
 
     auto Y_train = get_Y(train_mat);
@@ -115,23 +113,12 @@ int main()
     std::cout << std::endl;
 
     int categories = CNumpy::max(Y_train) + 1;
-    std::cout << categories << std::endl;
 
     X_train /= 255.0f;
-    for (int c = 0; c < X_train.cols(); c++)
-        std::cout << X_train(4, c) << ", ";
-    std::cout << std::endl;
-
     auto X_train_T = X_train.transpose();
-    for (int c = 0; c < X_train_T.cols(); c++)
-        std::cout << X_train_T(4, c) << ", ";
-    std::cout << std::endl;
 
     auto neural_net = NeuralNet_CNumpy(X_train.cols(), hidden_layer_size, categories);
-    std::cout << neural_net.W1 << std::endl;
-
     auto one_hot_Y = NeuralNet_CNumpy::one_hot_encode(Y_train);
-    std::cout << one_hot_Y << std::endl;
 
     CNdArray output;
 

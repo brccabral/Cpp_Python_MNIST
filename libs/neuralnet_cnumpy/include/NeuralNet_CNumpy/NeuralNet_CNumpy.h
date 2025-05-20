@@ -21,6 +21,7 @@ public:
     CNdArray &operator/=(float div);
     CNdArray operator-(float sub) const;
     CNdArray operator*(const CNdArray &mul) const;
+    CNdArray operator+(const CNdArray &add) const;
     [[nodiscard]] CNdArray transpose() const;
 
     ~CNdArray();
@@ -57,15 +58,22 @@ public:
         return instance;
     }
 
+    PyObject *cnumpy{};
+
     static CNdArray ndarray(npy_intp rows, npy_intp cols);
     static CNdArray rand(npy_intp rows, npy_intp cols);
     static CNdArray zeros(npy_intp rows, npy_intp cols);
     [[nodiscard]] static float max(const CNdArray &ndarray);
 
+    PyObject *cnumpy_add{};
+    static CNdArray add(const CNdArray &a, const CNdArray &b);
+
 private:
 
     CNumpy();
     ~CNumpy();
+
+    void finalize() const;
 };
 
 
