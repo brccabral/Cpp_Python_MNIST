@@ -31,6 +31,15 @@ CNumpy::CNumpy()
         finalize();
         throw std::invalid_argument("Could not init numpy.");
     }
+
+    cnumpy_zeros = PyObject_GetAttrString(cnumpy, "zeros");
+    if (!cnumpy_zeros || !PyCallable_Check(cnumpy_zeros))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.zeros.");
+    }
+
     cnumpy_add = PyObject_GetAttrString(cnumpy, "add");
     if (!cnumpy_add || !PyCallable_Check(cnumpy_add))
     {
@@ -47,7 +56,8 @@ CNumpy::~CNumpy()
 
 void CNumpy::finalize() const
 {
-    Py_XDECREF(CNumpy::cnumpy_add);
+    Py_XDECREF(cnumpy_zeros);
+    Py_XDECREF(cnumpy_add);
     Py_DECREF(cnumpy);
     Py_Finalize();
 }
@@ -73,12 +83,12 @@ CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
 CNdArray CNumpy::zeros(const npy_intp rows, const npy_intp cols)
 {
     auto result = CNumpy::ndarray(rows, cols);
-    auto *data = (float *) PyArray_DATA(result.ndarray);
+    PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(rows), PyLong_FromLong(cols));
+    PyObject *args = PyTuple_Pack(1, shape);
+    result.ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_zeros, args);
 
-    for (npy_intp i = 0; i < result.size; ++i)
-    {
-        data[i] = 0;
-    }
+    Py_DECREF(args);
+    Py_DECREF(shape);
     return result;
 }
 
