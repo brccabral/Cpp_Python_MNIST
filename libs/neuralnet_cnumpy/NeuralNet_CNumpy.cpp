@@ -128,3 +128,21 @@ CNdArray CNdArray::transpose() const
     transposed.ndarray = (PyArrayObject *) PyArray_Transpose(ndarray, NULL);
     return transposed;
 }
+
+CNdArray &CNdArray::operator=(const CNdArray &other)
+{
+    if (this != &other)
+    {
+        if (ndarray)
+        {
+            Py_DECREF(ndarray);
+        }
+        ndarray = (PyArrayObject *) PyArray_SimpleNew(2, other.dims, NPY_FLOAT);
+        size = PyArray_SIZE(ndarray);
+
+        auto *data = (float *) PyArray_DATA(ndarray);
+        const auto *other_data = (float *) PyArray_DATA(other.ndarray);
+        memcpy(data, other_data, size * sizeof(float));
+    }
+    return *this;
+}

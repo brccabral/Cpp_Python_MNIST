@@ -24,6 +24,8 @@ public:
 
     ~CNdArray();
 
+    CNdArray &operator=(const CNdArray &other);
+
     [[nodiscard]] npy_intp rows() const;
     [[nodiscard]] npy_intp cols() const;
 
