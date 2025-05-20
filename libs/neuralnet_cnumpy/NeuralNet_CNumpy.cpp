@@ -199,3 +199,13 @@ CNdArray NeuralNet_CNumpy::one_hot_encode(const CNdArray &Z)
     }
     return o.transpose();
 }
+
+CNdArray NeuralNet_CNumpy::forward_prop(const CNdArray &X)
+{
+    Z1 = W1 * X;
+
+    std::cout << Z1.rows() << ',' << Z1.cols() << std::endl;
+    std::cout << Z1 << std::endl;
+
+    return A2;
+}

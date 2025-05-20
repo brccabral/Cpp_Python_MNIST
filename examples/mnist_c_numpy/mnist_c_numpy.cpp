@@ -133,5 +133,18 @@ int main()
     auto one_hot_Y = NeuralNet_CNumpy::one_hot_encode(Y_train);
     std::cout << one_hot_Y << std::endl;
 
+    CNdArray output;
+
+    int correct_prediction = 0;
+    float acc = 0.0f;
+
+    CNdArray prediction;
+
+    for (int generation = 0; generation < num_generations; generation++)
+    {
+        output = neural_net.forward_prop(X_train_T);
+    }
+
+
     return EXIT_SUCCESS;
 }
