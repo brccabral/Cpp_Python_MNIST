@@ -1,9 +1,7 @@
-#include "NeuralNet_CNumpy/NeuralNet_CNumpy.h"
-
-
 #include <SimpleIni/SimpleIni.h>
 #include <iostream>
 #include <MNIST/MNIST_Dataset.hpp>
+#include <NeuralNet_CNumpy/NeuralNet_CNumpy.h>
 
 #define PRINT_VAR(x) #x << "=" << x
 
@@ -11,6 +9,54 @@
 #define TRAIN_LABEL_MAGIC 2049
 #define TEST_IMAGE_MAGIC 2051
 #define TEST_LABEL_MAGIC 2049
+
+CNdArray to_matrix(const CNumpy &np, const std::vector<MNIST_Image> &_images)
+{
+    const int number_images = _images.size();
+    const int number_pixels = _images.at(0)._rows * _images.at(0)._cols;
+
+    const npy_intp dims[] = {number_images, number_pixels + 1};
+    auto mat = np.ndarray(2, dims, NPY_FLOAT);
+    for (int img = 0; img < number_images; img++)
+    {
+        mat(img, 0) = float(_images.at(img)._label);
+        for (int pix = 0; pix < number_pixels; pix++)
+        {
+            mat(img, pix + 1) = (unsigned char) _images.at(img)._pixels[pix];
+        }
+    }
+    return mat;
+}
+
+CNdArray get_Y(const CNumpy &np, const CNdArray &mat)
+{
+    const npy_intp rows = mat.rows();
+    const npy_intp dims[] = {rows, 1};
+    const int ndtype = mat.ndtype;
+    auto Y = np.ndarray(2, dims, ndtype);
+    for (npy_intp r = 0; r < rows; ++r)
+    {
+        Y(r, 0) = mat(r, 0);
+    }
+    return Y;
+}
+
+CNdArray get_X(const CNumpy &np, const CNdArray &mat)
+{
+    const npy_intp rows = mat.rows();
+    const npy_intp cols = mat.cols();
+    const npy_intp dims[] = {rows, cols - 1};
+    const int ndtype = mat.ndtype;
+    auto X = np.ndarray(2, dims, ndtype);
+    for (npy_intp r = 0; r < rows; ++r)
+    {
+        for (npy_intp c = 1; c < cols; ++c)
+        {
+            X(r, c - 1) = mat(r, c);
+        }
+    }
+    return X;
+}
 
 int main()
 {
@@ -60,11 +106,17 @@ int main()
     train_dataset.save_dataset_as_csv(save_dir + "/train.csv");
 #endif // CV_SAVE_IMAGES
 
-    auto &np = CNumpy::instance();
-    npy_intp dims[] = {5, 7};
-    auto arr = np.ndarray(2, dims, NPY_FLOAT);
-    arr(2, 3) = 5;
-    std::cout << arr << '\n';
+    const auto &np = CNumpy::instance();
+    auto train_mat = to_matrix(np, train_dataset._images);
+
+    auto Y_train = get_Y(np, train_mat);
+    auto X_train = get_X(np, train_mat);
+
+    std::cout << Y_train(4, 0) << std::endl;
+    std::cout << X_train.rows() << "," << X_train.cols() << std::endl;
+    for (int c = 0; c < X_train.cols(); c++)
+        std::cout << X_train(4, c) << ", ";
+    std::cout << std::endl;
 
     return EXIT_SUCCESS;
 }

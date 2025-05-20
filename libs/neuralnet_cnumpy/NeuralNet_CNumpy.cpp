@@ -21,13 +21,13 @@ CNumpy::~CNumpy()
     Py_Finalize();
 }
 
-CNdArray CNumpy::ndarray(int nd, npy_intp const *dims, int ndtype)
+CNdArray CNumpy::ndarray(int nd, npy_intp const *dims, int ndtype) const
 {
     return {nd, dims, ndtype};
 }
 
-CNdArray::CNdArray(const int nd, npy_intp const *dims, const int ndtype)
-    : nd(nd), dims(dims), ndtype(ndtype)
+CNdArray::CNdArray(const int nd, npy_intp const dims[2], const int ndtype)
+    : ndtype(ndtype), nd(nd), dims{dims[0], dims[1]}
 {
     ndarray = (PyArrayObject *) PyArray_SimpleNew(nd, dims, ndtype);
 }
@@ -60,4 +60,14 @@ float &CNdArray::operator()(const int y, const int x)
     assert(x < dims[1]);
     auto *ptr = (float *) PyArray_GETPTR2(ndarray, y, x);
     return *ptr;
+}
+
+npy_intp CNdArray::rows() const
+{
+    return dims[0];
+}
+
+npy_intp CNdArray::cols() const
+{
+    return dims[1];
 }

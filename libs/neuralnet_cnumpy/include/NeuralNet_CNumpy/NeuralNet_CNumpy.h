@@ -20,17 +20,21 @@ public:
 
     ~CNdArray();
 
+    [[nodiscard]] npy_intp rows() const;
+    [[nodiscard]] npy_intp cols() const;
+
+    int ndtype;
+
 private:
 
     friend class CNumpy;
 
-    CNdArray(int nd, npy_intp const *dims, int ndtype);
+    CNdArray(int nd, npy_intp const dims[2], int ndtype);
 
     PyArrayObject *ndarray;
 
     int nd;
-    npy_intp const *dims;
-    int ndtype;
+    npy_intp const dims[2];
 };
 
 class CNumpy
@@ -47,7 +51,7 @@ public:
         return instance;
     }
 
-    CNdArray ndarray(int nd, npy_intp const *dims, int ndtype);
+    CNdArray ndarray(int nd, npy_intp const *dims, int ndtype) const;
 
 private:
 
