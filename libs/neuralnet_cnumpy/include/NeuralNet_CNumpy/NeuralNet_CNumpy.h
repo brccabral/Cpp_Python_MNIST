@@ -17,6 +17,7 @@ public:
 
     float operator()(int y, int x) const;
     float &operator()(int y, int x);
+    CNdArray &operator/=(float div);
 
     ~CNdArray();
 
@@ -35,6 +36,7 @@ private:
 
     int nd;
     npy_intp const dims[2];
+    npy_intp size;
 };
 
 class CNumpy

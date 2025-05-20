@@ -32,6 +32,7 @@ CNdArray::CNdArray(const int nd, npy_intp const dims[2], const int ndtype)
     : ndtype(ndtype), nd(nd), dims{dims[0], dims[1]}
 {
     ndarray = (PyArrayObject *) PyArray_SimpleNew(nd, dims, ndtype);
+    size = PyArray_SIZE(ndarray);
 }
 
 CNdArray::~CNdArray()
@@ -77,13 +78,26 @@ npy_intp CNdArray::cols() const
 float CNumpy::max(const CNdArray &ndarray) const
 {
     const auto *data = (float *) PyArray_DATA(ndarray.ndarray);
-    const npy_intp size = PyArray_SIZE(ndarray.ndarray);
 
     float max_val = -FLT_MAX;
-    for (npy_intp i = 0; i < size; ++i)
+    for (npy_intp i = 0; i < ndarray.size; ++i)
     {
         if (data[i] > max_val)
             max_val = data[i];
     }
     return max_val;
+}
+
+CNdArray &CNdArray::operator/=(const float div)
+{
+    if (div == 0.0)
+    {
+        throw std::invalid_argument("Division by zero.");
+    }
+    auto *data = (float *) PyArray_DATA(ndarray);
+    for (npy_intp i = 0; i < size; ++i)
+    {
+        data[i] /= div;
+    }
+    return *this;
 }
