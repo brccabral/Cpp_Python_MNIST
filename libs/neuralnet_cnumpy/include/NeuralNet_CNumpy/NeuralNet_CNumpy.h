@@ -58,6 +58,7 @@ public:
 
     static CNdArray ndarray(npy_intp rows, npy_intp cols);
     static CNdArray rand(npy_intp rows, npy_intp cols);
+    static CNdArray zeros(npy_intp rows, npy_intp cols);
     [[nodiscard]] static float max(const CNdArray &ndarray);
 
 private:

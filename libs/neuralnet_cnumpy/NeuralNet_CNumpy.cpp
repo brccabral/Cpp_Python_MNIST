@@ -45,6 +45,17 @@ CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
     return result;
 }
 
+CNdArray CNumpy::zeros(const npy_intp rows, const npy_intp cols)
+{
+    auto result = CNumpy::ndarray(rows, cols);
+    auto *data = (float *) PyArray_DATA(result.ndarray);
+
+    for (npy_intp i = 0; i < result.size; ++i)
+    {
+        data[i] = 0;
+    }
+    return result;
+}
 
 CNdArray::CNdArray(const npy_intp rows, const npy_intp cols) : dims{rows, cols}
 {
@@ -133,7 +144,6 @@ CNdArray CNdArray::operator-(const float sub) const
     }
     return result;
 }
-
 
 CNdArray CNdArray::transpose() const
 {
