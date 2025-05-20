@@ -18,6 +18,7 @@ public:
     float operator()(int y, int x) const;
     float &operator()(int y, int x);
     CNdArray &operator/=(float div);
+    CNdArray transpose() const;
 
     ~CNdArray();
 

@@ -101,3 +101,11 @@ CNdArray &CNdArray::operator/=(const float div)
     }
     return *this;
 }
+
+CNdArray CNdArray::transpose() const
+{
+    const npy_intp dims_t[] = {dims[1], dims[0]};
+    auto transposed = CNdArray(nd, dims_t, ndtype);
+    transposed.ndarray = (PyArrayObject *) PyArray_Transpose(ndarray, NULL);
+    return transposed;
+}

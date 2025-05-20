@@ -126,5 +126,10 @@ int main()
         std::cout << X_train(4, c) << ", ";
     std::cout << std::endl;
 
+    auto X_train_T = X_train.transpose();
+    for (int c = 0; c < X_train_T.cols(); c++)
+        std::cout << X_train_T(4, c) << ", ";
+    std::cout << std::endl;
+
     return EXIT_SUCCESS;
 }
