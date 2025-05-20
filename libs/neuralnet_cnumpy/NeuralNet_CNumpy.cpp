@@ -161,6 +161,7 @@ CNdArray &CNdArray::operator=(const CNdArray &other)
             Py_DECREF(ndarray);
         }
         ndarray = (PyArrayObject *) PyArray_SimpleNew(2, other.dims, NPY_FLOAT);
+        memcpy((void *) dims, other.dims, 2 * sizeof(npy_intp));
         size = PyArray_SIZE(ndarray);
 
         auto *data = (float *) PyArray_DATA(ndarray);
