@@ -1,5 +1,7 @@
 #include <NeuralNet_CNumpy/NeuralNet_CNumpy.h>
 #include <stdexcept>
+#include <climits>
+#include <cfloat>
 
 bool init_numpy()
 {
@@ -70,4 +72,18 @@ npy_intp CNdArray::rows() const
 npy_intp CNdArray::cols() const
 {
     return dims[1];
+}
+
+float CNumpy::max(const CNdArray &ndarray) const
+{
+    const auto *data = (float *) PyArray_DATA(ndarray.ndarray);
+    const npy_intp size = PyArray_SIZE(ndarray.ndarray);
+
+    float max_val = -FLT_MAX;
+    for (npy_intp i = 0; i < size; ++i)
+    {
+        if (data[i] > max_val)
+            max_val = data[i];
+    }
+    return max_val;
 }

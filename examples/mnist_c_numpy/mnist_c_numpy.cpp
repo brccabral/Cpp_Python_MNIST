@@ -118,5 +118,8 @@ int main()
         std::cout << X_train(4, c) << ", ";
     std::cout << std::endl;
 
+    int categories = np.max(Y_train) + 1;
+    std::cout << categories << std::endl;
+
     return EXIT_SUCCESS;
 }

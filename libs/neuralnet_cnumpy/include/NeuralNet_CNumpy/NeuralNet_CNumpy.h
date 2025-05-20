@@ -52,6 +52,7 @@ public:
     }
 
     CNdArray ndarray(int nd, npy_intp const *dims, int ndtype) const;
+    float max(const CNdArray &ndarray) const;
 
 private:
 
