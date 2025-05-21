@@ -381,6 +381,12 @@ CNdArray NeuralNet_CNumpy::forward_prop(const CNdArray &X)
 {
     Z1 = W1 * X;
     Z1 = Z1 + b1;
+    A1 = ReLU(Z1);
 
-    return Z1;
+    return A1;
+}
+
+CNdArray NeuralNet_CNumpy::ReLU(const CNdArray &Z)
+{
+    return CNumpy::maximum(Z, 0.0);
 }
