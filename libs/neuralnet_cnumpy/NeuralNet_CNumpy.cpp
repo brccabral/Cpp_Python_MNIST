@@ -91,6 +91,14 @@ CNumpy::CNumpy()
         finalize();
         throw std::invalid_argument("Could not get numpy.add.");
     }
+
+    cnumpy_dot = PyObject_GetAttrString(cnumpy, "dot");
+    if (!cnumpy_dot || !PyCallable_Check(cnumpy_dot))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.dot.");
+    }
 }
 
 CNumpy::~CNumpy()
@@ -107,6 +115,7 @@ void CNumpy::finalize() const
     Py_XDECREF(cnumpy_ndarray);
     Py_XDECREF(cnumpy_zeros);
     Py_XDECREF(cnumpy_add);
+    Py_XDECREF(cnumpy_dot);
     Py_DECREF(cnumpy);
     Py_Finalize();
 }
@@ -162,6 +171,15 @@ CNdArray CNumpy::add(const CNdArray &a, const CNdArray &b)
 
     result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
             np.cnumpy_add, a.ndarray, b.ndarray, NULL);
+    return result;
+}
+
+CNdArray CNumpy::dot(const CNdArray &a, const CNdArray &b)
+{
+    auto result = CNdArray(a.rows(), a.cols());
+
+    result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+            np.cnumpy_dot, a.ndarray, b.ndarray, NULL);
     return result;
 }
 
@@ -243,11 +261,7 @@ CNdArray CNdArray::operator-(const double sub) const
 
 CNdArray CNdArray::operator*(const CNdArray &mul) const
 {
-    assert(dims[1] == mul.dims[0]);
-    auto result = CNdArray(dims[0], mul.dims[1]);
-    result.ndarray =
-            (PyArrayObject *) PyArray_MatrixProduct((PyObject *) ndarray, (PyObject *) mul.ndarray);
-    return result;
+    return CNumpy::dot(*this, mul);
 }
 
 CNdArray CNdArray::operator+(const CNdArray &add) const

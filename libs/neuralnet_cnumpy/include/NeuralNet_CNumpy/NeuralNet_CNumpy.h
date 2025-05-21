@@ -73,6 +73,8 @@ public:
 
     PyObject *cnumpy_add{};
     static CNdArray add(const CNdArray &a, const CNdArray &b);
+    PyObject *cnumpy_dot{};
+    static CNdArray dot(const CNdArray &a, const CNdArray &b);
 
 private:
 
