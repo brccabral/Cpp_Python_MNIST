@@ -16,6 +16,15 @@ bool init_numpy()
     return true;
 }
 
+std::ostream &operator<<(std::ostream &os, const CNdArray &arr)
+{
+    PyObject *repr = PyObject_Repr((PyObject *) arr.ndarray);
+    const char *str = PyUnicode_AsUTF8(repr);
+    os << str << "\n";
+    Py_DECREF(repr);
+    return os;
+}
+
 CNumpy::CNumpy()
 {
     Py_Initialize();
@@ -128,7 +137,6 @@ CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
     PyObject *kwargs = PyDict_New();
     PyDict_SetItemString(kwargs, "size", shape);
 
-    // result.ndarray = (PyArrayObject *) PyObject_CallMethod(np.rng, "random", NULL, NULL, kwargs);
     result.ndarray = (PyArrayObject *) PyObject_Call(np.rng_random, PyTuple_New(0), kwargs);
     if (!result.ndarray)
     {
@@ -163,6 +171,19 @@ CNdArray CNumpy::add(const CNdArray &a, const CNdArray &b)
     return result;
 }
 
+float CNumpy::max(const CNdArray &ndarray)
+{
+    const auto *data = (float *) PyArray_DATA(ndarray.ndarray);
+
+    float max_val = -FLT_MAX;
+    for (npy_intp i = 0; i < ndarray.size; ++i)
+    {
+        if (data[i] > max_val)
+            max_val = data[i];
+    }
+    return max_val;
+}
+
 CNdArray::CNdArray(const npy_intp rows, const npy_intp cols) : dims{rows, cols}
 {
     size = rows * cols;
@@ -171,15 +192,6 @@ CNdArray::CNdArray(const npy_intp rows, const npy_intp cols) : dims{rows, cols}
 CNdArray::~CNdArray()
 {
     Py_XDECREF(ndarray);
-}
-
-std::ostream &operator<<(std::ostream &os, const CNdArray &arr)
-{
-    PyObject *repr = PyObject_Repr((PyObject *) arr.ndarray);
-    const char *str = PyUnicode_AsUTF8(repr);
-    os << str << "\n";
-    Py_DECREF(repr);
-    return os;
 }
 
 float CNdArray::operator()(const int y, const int x) const
@@ -206,19 +218,6 @@ npy_intp CNdArray::rows() const
 npy_intp CNdArray::cols() const
 {
     return dims[1];
-}
-
-float CNumpy::max(const CNdArray &ndarray)
-{
-    const auto *data = (float *) PyArray_DATA(ndarray.ndarray);
-
-    float max_val = -FLT_MAX;
-    for (npy_intp i = 0; i < ndarray.size; ++i)
-    {
-        if (data[i] > max_val)
-            max_val = data[i];
-    }
-    return max_val;
 }
 
 CNdArray &CNdArray::operator/=(const float div)
