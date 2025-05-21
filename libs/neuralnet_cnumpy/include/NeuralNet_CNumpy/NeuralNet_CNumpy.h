@@ -16,10 +16,10 @@ public:
     CNdArray() = default;
     friend std::ostream &operator<<(std::ostream &os, const CNdArray &arr);
 
-    float operator()(int y, int x) const;
-    float &operator()(int y, int x);
-    CNdArray &operator/=(float div);
-    CNdArray operator-(float sub) const;
+    double operator()(int y, int x) const;
+    double &operator()(int y, int x);
+    CNdArray &operator/=(double div);
+    CNdArray operator-(double sub) const;
     CNdArray operator*(const CNdArray &mul) const;
     CNdArray operator+(const CNdArray &add) const;
     [[nodiscard]] CNdArray transpose() const;
@@ -69,7 +69,7 @@ public:
     static CNdArray rand(npy_intp rows, npy_intp cols);
     PyObject *cnumpy_zeros{};
     static CNdArray zeros(npy_intp rows, npy_intp cols);
-    [[nodiscard]] static float max(const CNdArray &ndarray);
+    [[nodiscard]] static double max(const CNdArray &ndarray);
 
     PyObject *cnumpy_add{};
     static CNdArray add(const CNdArray &a, const CNdArray &b);

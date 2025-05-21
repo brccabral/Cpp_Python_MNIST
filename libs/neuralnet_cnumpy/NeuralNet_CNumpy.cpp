@@ -2,11 +2,6 @@
 #include <stdexcept>
 #include <climits>
 #include <cfloat>
-#include <random>
-
-std::random_device rd;
-std::mt19937 gen(rd());
-std::uniform_real_distribution<float> dist(0.0, 1.0);
 
 const auto &np = CNumpy::instance();
 
@@ -134,16 +129,15 @@ CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
 {
     auto result = CNdArray(rows, cols);
     PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(rows), PyLong_FromLong(cols));
-    PyObject *kwargs = PyDict_New();
-    PyDict_SetItemString(kwargs, "size", shape);
+    PyObject *args = PyTuple_Pack(1, shape);
 
-    result.ndarray = (PyArrayObject *) PyObject_Call(np.rng_random, PyTuple_New(0), kwargs);
+    result.ndarray = (PyArrayObject *) PyObject_Call(np.rng_random, args, NULL);
     if (!result.ndarray)
     {
         PyErr_Print();
     }
 
-    Py_DECREF(kwargs);
+    Py_DECREF(args);
     Py_DECREF(shape);
     return result;
 }
@@ -171,11 +165,11 @@ CNdArray CNumpy::add(const CNdArray &a, const CNdArray &b)
     return result;
 }
 
-float CNumpy::max(const CNdArray &ndarray)
+double CNumpy::max(const CNdArray &ndarray)
 {
-    const auto *data = (float *) PyArray_DATA(ndarray.ndarray);
+    const auto *data = (double *) PyArray_DATA(ndarray.ndarray);
 
-    float max_val = -FLT_MAX;
+    double max_val = -DBL_MAX;
     for (npy_intp i = 0; i < ndarray.size; ++i)
     {
         if (data[i] > max_val)
@@ -194,19 +188,19 @@ CNdArray::~CNdArray()
     Py_XDECREF(ndarray);
 }
 
-float CNdArray::operator()(const int y, const int x) const
+double CNdArray::operator()(const int y, const int x) const
 {
     assert(y < dims[0]);
     assert(x < dims[1]);
-    const auto *value_ptr = (float *) PyArray_GETPTR2(ndarray, y, x);
+    const auto *value_ptr = (double *) PyArray_GETPTR2(ndarray, y, x);
     return *value_ptr;
 }
 
-float &CNdArray::operator()(const int y, const int x)
+double &CNdArray::operator()(const int y, const int x)
 {
     assert(y < dims[0]);
     assert(x < dims[1]);
-    auto *ptr = (float *) PyArray_GETPTR2(ndarray, y, x);
+    auto *ptr = (double *) PyArray_GETPTR2(ndarray, y, x);
     return *ptr;
 }
 
@@ -220,13 +214,13 @@ npy_intp CNdArray::cols() const
     return dims[1];
 }
 
-CNdArray &CNdArray::operator/=(const float div)
+CNdArray &CNdArray::operator/=(const double div)
 {
     if (div == 0.0)
     {
         throw std::invalid_argument("Division by zero.");
     }
-    auto *data = (float *) PyArray_DATA(ndarray);
+    auto *data = (double *) PyArray_DATA(ndarray);
     for (npy_intp i = 0; i < size; ++i)
     {
         data[i] /= div;
@@ -234,12 +228,12 @@ CNdArray &CNdArray::operator/=(const float div)
     return *this;
 }
 
-CNdArray CNdArray::operator-(const float sub) const
+CNdArray CNdArray::operator-(const double sub) const
 {
     auto result = CNumpy::ndarray(dims[0], dims[1]);
 
-    const auto *data = (float *) PyArray_DATA(ndarray);
-    auto *result_data = (float *) PyArray_DATA(result.ndarray);
+    const auto *data = (double *) PyArray_DATA(ndarray);
+    auto *result_data = (double *) PyArray_DATA(result.ndarray);
     for (npy_intp i = 0; i < size; ++i)
     {
         result_data[i] = data[i] - sub;
@@ -288,9 +282,9 @@ CNdArray &CNdArray::operator=(const CNdArray &other)
 
         size = PyArray_SIZE(ndarray);
 
-        auto *data = (float *) PyArray_DATA(ndarray);
-        const auto *other_data = (float *) PyArray_DATA(other.ndarray);
-        memcpy(data, other_data, size * sizeof(float));
+        auto *data = (double *) PyArray_DATA(ndarray);
+        const auto *other_data = (double *) PyArray_DATA(other.ndarray);
+        memcpy(data, other_data, size * sizeof(double));
     }
     return *this;
 }
@@ -299,7 +293,6 @@ NeuralNet_CNumpy::NeuralNet_CNumpy(
         const int num_features, const int hidden_layer_size, const int categories)
 {
     W1 = CNumpy::rand(hidden_layer_size, num_features) - 0.5f;
-    std::cout << W1 << std::endl;
     b1 = CNumpy::rand(hidden_layer_size, 1) - 0.5f;
     W2 = CNumpy::rand(categories, hidden_layer_size) - 0.5f;
     b2 = CNumpy::rand(categories, 1) - 0.5f;
