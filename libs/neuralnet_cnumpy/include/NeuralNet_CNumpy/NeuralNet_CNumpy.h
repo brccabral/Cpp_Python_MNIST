@@ -14,19 +14,22 @@ class CNdArray
 public:
 
     CNdArray() = default;
+    CNdArray(const CNdArray &other);
+    CNdArray(CNdArray &&other) noexcept;
     friend std::ostream &operator<<(std::ostream &os, const CNdArray &arr);
 
     double operator()(int y, int x) const;
     double &operator()(int y, int x);
     CNdArray &operator/=(double div);
     CNdArray operator-(double sub) const;
-    CNdArray operator*(const CNdArray &mul) const;
-    CNdArray operator+(const CNdArray &add) const;
+    CNdArray operator*(const CNdArray &other) const;
+    CNdArray operator+(const CNdArray &other) const;
     [[nodiscard]] CNdArray transpose() const;
 
     ~CNdArray();
 
     CNdArray &operator=(const CNdArray &other);
+    CNdArray &operator=(CNdArray &&other) noexcept;
 
     [[nodiscard]] npy_intp rows() const;
     [[nodiscard]] npy_intp cols() const;
@@ -40,7 +43,7 @@ private:
 
     PyArrayObject *ndarray{};
 
-    npy_intp const dims[2]{};
+    npy_intp dims[2]{};
     npy_intp size{};
 };
 

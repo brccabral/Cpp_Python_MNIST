@@ -202,6 +202,32 @@ CNdArray::CNdArray(const npy_intp rows, const npy_intp cols) : dims{rows, cols}
     size = rows * cols;
 }
 
+CNdArray::CNdArray(const CNdArray &other)
+{
+    std::memcpy(dims, other.dims, 2 * sizeof(npy_intp));
+    PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(dims[0]), PyLong_FromLong(dims[1]));
+    PyObject *args = PyTuple_Pack(1, shape);
+
+    ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_ndarray, args);
+
+    Py_DECREF(args);
+    Py_DECREF(shape);
+
+    size = other.size;
+
+    auto *data = (double *) PyArray_DATA(ndarray);
+    const auto *other_data = (double *) PyArray_DATA(other.ndarray);
+    std::memcpy(data, other_data, size * sizeof(double));
+}
+
+CNdArray::CNdArray(CNdArray &&other) noexcept
+{
+    std::memcpy(dims, other.dims, 2 * sizeof(npy_intp));
+    size = other.size;
+    ndarray = other.ndarray;
+    other.ndarray = nullptr;
+}
+
 CNdArray::~CNdArray()
 {
     Py_XDECREF(ndarray);
@@ -260,14 +286,14 @@ CNdArray CNdArray::operator-(const double sub) const
     return result;
 }
 
-CNdArray CNdArray::operator*(const CNdArray &mul) const
+CNdArray CNdArray::operator*(const CNdArray &other) const
 {
-    return CNumpy::dot(*this, mul);
+    return CNumpy::dot(*this, other);
 }
 
-CNdArray CNdArray::operator+(const CNdArray &add) const
+CNdArray CNdArray::operator+(const CNdArray &other) const
 {
-    return CNumpy::add(*this, add);
+    return CNumpy::add(*this, other);
 }
 
 CNdArray CNdArray::transpose() const
@@ -279,13 +305,13 @@ CNdArray CNdArray::transpose() const
 
 CNdArray &CNdArray::operator=(const CNdArray &other)
 {
-    if (this != &other && ndarray != other.ndarray)
+    if (this != &other)
     {
         if (ndarray)
         {
             Py_DECREF(ndarray);
         }
-        std::memcpy((void *) dims, other.dims, 2 * sizeof(npy_intp));
+        std::memcpy(dims, other.dims, 2 * sizeof(npy_intp));
 
         PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(dims[0]), PyLong_FromLong(dims[1]));
         PyObject *args = PyTuple_Pack(1, shape);
@@ -300,6 +326,18 @@ CNdArray &CNdArray::operator=(const CNdArray &other)
         auto *data = (double *) PyArray_DATA(ndarray);
         const auto *other_data = (double *) PyArray_DATA(other.ndarray);
         std::memcpy(data, other_data, size * sizeof(double));
+    }
+    return *this;
+}
+
+CNdArray &CNdArray::operator=(CNdArray &&other) noexcept
+{
+    if (this != &other)
+    {
+        std::memcpy(dims, other.dims, 2 * sizeof(npy_intp));
+        size = other.size;
+        ndarray = other.ndarray;
+        other.ndarray = nullptr;
     }
     return *this;
 }
