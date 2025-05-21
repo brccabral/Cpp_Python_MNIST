@@ -100,6 +100,14 @@ CNumpy::CNumpy()
         finalize();
         throw std::invalid_argument("Could not get numpy.dot.");
     }
+
+    cnumpy_maximum = PyObject_GetAttrString(cnumpy, "maximum");
+    if (!cnumpy_maximum || !PyCallable_Check(cnumpy_maximum))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.maximum.");
+    }
 }
 
 CNumpy::~CNumpy()
@@ -117,10 +125,10 @@ void CNumpy::finalize() const
     Py_XDECREF(cnumpy_zeros);
     Py_XDECREF(cnumpy_add);
     Py_XDECREF(cnumpy_dot);
+    Py_XDECREF(cnumpy_maximum);
     Py_DECREF(cnumpy);
     Py_Finalize();
 }
-
 
 CNdArray CNumpy::ndarray(const npy_intp rows, const npy_intp cols)
 {
@@ -142,10 +150,6 @@ CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
     PyObject *args = PyTuple_Pack(1, shape);
 
     result.ndarray = (PyArrayObject *) PyObject_Call(np.rng_random, args, NULL);
-    if (!result.ndarray)
-    {
-        PyErr_Print();
-    }
 
     Py_DECREF(args);
     Py_DECREF(shape);
@@ -181,6 +185,17 @@ CNdArray CNumpy::dot(const CNdArray &a, const CNdArray &b)
 
     result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
             np.cnumpy_dot, a.ndarray, b.ndarray, NULL);
+    return result;
+}
+
+CNdArray CNumpy::maximum(const CNdArray &a, const double b)
+{
+    const auto bo = PyFloat_FromDouble(b);
+    auto result = CNdArray(a.rows(), a.cols());
+    result.ndarray =
+            (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_maximum, a.ndarray, bo, NULL);
+    // TODO : verify the returned dimensions
+    Py_DECREF(bo);
     return result;
 }
 

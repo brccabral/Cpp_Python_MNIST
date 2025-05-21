@@ -78,6 +78,8 @@ public:
     static CNdArray add(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_dot{};
     static CNdArray dot(const CNdArray &a, const CNdArray &b);
+    PyObject *cnumpy_maximum{};
+    static CNdArray maximum(const CNdArray &a, double b);
 
 private:
 
