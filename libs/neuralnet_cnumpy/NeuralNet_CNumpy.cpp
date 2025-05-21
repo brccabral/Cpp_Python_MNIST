@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <climits>
 #include <cfloat>
+#include <cstring>
 
 const auto &np = CNumpy::instance();
 
@@ -176,7 +177,7 @@ CNdArray CNumpy::add(const CNdArray &a, const CNdArray &b)
 
 CNdArray CNumpy::dot(const CNdArray &a, const CNdArray &b)
 {
-    auto result = CNdArray(a.rows(), a.cols());
+    auto result = CNdArray(a.rows(), b.cols());
 
     result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
             np.cnumpy_dot, a.ndarray, b.ndarray, NULL);
@@ -278,13 +279,13 @@ CNdArray CNdArray::transpose() const
 
 CNdArray &CNdArray::operator=(const CNdArray &other)
 {
-    if (this != &other)
+    if (this != &other && ndarray != other.ndarray)
     {
         if (ndarray)
         {
             Py_DECREF(ndarray);
         }
-        memcpy((void *) dims, other.dims, 2 * sizeof(npy_intp));
+        std::memcpy((void *) dims, other.dims, 2 * sizeof(npy_intp));
 
         PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(dims[0]), PyLong_FromLong(dims[1]));
         PyObject *args = PyTuple_Pack(1, shape);
@@ -294,11 +295,11 @@ CNdArray &CNdArray::operator=(const CNdArray &other)
         Py_DECREF(args);
         Py_DECREF(shape);
 
-        size = PyArray_SIZE(ndarray);
+        size = other.size;
 
         auto *data = (double *) PyArray_DATA(ndarray);
         const auto *other_data = (double *) PyArray_DATA(other.ndarray);
-        memcpy(data, other_data, size * sizeof(double));
+        std::memcpy(data, other_data, size * sizeof(double));
     }
     return *this;
 }
