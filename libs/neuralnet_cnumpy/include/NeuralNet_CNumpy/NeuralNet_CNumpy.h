@@ -109,6 +109,7 @@ public:
     CNdArray forward_prop(const CNdArray &X);
     static CNdArray ReLU(const CNdArray &Z);
     static CNdArray softmax(const CNdArray &Z);
+    static CNdArray get_predictions(const CNdArray &A2);
 
     // layers
     CNdArray W1{}, b1{}, W2{}, b2{};

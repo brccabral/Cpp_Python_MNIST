@@ -475,3 +475,8 @@ CNdArray NeuralNet_CNumpy::softmax(const CNdArray &Z)
     const auto s = CNumpy::sum(e, 0);
     return e / s;
 }
+
+CNdArray NeuralNet_CNumpy::get_predictions(const CNdArray &A2)
+{
+    return CNumpy::argmax(A2, 0);
+}

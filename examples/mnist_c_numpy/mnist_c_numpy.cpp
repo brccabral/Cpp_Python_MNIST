@@ -122,7 +122,7 @@ int main()
 
     CNdArray output;
 
-    int correct_prediction = 0;
+    double correct_prediction = 0;
     float acc = 0.0f;
 
     CNdArray prediction;
@@ -130,6 +130,11 @@ int main()
     for (int generation = 0; generation < num_generations; generation++)
     {
         output = neural_net.forward_prop(X_train_T);
+
+        if (generation % 50 == 0)
+        {
+            prediction = NeuralNet_CNumpy::get_predictions(output);
+        }
     }
 
 
