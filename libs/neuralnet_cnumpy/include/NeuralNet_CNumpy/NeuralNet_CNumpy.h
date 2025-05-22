@@ -82,6 +82,8 @@ public:
     static CNdArray maximum(const CNdArray &a, double b);
     PyObject *cnumpy_exp{};
     static CNdArray exp(const CNdArray &a);
+    PyObject *cnumpy_sum{};
+    static CNdArray sum(const CNdArray &a, long axis);
 
 private:
 

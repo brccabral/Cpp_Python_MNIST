@@ -116,6 +116,14 @@ CNumpy::CNumpy()
         finalize();
         throw std::invalid_argument("Could not get numpy.exp.");
     }
+
+    cnumpy_sum = PyObject_GetAttrString(cnumpy, "sum");
+    if (!cnumpy_sum || !PyCallable_Check(cnumpy_sum))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.sum.");
+    }
 }
 
 CNumpy::~CNumpy()
@@ -208,6 +216,16 @@ CNdArray CNumpy::exp(const CNdArray &a)
 {
     auto result = CNdArray(a.rows(), a.cols());
     result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_exp, a.ndarray, NULL);
+    return result;
+}
+
+CNdArray CNumpy::sum(const CNdArray &a, const long axis)
+{
+    auto result = CNdArray(a.rows(), a.cols());
+    const auto ax = PyLong_FromLong(axis);
+    result.ndarray =
+            (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_sum, a.ndarray, ax, NULL);
+    Py_DECREF(ax);
     return result;
 }
 
