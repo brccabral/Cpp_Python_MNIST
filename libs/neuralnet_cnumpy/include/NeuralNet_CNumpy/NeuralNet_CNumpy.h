@@ -85,6 +85,7 @@ public:
     PyObject *cnumpy_exp{};
     static CNdArray exp(const CNdArray &a);
     PyObject *cnumpy_sum{};
+    static double sum(const CNdArray &a);
     static CNdArray sum(const CNdArray &a, long axis);
     PyObject *cnumpy_divide{};
     static CNdArray divide(const CNdArray &a, const CNdArray &b);

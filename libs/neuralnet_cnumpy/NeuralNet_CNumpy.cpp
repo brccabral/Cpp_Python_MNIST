@@ -248,6 +248,13 @@ CNdArray CNumpy::exp(const CNdArray &a)
     return result;
 }
 
+double CNumpy::sum(const CNdArray &a)
+{
+    const auto s = PyObject_CallFunctionObjArgs(np.cnumpy_sum, a.ndarray, NULL);
+    const double value = PyFloat_AsDouble(s);
+    return value;
+}
+
 CNdArray CNumpy::sum(const CNdArray &a, const long axis)
 {
     auto result = CNdArray(a.rows(), a.cols());
