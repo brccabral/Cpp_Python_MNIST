@@ -427,10 +427,21 @@ CNdArray NeuralNet_CNumpy::forward_prop(const CNdArray &X)
     Z1 = Z1 + b1;
     A1 = ReLU(Z1);
 
-    return A1;
+    Z2 = W2 * A1;
+    Z2 = Z2 + b2;
+    A2 = softmax(Z2);
+
+    return A2;
 }
 
 CNdArray NeuralNet_CNumpy::ReLU(const CNdArray &Z)
 {
     return CNumpy::maximum(Z, 0.0);
+}
+
+CNdArray NeuralNet_CNumpy::softmax(const CNdArray &Z)
+{
+    const auto e = CNumpy::exp(Z);
+    const auto s = CNumpy::sum(e, 0);
+    return e / s;
 }

@@ -106,6 +106,7 @@ public:
     static CNdArray one_hot_encode(const CNdArray &Z);
     CNdArray forward_prop(const CNdArray &X);
     static CNdArray ReLU(const CNdArray &Z);
+    static CNdArray softmax(const CNdArray &Z);
 
     // layers
     CNdArray W1{}, b1{}, W2{}, b2{};
