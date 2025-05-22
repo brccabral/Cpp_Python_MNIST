@@ -124,6 +124,14 @@ CNumpy::CNumpy()
         finalize();
         throw std::invalid_argument("Could not get numpy.sum.");
     }
+
+    cnumpy_divide = PyObject_GetAttrString(cnumpy, "divide");
+    if (!cnumpy_divide || !PyCallable_Check(cnumpy_divide))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.divide.");
+    }
 }
 
 CNumpy::~CNumpy()
@@ -142,6 +150,9 @@ void CNumpy::finalize() const
     Py_XDECREF(cnumpy_add);
     Py_XDECREF(cnumpy_dot);
     Py_XDECREF(cnumpy_maximum);
+    Py_XDECREF(cnumpy_exp);
+    Py_XDECREF(cnumpy_sum);
+    Py_XDECREF(cnumpy_divide);
     Py_DECREF(cnumpy);
     Py_Finalize();
 }
@@ -233,7 +244,7 @@ CNdArray CNumpy::divide(const CNdArray &a, const CNdArray &b)
 {
     auto result = CNdArray(a.rows(), a.cols());
     result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
-            np.cnumpy_sum, a.ndarray, b.ndarray, NULL);
+            np.cnumpy_divide, a.ndarray, b.ndarray, NULL);
     // TODO : verify the returned dimensions
     return result;
 }
