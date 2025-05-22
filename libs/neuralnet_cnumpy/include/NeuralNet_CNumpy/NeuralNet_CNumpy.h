@@ -87,6 +87,8 @@ public:
     static CNdArray sum(const CNdArray &a, long axis);
     PyObject *cnumpy_divide{};
     static CNdArray divide(const CNdArray &a, const CNdArray &b);
+    PyObject *cnumpy_argmax{};
+    static CNdArray argmax(const CNdArray &a, long axis);
 
 private:
 

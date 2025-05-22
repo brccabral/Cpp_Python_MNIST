@@ -132,6 +132,14 @@ CNumpy::CNumpy()
         finalize();
         throw std::invalid_argument("Could not get numpy.divide.");
     }
+
+    cnumpy_argmax = PyObject_GetAttrString(cnumpy, "argmax");
+    if (!cnumpy_argmax || !PyCallable_Check(cnumpy_argmax))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.argmax.");
+    }
 }
 
 CNumpy::~CNumpy()
@@ -153,6 +161,7 @@ void CNumpy::finalize() const
     Py_XDECREF(cnumpy_exp);
     Py_XDECREF(cnumpy_sum);
     Py_XDECREF(cnumpy_divide);
+    Py_XDECREF(cnumpy_argmax);
     Py_DECREF(cnumpy);
     Py_Finalize();
 }
@@ -246,6 +255,16 @@ CNdArray CNumpy::divide(const CNdArray &a, const CNdArray &b)
     result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
             np.cnumpy_divide, a.ndarray, b.ndarray, NULL);
     // TODO : verify the returned dimensions
+    return result;
+}
+
+CNdArray CNumpy::argmax(const CNdArray &a, const long axis)
+{
+    auto result = CNdArray(a.rows(), a.cols());
+    const auto ax = PyLong_FromLong(axis);
+    result.ndarray =
+            (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_argmax, a.ndarray, ax, NULL);
+    Py_DECREF(ax);
     return result;
 }
 
