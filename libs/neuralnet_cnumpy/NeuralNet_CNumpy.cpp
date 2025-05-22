@@ -510,3 +510,8 @@ CNdArray NeuralNet_CNumpy::get_predictions(const CNdArray &A2)
 {
     return CNumpy::argmax(A2, 0);
 }
+
+double NeuralNet_CNumpy::get_correct_prediction(const CNdArray &predictions, const CNdArray &Y)
+{
+    return CNumpy::sum(predictions == Y);
+}

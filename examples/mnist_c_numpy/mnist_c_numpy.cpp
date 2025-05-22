@@ -134,6 +134,9 @@ int main()
         if (generation % 50 == 0)
         {
             prediction = NeuralNet_CNumpy::get_predictions(output);
+            correct_prediction = NeuralNet_CNumpy::get_correct_prediction(prediction, Y_train);
+            printf("Generation %d\t Correct %.0f\tAccuracy %.4f\n", generation, correct_prediction,
+                   acc);
         }
     }
 

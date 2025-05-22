@@ -114,6 +114,7 @@ public:
     static CNdArray ReLU(const CNdArray &Z);
     static CNdArray softmax(const CNdArray &Z);
     static CNdArray get_predictions(const CNdArray &A2);
+    static double get_correct_prediction(const CNdArray &predictions, const CNdArray &Y);
 
     // layers
     CNdArray W1{}, b1{}, W2{}, b2{};
