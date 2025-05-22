@@ -229,6 +229,15 @@ CNdArray CNumpy::sum(const CNdArray &a, const long axis)
     return result;
 }
 
+CNdArray CNumpy::divide(const CNdArray &a, const CNdArray &b)
+{
+    auto result = CNdArray(a.rows(), a.cols());
+    result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+            np.cnumpy_sum, a.ndarray, b.ndarray, NULL);
+    // TODO : verify the returned dimensions
+    return result;
+}
+
 double CNumpy::max(const CNdArray &ndarray)
 {
     const auto *data = (double *) PyArray_DATA(ndarray.ndarray);
@@ -339,6 +348,11 @@ CNdArray CNdArray::operator*(const CNdArray &other) const
 CNdArray CNdArray::operator+(const CNdArray &other) const
 {
     return CNumpy::add(*this, other);
+}
+
+CNdArray CNdArray::operator/(const CNdArray &other) const
+{
+    return CNumpy::divide(*this, other);
 }
 
 CNdArray CNdArray::transpose() const

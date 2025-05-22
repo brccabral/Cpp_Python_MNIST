@@ -24,6 +24,7 @@ public:
     CNdArray operator-(double sub) const;
     CNdArray operator*(const CNdArray &other) const;
     CNdArray operator+(const CNdArray &other) const;
+    CNdArray operator/(const CNdArray &other) const;
     [[nodiscard]] CNdArray transpose() const;
 
     ~CNdArray();
@@ -84,6 +85,8 @@ public:
     static CNdArray exp(const CNdArray &a);
     PyObject *cnumpy_sum{};
     static CNdArray sum(const CNdArray &a, long axis);
+    PyObject *cnumpy_divide{};
+    static CNdArray divide(const CNdArray &a, const CNdArray &b);
 
 private:
 
