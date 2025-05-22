@@ -140,6 +140,14 @@ CNumpy::CNumpy()
         finalize();
         throw std::invalid_argument("Could not get numpy.argmax.");
     }
+
+    cnumpy_equal = PyObject_GetAttrString(cnumpy, "equal");
+    if (!cnumpy_equal || !PyCallable_Check(cnumpy_equal))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.equal.");
+    }
 }
 
 CNumpy::~CNumpy()
@@ -162,6 +170,7 @@ void CNumpy::finalize() const
     Py_XDECREF(cnumpy_sum);
     Py_XDECREF(cnumpy_divide);
     Py_XDECREF(cnumpy_argmax);
+    Py_XDECREF(cnumpy_equal);
     Py_DECREF(cnumpy);
     Py_Finalize();
 }
@@ -265,6 +274,15 @@ CNdArray CNumpy::argmax(const CNdArray &a, const long axis)
     result.ndarray =
             (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_argmax, a.ndarray, ax, NULL);
     Py_DECREF(ax);
+    return result;
+}
+
+CNdArray CNumpy::equal(const CNdArray &a, const CNdArray &b)
+{
+    auto result = CNdArray(a.rows(), a.cols());
+    result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+            np.cnumpy_equal, a.ndarray, b.ndarray, NULL);
+    // TODO : verify the returned dimensions
     return result;
 }
 
@@ -383,6 +401,11 @@ CNdArray CNdArray::operator+(const CNdArray &other) const
 CNdArray CNdArray::operator/(const CNdArray &other) const
 {
     return CNumpy::divide(*this, other);
+}
+
+CNdArray CNdArray::operator==(const CNdArray &other) const
+{
+    return CNumpy::equal(*this, other);
 }
 
 CNdArray CNdArray::transpose() const

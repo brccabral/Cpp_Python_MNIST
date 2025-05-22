@@ -25,6 +25,7 @@ public:
     CNdArray operator*(const CNdArray &other) const;
     CNdArray operator+(const CNdArray &other) const;
     CNdArray operator/(const CNdArray &other) const;
+    CNdArray operator==(const CNdArray &other) const;
     [[nodiscard]] CNdArray transpose() const;
 
     ~CNdArray();
@@ -89,6 +90,8 @@ public:
     static CNdArray divide(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_argmax{};
     static CNdArray argmax(const CNdArray &a, long axis);
+    PyObject *cnumpy_equal{};
+    static CNdArray equal(const CNdArray &a, const CNdArray &b);
 
 private:
 
