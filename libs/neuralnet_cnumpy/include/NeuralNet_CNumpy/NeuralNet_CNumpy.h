@@ -77,6 +77,7 @@ public:
     PyObject *cnumpy_zeros{};
     static CNdArray zeros(npy_intp rows, npy_intp cols);
 
+    PyObject *cnumpy_max{};
     [[nodiscard]] static double max(const CNdArray &ndarray);
     PyObject *cnumpy_add{};
     static CNdArray add(const CNdArray &a, const CNdArray &b);

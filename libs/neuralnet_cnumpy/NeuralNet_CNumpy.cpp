@@ -93,6 +93,14 @@ CNumpy::CNumpy()
         throw std::invalid_argument("Could not get numpy.add.");
     }
 
+    cnumpy_max = PyObject_GetAttrString(cnumpy, "max");
+    if (!cnumpy_max || !PyCallable_Check(cnumpy_max))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.max.");
+    }
+
     cnumpy_subtract = PyObject_GetAttrString(cnumpy, "subtract");
     if (!cnumpy_subtract || !PyCallable_Check(cnumpy_subtract))
     {
@@ -172,6 +180,7 @@ void CNumpy::finalize() const
     Py_XDECREF(cnumpy_ndarray);
     Py_XDECREF(cnumpy_zeros);
     Py_XDECREF(cnumpy_add);
+    Py_XDECREF(cnumpy_max);
     Py_XDECREF(cnumpy_subtract);
     Py_XDECREF(cnumpy_dot);
     Py_XDECREF(cnumpy_maximum);
@@ -350,9 +359,10 @@ double CNumpy::sum(const CNdArray &a)
     if (!s)
     {
         PyErr_Print();
-        throw std::runtime_error("ERROR cnumpy_sum.");
+        throw std::runtime_error("ERROR CNumpy::sum(a)->double.");
     }
     const double value = PyFloat_AsDouble(s);
+    Py_DECREF(s);
     return value;
 }
 
@@ -365,7 +375,7 @@ CNdArray CNumpy::sum(const CNdArray &a, const long axis)
     if (!ndarray)
     {
         PyErr_Print();
-        throw std::runtime_error("ERROR CNumpy::sum.");
+        throw std::runtime_error("ERROR CNumpy::sum(a,axis).");
     }
 
     Py_DECREF(ax);
@@ -438,17 +448,17 @@ CNdArray CNumpy::equal(const CNdArray &a, const CNdArray &b)
     return result;
 }
 
-double CNumpy::max(const CNdArray &ndarray)
+double CNumpy::max(const CNdArray &a)
 {
-    const auto *data = (double *) PyArray_DATA(ndarray.ndarray);
-
-    double max_val = -DBL_MAX;
-    for (npy_intp i = 0; i < ndarray.size; ++i)
+    auto *m = PyObject_CallFunctionObjArgs(np.cnumpy_max, a.ndarray, NULL);
+    if (!m)
     {
-        if (data[i] > max_val)
-            max_val = data[i];
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::max.");
     }
-    return max_val;
+    const double value = PyFloat_AsDouble(m);
+    Py_DECREF(m);
+    return value;
 }
 
 CNdArray::CNdArray(PyArrayObject *arr)
@@ -705,7 +715,7 @@ void NeuralNet_CNumpy::back_prop(const CNdArray &X, const CNdArray &target, cons
     const auto ndim = PyArray_NDIM(db2.ndarray);
     const auto size = PyArray_SIZE(db2.ndarray);
 
-    printf("dims %ld,%ld ndim %d size %ld", dims[0], dims[1], ndim, size);
+    printf("dims %ld,%ld ndim %d size %ld\n", dims[0], dims[1], ndim, size);
 }
 
 CNdArray NeuralNet_CNumpy::ReLU(const CNdArray &Z)
