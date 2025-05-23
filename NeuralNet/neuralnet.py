@@ -8,6 +8,11 @@ class NeuralNet:
         self.W2 = np.random.rand(categories, hidden_layer_size) - 0.5
         self.b2 = np.random.rand(categories, 1) - 0.5
 
+        self.Z1 = np.random.rand(hidden_layer_size, 1)
+        self.A1 = np.random.rand(hidden_layer_size, 1)
+        self.Z2 = np.random.rand(categories, 1)
+        self.A2 = np.random.rand(categories, 1)
+
     @staticmethod
     def ReLU(Z: np.ndarray) -> np.ndarray:
         return np.maximum(Z, 0)
@@ -19,12 +24,12 @@ class NeuralNet:
         return e / s
 
     def forward_prop(self, X: np.ndarray) -> np.ndarray:
-        self.Z1: np.ndarray = self.W1.dot(X) + self.b1
+        self.Z1 = self.W1.dot(X) + self.b1
         # W1 10,784 ||| X 784,60000 ||| W.X 10,60000
 
-        self.A1: np.ndarray = NeuralNet.ReLU(self.Z1)
-        self.Z2: np.ndarray = self.W2.dot(self.A1) + self.b2
-        self.A2: np.ndarray = NeuralNet.softmax(self.Z2)
+        self.A1 = NeuralNet.ReLU(self.Z1)
+        self.Z2 = self.W2.dot(self.A1) + self.b2
+        self.A2 = NeuralNet.softmax(self.Z2)
         return self.A2
 
     @staticmethod

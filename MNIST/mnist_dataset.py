@@ -57,13 +57,17 @@ class MNIST_Dataset:
         image_file.close()
         label_file.close()
 
-    def to_numpy(self) -> np.ndarray:
+    def to_numpy(self) -> np.ndarray[tuple[float, ...], np.dtype[np.float32]]:
         return np.asarray([img.get_pixels_as_float_list() for img in self._images])
 
     @staticmethod
-    def get_X(mat: np.ndarray) -> np.ndarray:
+    def get_X(
+        mat: np.ndarray[tuple[float, ...], np.dtype[np.float32]],
+    ) -> np.ndarray[tuple[float, ...], np.dtype[np.float32]]:
         return mat[:, 1:]
 
     @staticmethod
-    def get_Y(mat: np.ndarray) -> np.ndarray:
+    def get_Y(
+        mat: np.ndarray[tuple[float, ...], np.dtype[np.float32]],
+    ) -> np.ndarray[tuple[float, ...], np.dtype[np.float32]]:
         return mat[:, 0]

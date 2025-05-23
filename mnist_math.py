@@ -73,9 +73,7 @@ def main():
             predictions = NeuralNet.get_predictions(output)
             correct_prediction = NeuralNet.get_correct_prediction(predictions, Y_train)
             acc = NeuralNet.get_accuracy(correct_prediction, Y_train.size)
-            print(
-                f"Generation: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}"
-            )
+            print(f"Generation: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}")
 
         neural_net.back_prop(X_train_T, Y_train, one_hot_Y, alpha)
 
@@ -84,9 +82,7 @@ def main():
     correct_prediction = NeuralNet.get_correct_prediction(predictions, Y_train)
     acc = NeuralNet.get_accuracy(correct_prediction, Y_train.size)
 
-    print(
-        f"Final\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}"
-    )
+    print(f"Final\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}")
 
     save_dir = base_dir + "/test"
     img_filename = ini["MNIST"].get("TEST_IMAGE_FILE", "t10k-images-idx3-ubyte")
