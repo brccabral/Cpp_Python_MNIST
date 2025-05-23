@@ -38,6 +38,8 @@ public:
     [[nodiscard]] npy_intp rows() const;
     [[nodiscard]] npy_intp cols() const;
 
+    CNdArray reshape(npy_intp d1, npy_intp d2) const;
+
 private:
 
     friend class CNumpy;
@@ -78,7 +80,7 @@ public:
     static CNdArray zeros(npy_intp rows, npy_intp cols);
 
     PyObject *cnumpy_max{};
-    [[nodiscard]] static double max(const CNdArray &ndarray);
+    [[nodiscard]] static double max(const CNdArray &a);
     PyObject *cnumpy_add{};
     static CNdArray add(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_subtract{};
@@ -100,6 +102,9 @@ public:
     static CNdArray argmax(const CNdArray &a, long axis);
     PyObject *cnumpy_equal{};
     static CNdArray equal(const CNdArray &a, const CNdArray &b);
+
+    PyObject *cnumpy_reshape{};
+    static CNdArray reshape(const CNdArray &a, npy_intp d1, npy_intp d2);
 
 private:
 

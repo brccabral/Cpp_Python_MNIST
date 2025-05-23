@@ -1,7 +1,6 @@
 #include <NeuralNet_CNumpy/NeuralNet_CNumpy.h>
 #include <stdexcept>
 #include <climits>
-#include <cfloat>
 #include <cstring>
 
 const auto &np = CNumpy::instance();
@@ -163,6 +162,14 @@ CNumpy::CNumpy()
         PyErr_Print();
         finalize();
         throw std::invalid_argument("Could not get numpy.equal.");
+    }
+
+    cnumpy_reshape = PyObject_GetAttrString(cnumpy, "reshape");
+    if (!cnumpy_reshape || !PyCallable_Check(cnumpy_reshape))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.reshape.");
     }
 }
 
@@ -461,6 +468,24 @@ double CNumpy::max(const CNdArray &a)
     return value;
 }
 
+CNdArray CNumpy::reshape(const CNdArray &a, const npy_intp d1, const npy_intp d2)
+{
+    PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(d1), PyLong_FromLong(d2));
+
+    const auto ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+            np.cnumpy_reshape, a.ndarray, shape, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::reshape.");
+    }
+
+    Py_DECREF(shape);
+
+    CNdArray result{ndarray};
+    return result;
+}
+
 CNdArray::CNdArray(PyArrayObject *arr)
 {
     if (arr && PyArray_Check(arr))
@@ -669,6 +694,12 @@ CNdArray &CNdArray::operator=(CNdArray &&other) noexcept
     return *this;
 }
 
+CNdArray CNdArray::reshape(const npy_intp d1, const npy_intp d2) const
+{
+    return CNumpy::reshape(*this, d1, d2);
+}
+
+
 NeuralNet_CNumpy::NeuralNet_CNumpy(
         const int num_features, const int hidden_layer_size, const int categories)
 {
@@ -708,14 +739,7 @@ void NeuralNet_CNumpy::back_prop(const CNdArray &X, const CNdArray &target, cons
 
     const auto dZ2 = (A2 - target) / y_size;
     const auto dW2 = dZ2 * A1.transpose();
-    const auto db2 = CNumpy::sum(dZ2, 1);
-
-    // TODO : reshape db2
-    const auto dims = PyArray_DIMS(db2.ndarray);
-    const auto ndim = PyArray_NDIM(db2.ndarray);
-    const auto size = PyArray_SIZE(db2.ndarray);
-
-    printf("dims %ld,%ld ndim %d size %ld\n", dims[0], dims[1], ndim, size);
+    const auto db2 = CNumpy::sum(dZ2, 1).reshape(b2.rows(), b2.cols());
 }
 
 CNdArray NeuralNet_CNumpy::ReLU(const CNdArray &Z)
