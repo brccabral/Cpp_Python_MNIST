@@ -21,6 +21,7 @@ public:
     double operator()(int y, int x) const;
     double &operator()(int y, int x);
     CNdArray &operator/=(double div);
+    CNdArray operator/(long div) const;
     CNdArray operator-(double sub) const;
     CNdArray operator*(const CNdArray &other) const;
     CNdArray operator+(const CNdArray &other) const;
@@ -91,6 +92,7 @@ public:
     static CNdArray sum(const CNdArray &a, long axis);
     PyObject *cnumpy_divide{};
     static CNdArray divide(const CNdArray &a, const CNdArray &b);
+    static CNdArray divide(const CNdArray &a, long div);
     PyObject *cnumpy_argmax{};
     static CNdArray argmax(const CNdArray &a, long axis);
     PyObject *cnumpy_equal{};

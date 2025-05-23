@@ -367,8 +367,26 @@ CNdArray CNumpy::divide(const CNdArray &a, const CNdArray &b)
     if (!ndarray)
     {
         PyErr_Print();
-        throw std::runtime_error("ERROR CNumpy::divide.");
+        throw std::runtime_error("ERROR CNumpy::divide(a,b).");
     }
+
+    CNdArray result{ndarray};
+    return result;
+}
+
+CNdArray CNumpy::divide(const CNdArray &a, const long div)
+{
+    const auto *d = PyLong_FromLong(div);
+
+    const auto ndarray =
+            (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_divide, a.ndarray, d, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::divide(a,div).");
+    }
+
+    Py_DECREF(d);
 
     CNdArray result{ndarray};
     return result;
@@ -521,6 +539,15 @@ CNdArray &CNdArray::operator/=(const double div)
         data[i] /= div;
     }
     return *this;
+}
+
+CNdArray CNdArray::operator/(const long div) const
+{
+    if (div == 0)
+    {
+        throw std::invalid_argument("Division by zero.");
+    }
+    return CNumpy::divide(*this, div);
 }
 
 CNdArray CNdArray::operator-(const double sub) const
