@@ -196,6 +196,8 @@ void CNumpy::finalize() const
     Py_XDECREF(cnumpy_divide);
     Py_XDECREF(cnumpy_argmax);
     Py_XDECREF(cnumpy_equal);
+    Py_XDECREF(cnumpy_gt);
+    Py_XDECREF(cnumpy_reshape);
     Py_DECREF(cnumpy);
     Py_Finalize();
 }
@@ -468,6 +470,20 @@ double CNumpy::max(const CNdArray &a)
     return value;
 }
 
+CNdArray CNumpy::gt(const CNdArray &a, const CNdArray &b)
+{
+    const auto ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+            np.cnumpy_gt, a.ndarray, b.ndarray, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::gt.");
+    }
+
+    CNdArray result{ndarray};
+    return result;
+}
+
 CNdArray CNumpy::reshape(const CNdArray &a, const npy_intp d1, const npy_intp d2)
 {
     PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(d1), PyLong_FromLong(d2));
@@ -642,6 +658,11 @@ CNdArray CNdArray::operator/(const CNdArray &other) const
 CNdArray CNdArray::operator==(const CNdArray &other) const
 {
     return CNumpy::equal(*this, other);
+}
+
+CNdArray CNdArray::operator>(const CNdArray &other) const
+{
+    return CNumpy::gt(*this, other);
 }
 
 CNdArray CNdArray::transpose() const
