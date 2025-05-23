@@ -29,6 +29,7 @@ public:
     CNdArray operator/(const CNdArray &other) const;
     CNdArray operator==(const CNdArray &other) const;
     CNdArray operator>(const CNdArray &other) const;
+    CNdArray operator>(double value) const;
     [[nodiscard]] CNdArray dot(const CNdArray &other) const;
     [[nodiscard]] CNdArray transpose() const;
     [[nodiscard]] CNdArray reshape(npy_intp d1, npy_intp d2) const;
@@ -104,8 +105,9 @@ public:
     static CNdArray argmax(const CNdArray &a, long axis);
     PyObject *cnumpy_equal{};
     static CNdArray equal(const CNdArray &a, const CNdArray &b);
-    PyObject *cnumpy_gt{};
-    static CNdArray gt(const CNdArray &a, const CNdArray &b);
+    PyObject *cnumpy_greater{};
+    static CNdArray greater(const CNdArray &a, const CNdArray &b);
+    static CNdArray greater(const CNdArray &a, double value);
     PyObject *cnumpy_multiply{};
     static CNdArray multiply(const CNdArray &a, const CNdArray &b);
 

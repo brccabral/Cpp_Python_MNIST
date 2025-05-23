@@ -164,6 +164,14 @@ CNumpy::CNumpy()
         throw std::invalid_argument("Could not get numpy.equal.");
     }
 
+    cnumpy_greater = PyObject_GetAttrString(cnumpy, "greater");
+    if (!cnumpy_greater || !PyCallable_Check(cnumpy_greater))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.greater.");
+    }
+
     cnumpy_multiply = PyObject_GetAttrString(cnumpy, "multiply");
     if (!cnumpy_multiply || !PyCallable_Check(cnumpy_multiply))
     {
@@ -204,7 +212,7 @@ void CNumpy::finalize() const
     Py_XDECREF(cnumpy_divide);
     Py_XDECREF(cnumpy_argmax);
     Py_XDECREF(cnumpy_equal);
-    Py_XDECREF(cnumpy_gt);
+    Py_XDECREF(cnumpy_greater);
     Py_XDECREF(cnumpy_reshape);
     Py_DECREF(cnumpy);
     Py_Finalize();
@@ -478,15 +486,33 @@ double CNumpy::max(const CNdArray &a)
     return value;
 }
 
-CNdArray CNumpy::gt(const CNdArray &a, const CNdArray &b)
+CNdArray CNumpy::greater(const CNdArray &a, const CNdArray &b)
 {
     const auto ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
-            np.cnumpy_gt, a.ndarray, b.ndarray, NULL);
+            np.cnumpy_greater, a.ndarray, b.ndarray, NULL);
     if (!ndarray)
     {
         PyErr_Print();
-        throw std::runtime_error("ERROR CNumpy::gt.");
+        throw std::runtime_error("ERROR CNumpy::greater(a,b).");
     }
+
+    CNdArray result{ndarray};
+    return result;
+}
+
+CNdArray CNumpy::greater(const CNdArray &a, const double value)
+{
+    const auto *v = PyFloat_FromDouble(value);
+
+    const auto ndarray =
+            (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_greater, a.ndarray, v, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::greater(a,value).");
+    }
+
+    Py_DECREF(v);
 
     CNdArray result{ndarray};
     return result;
@@ -684,7 +710,12 @@ CNdArray CNdArray::operator==(const CNdArray &other) const
 
 CNdArray CNdArray::operator>(const CNdArray &other) const
 {
-    return CNumpy::gt(*this, other);
+    return CNumpy::greater(*this, other);
+}
+
+CNdArray CNdArray::operator>(const double value) const
+{
+    return CNumpy::greater(*this, value);
 }
 
 CNdArray CNdArray::transpose() const
