@@ -187,6 +187,14 @@ CNumpy::CNumpy()
         finalize();
         throw std::invalid_argument("Could not get numpy.reshape.");
     }
+
+    cnumpy_transpose = PyObject_GetAttrString(cnumpy, "transpose");
+    if (!cnumpy_transpose || !PyCallable_Check(cnumpy_transpose))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.transpose.");
+    }
 }
 
 CNumpy::~CNumpy()
@@ -214,6 +222,7 @@ void CNumpy::finalize() const
     Py_XDECREF(cnumpy_equal);
     Py_XDECREF(cnumpy_greater);
     Py_XDECREF(cnumpy_reshape);
+    Py_XDECREF(cnumpy_transpose);
     Py_DECREF(cnumpy);
     Py_Finalize();
 }
