@@ -25,6 +25,7 @@ public:
     CNdArray operator-(double sub) const;
     CNdArray operator-(const CNdArray &other) const;
     CNdArray operator*(const CNdArray &other) const;
+    CNdArray operator*(double value) const;
     CNdArray operator+(const CNdArray &other) const;
     CNdArray operator/(const CNdArray &other) const;
     CNdArray operator==(const CNdArray &other) const;
@@ -110,6 +111,7 @@ public:
     static CNdArray greater(const CNdArray &a, double value);
     PyObject *cnumpy_multiply{};
     static CNdArray multiply(const CNdArray &a, const CNdArray &b);
+    static CNdArray multiply(const CNdArray &a, double value);
 
     PyObject *cnumpy_reshape{};
     static CNdArray reshape(const CNdArray &a, npy_intp d1, npy_intp d2);

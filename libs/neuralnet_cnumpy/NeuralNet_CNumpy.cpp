@@ -541,6 +541,24 @@ CNdArray CNumpy::multiply(const CNdArray &a, const CNdArray &b)
     return result;
 }
 
+CNdArray CNumpy::multiply(const CNdArray &a, const double value)
+{
+    const auto *v = PyFloat_FromDouble(value);
+
+    const auto ndarray =
+            (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_multiply, a.ndarray, v, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::multiply.");
+    }
+
+    Py_DECREF(v);
+
+    CNdArray result{ndarray};
+    return result;
+}
+
 CNdArray CNumpy::reshape(const CNdArray &a, const npy_intp d1, const npy_intp d2)
 {
     PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(d1), PyLong_FromLong(d2));
@@ -700,6 +718,11 @@ CNdArray CNdArray::operator-(const CNdArray &other) const
 CNdArray CNdArray::operator*(const CNdArray &other) const
 {
     return CNumpy::multiply(*this, other);
+}
+
+CNdArray CNdArray::operator*(const double value) const
+{
+    return CNumpy::multiply(*this, value);
 }
 
 CNdArray CNdArray::operator+(const CNdArray &other) const
