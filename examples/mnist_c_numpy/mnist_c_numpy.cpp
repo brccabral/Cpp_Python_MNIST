@@ -139,6 +139,8 @@ int main()
             printf("Generation %d\t Correct %.0f\tAccuracy %.4f\n", generation, correct_prediction,
                    acc);
         }
+
+        neural_net.back_prop(X_train, one_hot_Y, alpha);
     }
 
 

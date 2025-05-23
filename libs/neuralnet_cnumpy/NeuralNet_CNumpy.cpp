@@ -699,8 +699,14 @@ void NeuralNet_CNumpy::back_prop(const CNdArray &X, const CNdArray &target, cons
     const auto dZ2 = (A2 - target) / y_size;
     const auto dW2 = dZ2 * A1.transpose();
     const auto db2 = CNumpy::sum(dZ2, 1);
-}
 
+    // TODO : reshape db2
+    const auto dims = PyArray_DIMS(db2.ndarray);
+    const auto ndim = PyArray_NDIM(db2.ndarray);
+    const auto size = PyArray_SIZE(db2.ndarray);
+
+    printf("dims %ld,%ld ndim %d size %ld", dims[0], dims[1], ndim, size);
+}
 
 CNdArray NeuralNet_CNumpy::ReLU(const CNdArray &Z)
 {
