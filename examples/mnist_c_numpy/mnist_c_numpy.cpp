@@ -30,7 +30,7 @@ CNdArray to_matrix(const std::vector<MNIST_Image> &_images)
 CNdArray get_Y(const CNdArray &mat)
 {
     const npy_intp rows = mat.rows();
-    auto Y = CNumpy::ndarray(rows, 1);
+    auto Y = CNumpy::ndarray(rows, 0);
     for (npy_intp r = 0; r < rows; ++r)
     {
         Y(r, 0) = mat(r, 0);
@@ -120,12 +120,12 @@ int main()
     auto neural_net = NeuralNet_CNumpy(X_train.cols(), hidden_layer_size, categories);
     auto one_hot_Y = NeuralNet_CNumpy::one_hot_encode(Y_train);
 
-    CNdArray output;
+    CNdArray output{nullptr};
 
     double correct_prediction = 0;
-    float acc = 0.0f;
+    double acc = 0.0f;
 
-    CNdArray prediction;
+    CNdArray prediction{nullptr};
 
     for (int generation = 0; generation < num_generations; generation++)
     {
@@ -135,6 +135,7 @@ int main()
         {
             prediction = NeuralNet_CNumpy::get_predictions(output);
             correct_prediction = NeuralNet_CNumpy::get_correct_prediction(prediction, Y_train);
+            acc = NeuralNet_CNumpy::get_accuracy(correct_prediction, Y_train.rows());
             printf("Generation %d\t Correct %.0f\tAccuracy %.4f\n", generation, correct_prediction,
                    acc);
         }

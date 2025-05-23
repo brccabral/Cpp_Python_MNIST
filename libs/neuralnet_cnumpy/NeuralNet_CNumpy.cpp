@@ -93,6 +93,14 @@ CNumpy::CNumpy()
         throw std::invalid_argument("Could not get numpy.add.");
     }
 
+    cnumpy_subtract = PyObject_GetAttrString(cnumpy, "subtract");
+    if (!cnumpy_subtract || !PyCallable_Check(cnumpy_subtract))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.subtract.");
+    }
+
     cnumpy_dot = PyObject_GetAttrString(cnumpy, "dot");
     if (!cnumpy_dot || !PyCallable_Check(cnumpy_dot))
     {
@@ -175,121 +183,199 @@ void CNumpy::finalize() const
     Py_Finalize();
 }
 
-CNdArray CNumpy::ndarray(const npy_intp rows, const npy_intp cols)
+CNdArray CNumpy::create_ndarray(const npy_intp rows, const npy_intp cols, PyObject *callable)
 {
-    auto result = CNdArray(rows, cols);
-    PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(rows), PyLong_FromLong(cols));
+    PyObject *shape;
+    if (cols > 0)
+    {
+        shape = PyTuple_Pack(2, PyLong_FromLong(rows), PyLong_FromLong(cols));
+    }
+    else
+    {
+        shape = PyTuple_Pack(1, PyLong_FromLong(rows));
+    }
     PyObject *args = PyTuple_Pack(1, shape);
 
-    result.ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_ndarray, args);
+    const auto ndarray = (PyArrayObject *) PyObject_Call(callable, args, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR create_ndarray.");
+    }
 
     Py_DECREF(args);
     Py_DECREF(shape);
+
+    CNdArray result{ndarray};
     return result;
+}
+
+CNdArray CNumpy::ndarray(const npy_intp rows, const npy_intp cols)
+{
+    return create_ndarray(rows, cols, np.cnumpy_ndarray);
 }
 
 CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
 {
-    auto result = CNdArray(rows, cols);
-    PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(rows), PyLong_FromLong(cols));
-    PyObject *args = PyTuple_Pack(1, shape);
-
-    result.ndarray = (PyArrayObject *) PyObject_Call(np.rng_random, args, NULL);
-
-    Py_DECREF(args);
-    Py_DECREF(shape);
-    return result;
+    return create_ndarray(rows, cols, np.rng_random);
 }
 
 CNdArray CNumpy::zeros(const npy_intp rows, const npy_intp cols)
 {
-    auto result = CNdArray(rows, cols);
-    PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(rows), PyLong_FromLong(cols));
-    PyObject *args = PyTuple_Pack(1, shape);
-
-    result.ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_zeros, args);
-
-    Py_DECREF(args);
-    Py_DECREF(shape);
-    return result;
+    return create_ndarray(rows, cols, np.cnumpy_zeros);
 }
 
 CNdArray CNumpy::add(const CNdArray &a, const CNdArray &b)
 {
-    auto result = CNdArray(a.rows(), a.cols());
-    result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+    const auto ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
             np.cnumpy_add, a.ndarray, b.ndarray, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::add.");
+    }
+
+    CNdArray result{ndarray};
+    return result;
+}
+
+CNdArray CNumpy::subtract(const CNdArray &a, const double sub)
+{
+    const auto *bo = PyFloat_FromDouble(sub);
+
+    const auto ndarray =
+            (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_subtract, a.ndarray, bo, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::subtract.");
+    }
+
+    Py_DECREF(bo);
+
+    CNdArray result{ndarray};
     return result;
 }
 
 CNdArray CNumpy::dot(const CNdArray &a, const CNdArray &b)
 {
-    auto result = CNdArray(a.rows(), b.cols());
-    result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+    const auto ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
             np.cnumpy_dot, a.ndarray, b.ndarray, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::dot.");
+    }
+
+    CNdArray result{ndarray};
     return result;
 }
 
 CNdArray CNumpy::maximum(const CNdArray &a, const double b)
 {
-    const auto bo = PyFloat_FromDouble(b);
-    auto result = CNdArray(a.rows(), a.cols());
-    result.ndarray =
+    const auto *bo = PyFloat_FromDouble(b);
+
+    const auto ndarray =
             (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_maximum, a.ndarray, bo, NULL);
-    // TODO : verify the returned dimensions
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::maximum.");
+    }
+
     Py_DECREF(bo);
+
+    CNdArray result{ndarray};
     return result;
 }
 
 CNdArray CNumpy::exp(const CNdArray &a)
 {
-    auto result = CNdArray(a.rows(), a.cols());
-    result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_exp, a.ndarray, NULL);
+    const auto ndarray =
+            (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_exp, a.ndarray, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::exp.");
+    }
+
+    CNdArray result{ndarray};
     return result;
 }
 
 double CNumpy::sum(const CNdArray &a)
 {
-    const auto s = PyObject_CallFunctionObjArgs(np.cnumpy_sum, a.ndarray, NULL);
+    auto *s = PyObject_CallFunctionObjArgs(np.cnumpy_sum, a.ndarray, NULL);
+    if (!s)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR cnumpy_sum.");
+    }
     const double value = PyFloat_AsDouble(s);
     return value;
 }
 
 CNdArray CNumpy::sum(const CNdArray &a, const long axis)
 {
-    auto result = CNdArray(a.rows(), a.cols());
-    const auto ax = PyLong_FromLong(axis);
-    result.ndarray =
+    const auto *ax = PyLong_FromLong(axis);
+
+    const auto ndarray =
             (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_sum, a.ndarray, ax, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::sum.");
+    }
+
     Py_DECREF(ax);
+
+    CNdArray result{ndarray};
     return result;
 }
 
 CNdArray CNumpy::divide(const CNdArray &a, const CNdArray &b)
 {
-    auto result = CNdArray(a.rows(), a.cols());
-    result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+    const auto ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
             np.cnumpy_divide, a.ndarray, b.ndarray, NULL);
-    // TODO : verify the returned dimensions
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::divide.");
+    }
+
+    CNdArray result{ndarray};
     return result;
 }
 
 CNdArray CNumpy::argmax(const CNdArray &a, const long axis)
 {
-    auto result = CNdArray(a.rows(), a.cols());
-    const auto ax = PyLong_FromLong(axis);
-    result.ndarray =
+    const auto *ax = PyLong_FromLong(axis);
+
+    const auto ndarray =
             (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_argmax, a.ndarray, ax, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::argmax.");
+    }
+
     Py_DECREF(ax);
+
+    CNdArray result{ndarray};
     return result;
 }
 
 CNdArray CNumpy::equal(const CNdArray &a, const CNdArray &b)
 {
-    auto result = CNdArray(a.rows(), a.cols());
-    result.ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+    const auto ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
             np.cnumpy_equal, a.ndarray, b.ndarray, NULL);
-    // TODO : verify the returned dimensions
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::equal.");
+    }
+
+    CNdArray result{ndarray};
     return result;
 }
 
@@ -306,23 +392,43 @@ double CNumpy::max(const CNdArray &ndarray)
     return max_val;
 }
 
-CNdArray::CNdArray(const npy_intp rows, const npy_intp cols) : dims{rows, cols}
+CNdArray::CNdArray(PyArrayObject *arr)
 {
-    size = rows * cols;
+    if (arr && PyArray_Check(arr))
+    {
+        ndarray = arr;
+        dims = PyArray_DIMS(ndarray);
+        ndim = PyArray_NDIM(ndarray);
+        size = PyArray_SIZE(ndarray);
+    }
 }
 
 CNdArray::CNdArray(const CNdArray &other)
 {
-    std::memcpy(dims, other.dims, 2 * sizeof(npy_intp));
-    PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(dims[0]), PyLong_FromLong(dims[1]));
+    PyObject *shape;
+    if (other.ndim == 1)
+    {
+        shape = PyTuple_Pack(1, PyLong_FromLong(other.dims[0]));
+    }
+    else
+    {
+        shape = PyTuple_Pack(2, PyLong_FromLong(other.dims[0]), PyLong_FromLong(other.dims[1]));
+    }
     PyObject *args = PyTuple_Pack(1, shape);
 
     ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_ndarray, args);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR copy ctor.");
+    }
 
     Py_DECREF(args);
     Py_DECREF(shape);
 
-    size = other.size;
+    dims = PyArray_DIMS(ndarray);
+    ndim = PyArray_NDIM(ndarray);
+    size = PyArray_SIZE(ndarray);
 
     auto *data = (double *) PyArray_DATA(ndarray);
     const auto *other_data = (double *) PyArray_DATA(other.ndarray);
@@ -331,9 +437,13 @@ CNdArray::CNdArray(const CNdArray &other)
 
 CNdArray::CNdArray(CNdArray &&other) noexcept
 {
-    std::memcpy(dims, other.dims, 2 * sizeof(npy_intp));
-    size = other.size;
     ndarray = other.ndarray;
+    if (ndarray && PyArray_Check(ndarray))
+    {
+        dims = PyArray_DIMS(ndarray);
+        ndim = PyArray_NDIM(ndarray);
+        size = PyArray_SIZE(ndarray);
+    }
     other.ndarray = nullptr;
 }
 
@@ -365,7 +475,11 @@ npy_intp CNdArray::rows() const
 
 npy_intp CNdArray::cols() const
 {
-    return dims[1];
+    if (ndim > 1)
+    {
+        return dims[1];
+    }
+    return 0;
 }
 
 CNdArray &CNdArray::operator/=(const double div)
@@ -384,15 +498,7 @@ CNdArray &CNdArray::operator/=(const double div)
 
 CNdArray CNdArray::operator-(const double sub) const
 {
-    auto result = CNumpy::ndarray(dims[0], dims[1]);
-
-    const auto *data = (double *) PyArray_DATA(ndarray);
-    auto *result_data = (double *) PyArray_DATA(result.ndarray);
-    for (npy_intp i = 0; i < size; ++i)
-    {
-        result_data[i] = data[i] - sub;
-    }
-    return result;
+    return CNumpy::subtract(*this, sub);
 }
 
 CNdArray CNdArray::operator*(const CNdArray &other) const
@@ -417,9 +523,10 @@ CNdArray CNdArray::operator==(const CNdArray &other) const
 
 CNdArray CNdArray::transpose() const
 {
-    auto transposed = CNdArray(dims[1], dims[0]);
-    transposed.ndarray = (PyArrayObject *) PyArray_Transpose(ndarray, NULL);
-    return transposed;
+    const auto t_ndarray = (PyArrayObject *) PyArray_Transpose(ndarray, NULL);
+
+    CNdArray result{t_ndarray};
+    return result;
 }
 
 CNdArray &CNdArray::operator=(const CNdArray &other)
@@ -430,17 +537,31 @@ CNdArray &CNdArray::operator=(const CNdArray &other)
         {
             Py_DECREF(ndarray);
         }
-        std::memcpy(dims, other.dims, 2 * sizeof(npy_intp));
 
-        PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(dims[0]), PyLong_FromLong(dims[1]));
+        PyObject *shape;
+        if (other.ndim == 1)
+        {
+            shape = PyTuple_Pack(1, PyLong_FromLong(other.dims[0]));
+        }
+        else
+        {
+            shape = PyTuple_Pack(2, PyLong_FromLong(other.dims[0]), PyLong_FromLong(other.dims[1]));
+        }
         PyObject *args = PyTuple_Pack(1, shape);
 
         ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_ndarray, args);
+        if (!ndarray)
+        {
+            PyErr_Print();
+            throw std::runtime_error("ERROR copy assign.");
+        }
 
         Py_DECREF(args);
         Py_DECREF(shape);
 
-        size = other.size;
+        dims = PyArray_DIMS(ndarray);
+        ndim = PyArray_NDIM(ndarray);
+        size = PyArray_SIZE(ndarray);
 
         auto *data = (double *) PyArray_DATA(ndarray);
         const auto *other_data = (double *) PyArray_DATA(other.ndarray);
@@ -453,9 +574,13 @@ CNdArray &CNdArray::operator=(CNdArray &&other) noexcept
 {
     if (this != &other)
     {
-        std::memcpy(dims, other.dims, 2 * sizeof(npy_intp));
-        size = other.size;
         ndarray = other.ndarray;
+        if (ndarray && PyArray_Check(ndarray))
+        {
+            dims = PyArray_DIMS(ndarray);
+            ndim = PyArray_NDIM(ndarray);
+            size = PyArray_SIZE(ndarray);
+        }
         other.ndarray = nullptr;
     }
     return *this;
@@ -514,4 +639,9 @@ CNdArray NeuralNet_CNumpy::get_predictions(const CNdArray &A2)
 double NeuralNet_CNumpy::get_correct_prediction(const CNdArray &predictions, const CNdArray &Y)
 {
     return CNumpy::sum(predictions == Y);
+}
+
+double NeuralNet_CNumpy::get_accuracy(const double correct_prediction, const npy_intp size)
+{
+    return correct_prediction / size;
 }

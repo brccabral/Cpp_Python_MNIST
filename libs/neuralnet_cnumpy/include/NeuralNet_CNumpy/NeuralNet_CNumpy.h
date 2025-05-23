@@ -13,7 +13,7 @@ class CNdArray
 {
 public:
 
-    CNdArray() = default;
+    explicit CNdArray(PyArrayObject *arr);
     CNdArray(const CNdArray &other);
     CNdArray(CNdArray &&other) noexcept;
     friend std::ostream &operator<<(std::ostream &os, const CNdArray &arr);
@@ -41,12 +41,11 @@ private:
     friend class CNumpy;
     friend class NeuralNet_CNumpy;
 
-    CNdArray(npy_intp rows, npy_intp cols);
-
     PyArrayObject *ndarray{};
 
-    npy_intp dims[2]{};
+    npy_intp *dims{};
     npy_intp size{};
+    int ndim{};
 };
 
 class CNumpy
@@ -78,6 +77,8 @@ public:
 
     PyObject *cnumpy_add{};
     static CNdArray add(const CNdArray &a, const CNdArray &b);
+    PyObject *cnumpy_subtract{};
+    static CNdArray subtract(const CNdArray &a, double sub);
     PyObject *cnumpy_dot{};
     static CNdArray dot(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_maximum{};
@@ -98,6 +99,7 @@ private:
 
     CNumpy();
     ~CNumpy();
+    static CNdArray create_ndarray(npy_intp rows, npy_intp cols, PyObject *callable);
 
     void finalize() const;
 };
@@ -115,11 +117,12 @@ public:
     static CNdArray softmax(const CNdArray &Z);
     static CNdArray get_predictions(const CNdArray &A2);
     static double get_correct_prediction(const CNdArray &predictions, const CNdArray &Y);
+    static double get_accuracy(double correct_prediction, npy_intp size);
 
     // layers
-    CNdArray W1{}, b1{}, W2{}, b2{};
+    CNdArray W1{nullptr}, b1{nullptr}, W2{nullptr}, b2{nullptr};
     // back prop
-    CNdArray Z1{}, A1{}, Z2{}, A2{};
+    CNdArray Z1{nullptr}, A1{nullptr}, Z2{nullptr}, A2{nullptr};
     // gradients
-    CNdArray dW1{}, dB1{}, dW2{}, dB2{};
+    CNdArray dW1{nullptr}, dB1{nullptr}, dW2{nullptr}, dB2{nullptr};
 };
