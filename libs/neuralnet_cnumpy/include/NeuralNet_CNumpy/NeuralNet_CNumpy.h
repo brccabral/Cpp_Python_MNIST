@@ -105,6 +105,8 @@ public:
 
     PyObject *cnumpy_reshape{};
     static CNdArray reshape(const CNdArray &a, npy_intp d1, npy_intp d2);
+    PyObject *cnumpy_transpose{};
+    static CNdArray transpose(const CNdArray &a);
 
 private:
 

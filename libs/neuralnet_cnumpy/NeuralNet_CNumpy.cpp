@@ -486,6 +486,21 @@ CNdArray CNumpy::reshape(const CNdArray &a, const npy_intp d1, const npy_intp d2
     return result;
 }
 
+CNdArray CNumpy::transpose(const CNdArray &a)
+{
+    const auto ndarray =
+            (PyArrayObject *) PyObject_CallFunctionObjArgs(np.cnumpy_transpose, a.ndarray, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::transpose.");
+    }
+
+    CNdArray result{ndarray};
+    return result;
+}
+
+
 CNdArray::CNdArray(PyArrayObject *arr)
 {
     if (arr && PyArray_Check(arr))
@@ -631,10 +646,7 @@ CNdArray CNdArray::operator==(const CNdArray &other) const
 
 CNdArray CNdArray::transpose() const
 {
-    const auto t_ndarray = (PyArrayObject *) PyArray_Transpose(ndarray, NULL);
-
-    CNdArray result{t_ndarray};
-    return result;
+    return CNumpy::transpose(*this);
 }
 
 CNdArray &CNdArray::operator=(const CNdArray &other)
