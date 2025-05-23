@@ -164,6 +164,14 @@ CNumpy::CNumpy()
         throw std::invalid_argument("Could not get numpy.equal.");
     }
 
+    cnumpy_multiply = PyObject_GetAttrString(cnumpy, "multiply");
+    if (!cnumpy_multiply || !PyCallable_Check(cnumpy_multiply))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.multiply.");
+    }
+
     cnumpy_reshape = PyObject_GetAttrString(cnumpy, "reshape");
     if (!cnumpy_reshape || !PyCallable_Check(cnumpy_reshape))
     {
@@ -484,6 +492,20 @@ CNdArray CNumpy::gt(const CNdArray &a, const CNdArray &b)
     return result;
 }
 
+CNdArray CNumpy::multiply(const CNdArray &a, const CNdArray &b)
+{
+    const auto ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+            np.cnumpy_multiply, a.ndarray, b.ndarray, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::multiply.");
+    }
+
+    CNdArray result{ndarray};
+    return result;
+}
+
 CNdArray CNumpy::reshape(const CNdArray &a, const npy_intp d1, const npy_intp d2)
 {
     PyObject *shape = PyTuple_Pack(2, PyLong_FromLong(d1), PyLong_FromLong(d2));
@@ -642,7 +664,7 @@ CNdArray CNdArray::operator-(const CNdArray &other) const
 
 CNdArray CNdArray::operator*(const CNdArray &other) const
 {
-    return CNumpy::dot(*this, other);
+    return CNumpy::multiply(*this, other);
 }
 
 CNdArray CNdArray::operator+(const CNdArray &other) const
@@ -668,6 +690,11 @@ CNdArray CNdArray::operator>(const CNdArray &other) const
 CNdArray CNdArray::transpose() const
 {
     return CNumpy::transpose(*this);
+}
+
+CNdArray CNdArray::dot(const CNdArray &other) const
+{
+    return CNumpy::dot(*this, other);
 }
 
 CNdArray &CNdArray::operator=(const CNdArray &other)
@@ -755,11 +782,11 @@ CNdArray NeuralNet_CNumpy::one_hot_encode(const CNdArray &Z)
 
 CNdArray NeuralNet_CNumpy::forward_prop(const CNdArray &X)
 {
-    Z1 = W1 * X;
+    Z1 = W1.dot(X);
     Z1 = Z1 + b1;
     A1 = ReLU(Z1);
 
-    Z2 = W2 * A1;
+    Z2 = W2.dot(A1);
     Z2 = Z2 + b2;
     A2 = softmax(Z2);
 
@@ -771,8 +798,10 @@ void NeuralNet_CNumpy::back_prop(const CNdArray &X, const CNdArray &target, cons
     const auto y_size = target.cols();
 
     const auto dZ2 = (A2 - target) / y_size;
-    const auto dW2 = dZ2 * A1.transpose();
+    const auto dW2 = dZ2.dot(A1.transpose());
     const auto db2 = CNumpy::sum(dZ2, 1).reshape(b2.rows(), b2.cols());
+
+    auto dZ1 = W2.transpose().dot(dZ2);
 }
 
 CNdArray NeuralNet_CNumpy::ReLU(const CNdArray &Z)

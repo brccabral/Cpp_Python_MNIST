@@ -29,7 +29,9 @@ public:
     CNdArray operator/(const CNdArray &other) const;
     CNdArray operator==(const CNdArray &other) const;
     CNdArray operator>(const CNdArray &other) const;
+    [[nodiscard]] CNdArray dot(const CNdArray &other) const;
     [[nodiscard]] CNdArray transpose() const;
+    [[nodiscard]] CNdArray reshape(npy_intp d1, npy_intp d2) const;
 
     ~CNdArray();
 
@@ -39,7 +41,6 @@ public:
     [[nodiscard]] npy_intp rows() const;
     [[nodiscard]] npy_intp cols() const;
 
-    CNdArray reshape(npy_intp d1, npy_intp d2) const;
 
 private:
 
@@ -105,6 +106,8 @@ public:
     static CNdArray equal(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_gt{};
     static CNdArray gt(const CNdArray &a, const CNdArray &b);
+    PyObject *cnumpy_multiply{};
+    static CNdArray multiply(const CNdArray &a, const CNdArray &b);
 
     PyObject *cnumpy_reshape{};
     static CNdArray reshape(const CNdArray &a, npy_intp d1, npy_intp d2);
