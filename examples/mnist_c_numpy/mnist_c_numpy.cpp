@@ -55,7 +55,7 @@ CNdArray get_X(const CNdArray &mat)
 
 int main()
 {
-    std::srand((unsigned int) time(nullptr)); // NOLINT(*-msc51-cpp)
+    CNumpy::random_seed(time(nullptr));
 
     CSimpleIniA ini;
     ini.SetUnicode();

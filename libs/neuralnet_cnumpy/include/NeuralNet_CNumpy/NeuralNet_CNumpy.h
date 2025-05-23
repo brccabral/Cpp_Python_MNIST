@@ -68,13 +68,14 @@ public:
     static CNdArray ndarray(npy_intp rows, npy_intp cols);
     PyObject *cnumpy_random{};
     PyObject *cnumpy_random_default_rng{};
-    PyObject *rng{};
-    PyObject *rng_random{};
-    static CNdArray rand(npy_intp rows, npy_intp cols);
+    mutable PyObject *default_rng{};
+    mutable PyObject *default_rng_random{};
+    static CNdArray rng_random(npy_intp rows, npy_intp cols);
+    static void random_seed(long seed);
     PyObject *cnumpy_zeros{};
     static CNdArray zeros(npy_intp rows, npy_intp cols);
-    [[nodiscard]] static double max(const CNdArray &ndarray);
 
+    [[nodiscard]] static double max(const CNdArray &ndarray);
     PyObject *cnumpy_add{};
     static CNdArray add(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_subtract{};

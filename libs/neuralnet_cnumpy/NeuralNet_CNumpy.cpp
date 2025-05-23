@@ -61,16 +61,16 @@ CNumpy::CNumpy()
         throw std::invalid_argument("Could not get numpy.random.default_rng.");
     }
 
-    rng = PyObject_CallObject(cnumpy_random_default_rng, NULL);
-    if (!rng)
+    default_rng = PyObject_CallObject(cnumpy_random_default_rng, NULL);
+    if (!default_rng)
     {
         PyErr_Print();
         finalize();
         throw std::invalid_argument("Could not call default_rng.");
     }
 
-    rng_random = PyObject_GetAttrString(rng, "random");
-    if (!rng_random || !PyCallable_Check(rng_random))
+    default_rng_random = PyObject_GetAttrString(default_rng, "random");
+    if (!default_rng_random || !PyCallable_Check(default_rng_random))
     {
         PyErr_Print();
         finalize();
@@ -165,13 +165,14 @@ CNumpy::~CNumpy()
 
 void CNumpy::finalize() const
 {
-    Py_XDECREF(rng_random);
-    Py_XDECREF(rng);
+    Py_XDECREF(default_rng_random);
+    Py_XDECREF(default_rng);
     Py_XDECREF(cnumpy_random_default_rng);
     Py_XDECREF(cnumpy_random);
     Py_XDECREF(cnumpy_ndarray);
     Py_XDECREF(cnumpy_zeros);
     Py_XDECREF(cnumpy_add);
+    Py_XDECREF(cnumpy_subtract);
     Py_XDECREF(cnumpy_dot);
     Py_XDECREF(cnumpy_maximum);
     Py_XDECREF(cnumpy_exp);
@@ -215,9 +216,35 @@ CNdArray CNumpy::ndarray(const npy_intp rows, const npy_intp cols)
     return create_ndarray(rows, cols, np.cnumpy_ndarray);
 }
 
-CNdArray CNumpy::rand(const npy_intp rows, const npy_intp cols)
+CNdArray CNumpy::rng_random(const npy_intp rows, const npy_intp cols)
 {
-    return create_ndarray(rows, cols, np.rng_random);
+    return create_ndarray(rows, cols, np.default_rng_random);
+}
+
+void CNumpy::random_seed(const long seed)
+{
+    Py_XDECREF(np.default_rng);
+    Py_XDECREF(np.default_rng_random);
+
+    auto *s = PyLong_FromLong(seed);
+    PyObject *args = PyTuple_Pack(1, s);
+
+    np.default_rng = PyObject_CallObject(np.cnumpy_random_default_rng, args);
+    if (!np.default_rng)
+    {
+        PyErr_Print();
+        throw std::invalid_argument("ERROR CNumpy::random_seed default_rng.");
+    }
+
+    np.default_rng_random = PyObject_GetAttrString(np.default_rng, "random");
+    if (!np.default_rng_random || !PyCallable_Check(np.default_rng_random))
+    {
+        PyErr_Print();
+        throw std::invalid_argument("ERROR CNumpy::random_seed default_rng_random.");
+    }
+
+    Py_DECREF(s);
+    Py_DECREF(args);
 }
 
 CNdArray CNumpy::zeros(const npy_intp rows, const npy_intp cols)
@@ -589,10 +616,10 @@ CNdArray &CNdArray::operator=(CNdArray &&other) noexcept
 NeuralNet_CNumpy::NeuralNet_CNumpy(
         const int num_features, const int hidden_layer_size, const int categories)
 {
-    W1 = CNumpy::rand(hidden_layer_size, num_features) - 0.5f;
-    b1 = CNumpy::rand(hidden_layer_size, 1) - 0.5f;
-    W2 = CNumpy::rand(categories, hidden_layer_size) - 0.5f;
-    b2 = CNumpy::rand(categories, 1) - 0.5f;
+    W1 = CNumpy::rng_random(hidden_layer_size, num_features) - 0.5f;
+    b1 = CNumpy::rng_random(hidden_layer_size, 1) - 0.5f;
+    W2 = CNumpy::rng_random(categories, hidden_layer_size) - 0.5f;
+    b2 = CNumpy::rng_random(categories, 1) - 0.5f;
 }
 
 CNdArray NeuralNet_CNumpy::one_hot_encode(const CNdArray &Z)
