@@ -116,8 +116,10 @@ public:
 
     NeuralNet_CNumpy(int num_features, int hidden_layer_size, int categories);
 
-    static CNdArray one_hot_encode(const CNdArray &Z);
     CNdArray forward_prop(const CNdArray &X);
+    void back_prop(const CNdArray &X, const CNdArray &target, float alpha);
+
+    static CNdArray one_hot_encode(const CNdArray &Z);
     static CNdArray ReLU(const CNdArray &Z);
     static CNdArray softmax(const CNdArray &Z);
     static CNdArray get_predictions(const CNdArray &A2);

@@ -692,6 +692,16 @@ CNdArray NeuralNet_CNumpy::forward_prop(const CNdArray &X)
     return A2;
 }
 
+void NeuralNet_CNumpy::back_prop(const CNdArray &X, const CNdArray &target, const float alpha)
+{
+    const auto y_size = target.cols();
+
+    const auto dZ2 = (A2 - target) / y_size;
+    const auto dW2 = dZ2 * A1.transpose();
+    const auto db2 = CNumpy::sum(dZ2, 1);
+}
+
+
 CNdArray NeuralNet_CNumpy::ReLU(const CNdArray &Z)
 {
     return CNumpy::maximum(Z, 0.0);
