@@ -23,6 +23,7 @@ public:
     CNdArray &operator/=(double div);
     CNdArray operator/(long div) const;
     CNdArray operator-(double sub) const;
+    CNdArray operator-(const CNdArray &other) const;
     CNdArray operator*(const CNdArray &other) const;
     CNdArray operator+(const CNdArray &other) const;
     CNdArray operator/(const CNdArray &other) const;
@@ -81,6 +82,7 @@ public:
     static CNdArray add(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_subtract{};
     static CNdArray subtract(const CNdArray &a, double sub);
+    static CNdArray subtract(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_dot{};
     static CNdArray dot(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_maximum{};

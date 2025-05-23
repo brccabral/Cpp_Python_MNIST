@@ -275,10 +275,24 @@ CNdArray CNumpy::subtract(const CNdArray &a, const double sub)
     if (!ndarray)
     {
         PyErr_Print();
-        throw std::runtime_error("ERROR CNumpy::subtract.");
+        throw std::runtime_error("ERROR CNumpy::subtract(a,sub).");
     }
 
     Py_DECREF(bo);
+
+    CNdArray result{ndarray};
+    return result;
+}
+
+CNdArray CNumpy::subtract(const CNdArray &a, const CNdArray &b)
+{
+    const auto ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
+            np.cnumpy_subtract, a.ndarray, b.ndarray, NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::subtract(a,b).");
+    }
 
     CNdArray result{ndarray};
     return result;
@@ -553,6 +567,11 @@ CNdArray CNdArray::operator/(const long div) const
 CNdArray CNdArray::operator-(const double sub) const
 {
     return CNumpy::subtract(*this, sub);
+}
+
+CNdArray CNdArray::operator-(const CNdArray &other) const
+{
+    return CNumpy::subtract(*this, other);
 }
 
 CNdArray CNdArray::operator*(const CNdArray &other) const
