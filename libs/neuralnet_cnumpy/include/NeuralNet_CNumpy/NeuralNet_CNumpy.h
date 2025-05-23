@@ -139,6 +139,7 @@ public:
 
     static CNdArray one_hot_encode(const CNdArray &Z);
     static CNdArray ReLU(const CNdArray &Z);
+    static CNdArray deriv_ReLU(const CNdArray &Z);
     static CNdArray softmax(const CNdArray &Z);
     static CNdArray get_predictions(const CNdArray &A2);
     static double get_correct_prediction(const CNdArray &predictions, const CNdArray &Y);
