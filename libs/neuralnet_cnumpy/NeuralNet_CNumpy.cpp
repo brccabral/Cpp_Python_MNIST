@@ -805,6 +805,10 @@ CNdArray &CNdArray::operator=(CNdArray &&other) noexcept
 {
     if (this != &other)
     {
+        if (ndarray)
+        {
+            Py_DECREF(ndarray);
+        }
         ndarray = other.ndarray;
         if (ndarray && PyArray_Check(ndarray))
         {
