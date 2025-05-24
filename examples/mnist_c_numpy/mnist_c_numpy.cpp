@@ -143,6 +143,11 @@ int main()
         neural_net.back_prop(X_train_T, one_hot_Y, alpha);
     }
 
+    output = neural_net.forward_prop(X_train_T);
+    prediction = NeuralNet_CNumpy::get_predictions(output);
+    correct_prediction = NeuralNet_CNumpy::get_correct_prediction(prediction, Y_train);
+    acc = NeuralNet_CNumpy::get_accuracy(correct_prediction, Y_train.rows());
+    printf("Final \t Correct %.0f\tAccuracy %.4f\n", correct_prediction, acc);
 
     return EXIT_SUCCESS;
 }
