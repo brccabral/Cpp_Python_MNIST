@@ -20,9 +20,9 @@ public:
 
     double operator()(int y, int x) const;
     double &operator()(int y, int x);
-    CNdArray &operator/=(double div);
-    CNdArray operator/(long div) const;
-    CNdArray operator-(double sub) const;
+    CNdArray &operator/=(double value);
+    CNdArray operator/(long value) const;
+    CNdArray operator-(double value) const;
     CNdArray operator-(const CNdArray &other) const;
     CNdArray operator*(const CNdArray &other) const;
     CNdArray operator*(double value) const;
@@ -88,12 +88,12 @@ public:
     PyObject *cnumpy_add{};
     static CNdArray add(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_subtract{};
-    static CNdArray subtract(const CNdArray &a, double sub);
+    static CNdArray subtract(const CNdArray &a, double value);
     static CNdArray subtract(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_dot{};
     static CNdArray dot(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_maximum{};
-    static CNdArray maximum(const CNdArray &a, double b);
+    static CNdArray maximum(const CNdArray &a, double value);
     PyObject *cnumpy_exp{};
     static CNdArray exp(const CNdArray &a);
     PyObject *cnumpy_sum{};
@@ -101,7 +101,7 @@ public:
     static CNdArray sum(const CNdArray &a, long axis);
     PyObject *cnumpy_divide{};
     static CNdArray divide(const CNdArray &a, const CNdArray &b);
-    static CNdArray divide(const CNdArray &a, long div);
+    static CNdArray divide(const CNdArray &a, long value);
     PyObject *cnumpy_argmax{};
     static CNdArray argmax(const CNdArray &a, long axis);
     PyObject *cnumpy_equal{};
