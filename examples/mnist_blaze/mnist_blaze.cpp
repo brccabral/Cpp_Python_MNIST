@@ -113,7 +113,7 @@ int main()
 
     auto categories = blaze::max(Y_train) + 1;
 
-    std::cout << categories << std::endl;
+    X_train /= 255.0;
 
     return EXIT_SUCCESS;
 }
