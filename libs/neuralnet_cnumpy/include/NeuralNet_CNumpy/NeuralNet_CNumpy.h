@@ -16,10 +16,18 @@ public:
     explicit CNdArray(PyArrayObject *arr);
     CNdArray(const CNdArray &other);
     CNdArray(CNdArray &&other) noexcept;
+    CNdArray &operator=(const CNdArray &other);
+    CNdArray &operator=(CNdArray &&other) noexcept;
+    ~CNdArray();
+
     friend std::ostream &operator<<(std::ostream &os, const CNdArray &arr);
 
     double operator()(int y, int x) const;
     double &operator()(int y, int x);
+
+    [[nodiscard]] npy_intp rows() const;
+    [[nodiscard]] npy_intp cols() const;
+
     CNdArray &operator/=(double value);
     CNdArray operator/(long value) const;
     CNdArray operator-(double value) const;
@@ -34,14 +42,6 @@ public:
     [[nodiscard]] CNdArray dot(const CNdArray &other) const;
     [[nodiscard]] CNdArray transpose() const;
     [[nodiscard]] CNdArray reshape(npy_intp d1, npy_intp d2) const;
-
-    ~CNdArray();
-
-    CNdArray &operator=(const CNdArray &other);
-    CNdArray &operator=(CNdArray &&other) noexcept;
-
-    [[nodiscard]] npy_intp rows() const;
-    [[nodiscard]] npy_intp cols() const;
 
 
 private:
@@ -63,7 +63,9 @@ public:
     CNumpy(const CNumpy &other) = delete;
     CNumpy(CNumpy &&other) = delete;
     CNumpy &operator=(const CNumpy &other) = delete;
+    CNumpy &operator=(CNumpy &&other) = delete;
 
+    // singleton
     static CNumpy &instance()
     {
         static CNumpy instance;
@@ -83,10 +85,10 @@ public:
     PyObject *cnumpy_zeros{};
     static CNdArray zeros(npy_intp rows, npy_intp cols);
 
-    PyObject *cnumpy_max{};
-    [[nodiscard]] static double max(const CNdArray &a);
     PyObject *cnumpy_add{};
     static CNdArray add(const CNdArray &a, const CNdArray &b);
+    PyObject *cnumpy_max{};
+    [[nodiscard]] static double max(const CNdArray &a);
     PyObject *cnumpy_subtract{};
     static CNdArray subtract(const CNdArray &a, double value);
     static CNdArray subtract(const CNdArray &a, const CNdArray &b);
@@ -113,10 +115,10 @@ public:
     static CNdArray multiply(const CNdArray &a, const CNdArray &b);
     static CNdArray multiply(const CNdArray &a, double value);
 
-    PyObject *cnumpy_reshape{};
-    static CNdArray reshape(const CNdArray &a, npy_intp d1, npy_intp d2);
     PyObject *cnumpy_transpose{};
     static CNdArray transpose(const CNdArray &a);
+    PyObject *cnumpy_reshape{};
+    static CNdArray reshape(const CNdArray &a, npy_intp d1, npy_intp d2);
 
 private:
 

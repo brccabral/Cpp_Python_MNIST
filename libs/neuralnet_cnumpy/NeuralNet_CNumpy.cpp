@@ -223,20 +223,20 @@ CNumpy::CNumpy()
         throw std::invalid_argument("Could not get numpy.multiply.");
     }
 
-    cnumpy_reshape = PyObject_GetAttrString(cnumpy, "reshape");
-    if (!cnumpy_reshape || !PyCallable_Check(cnumpy_reshape))
-    {
-        PyErr_Print();
-        finalize();
-        throw std::invalid_argument("Could not get numpy.reshape.");
-    }
-
     cnumpy_transpose = PyObject_GetAttrString(cnumpy, "transpose");
     if (!cnumpy_transpose || !PyCallable_Check(cnumpy_transpose))
     {
         PyErr_Print();
         finalize();
         throw std::invalid_argument("Could not get numpy.transpose.");
+    }
+
+    cnumpy_reshape = PyObject_GetAttrString(cnumpy, "reshape");
+    if (!cnumpy_reshape || !PyCallable_Check(cnumpy_reshape))
+    {
+        PyErr_Print();
+        finalize();
+        throw std::invalid_argument("Could not get numpy.reshape.");
     }
 }
 
@@ -247,25 +247,26 @@ CNumpy::~CNumpy()
 
 void CNumpy::finalize() const
 {
+    Py_XDECREF(cnumpy_reshape);
+    Py_XDECREF(cnumpy_transpose);
+    Py_XDECREF(cnumpy_multiply);
+    Py_XDECREF(cnumpy_greater);
+    Py_XDECREF(cnumpy_equal);
+    Py_XDECREF(cnumpy_argmax);
+    Py_XDECREF(cnumpy_divide);
+    Py_XDECREF(cnumpy_sum);
+    Py_XDECREF(cnumpy_exp);
+    Py_XDECREF(cnumpy_maximum);
+    Py_XDECREF(cnumpy_dot);
+    Py_XDECREF(cnumpy_subtract);
+    Py_XDECREF(cnumpy_max);
+    Py_XDECREF(cnumpy_add);
+    Py_XDECREF(cnumpy_zeros);
     Py_XDECREF(default_rng_random);
     Py_XDECREF(default_rng);
     Py_XDECREF(cnumpy_random_default_rng);
     Py_XDECREF(cnumpy_random);
     Py_XDECREF(cnumpy_ndarray);
-    Py_XDECREF(cnumpy_zeros);
-    Py_XDECREF(cnumpy_add);
-    Py_XDECREF(cnumpy_max);
-    Py_XDECREF(cnumpy_subtract);
-    Py_XDECREF(cnumpy_dot);
-    Py_XDECREF(cnumpy_maximum);
-    Py_XDECREF(cnumpy_exp);
-    Py_XDECREF(cnumpy_sum);
-    Py_XDECREF(cnumpy_divide);
-    Py_XDECREF(cnumpy_argmax);
-    Py_XDECREF(cnumpy_equal);
-    Py_XDECREF(cnumpy_greater);
-    Py_XDECREF(cnumpy_reshape);
-    Py_XDECREF(cnumpy_transpose);
     Py_DECREF(cnumpy);
     Py_Finalize();
 }
@@ -344,6 +345,18 @@ CNdArray CNumpy::add(const CNdArray &a, const CNdArray &b)
 
     CNdArray result{ndarray};
     return result;
+}
+
+double CNumpy::max(const CNdArray &a)
+{
+    const PyHandle m(PyObject_CallFunctionObjArgs(np.cnumpy_max, a.ndarray, NULL));
+    if (!m.get())
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::max.");
+    }
+    const double value = PyFloat_AsDouble(m.get());
+    return value;
 }
 
 CNdArray CNumpy::subtract(const CNdArray &a, const double value)
@@ -508,18 +521,6 @@ CNdArray CNumpy::equal(const CNdArray &a, const CNdArray &b)
     return result;
 }
 
-double CNumpy::max(const CNdArray &a)
-{
-    const PyHandle m(PyObject_CallFunctionObjArgs(np.cnumpy_max, a.ndarray, NULL));
-    if (!m.get())
-    {
-        PyErr_Print();
-        throw std::runtime_error("ERROR CNumpy::max.");
-    }
-    const double value = PyFloat_AsDouble(m.get());
-    return value;
-}
-
 CNdArray CNumpy::greater(const CNdArray &a, const CNdArray &b)
 {
     const auto ndarray = (PyArrayObject *) PyObject_CallFunctionObjArgs(
@@ -639,6 +640,34 @@ CNdArray::CNdArray(CNdArray &&other) noexcept
     other.ndarray = nullptr;
 }
 
+CNdArray &CNdArray::operator=(const CNdArray &other)
+{
+    if (this != &other)
+    {
+        Py_XDECREF(ndarray);
+        ndarray = other.ndarray;
+        dims = other.dims;
+        size = other.size;
+        ndim = other.ndim;
+        Py_INCREF(ndarray);
+    }
+    return *this;
+}
+
+CNdArray &CNdArray::operator=(CNdArray &&other) noexcept
+{
+    if (this != &other)
+    {
+        Py_XDECREF(ndarray);
+        ndarray = other.ndarray;
+        dims = other.dims;
+        size = other.size;
+        ndim = other.ndim;
+        other.ndarray = nullptr;
+    }
+    return *this;
+}
+
 CNdArray::~CNdArray()
 {
     Py_XDECREF(ndarray);
@@ -742,49 +771,20 @@ CNdArray CNdArray::operator>(const double value) const
     return CNumpy::greater(*this, value);
 }
 
-CNdArray CNdArray::transpose() const
-{
-    return CNumpy::transpose(*this);
-}
-
 CNdArray CNdArray::dot(const CNdArray &other) const
 {
     return CNumpy::dot(*this, other);
 }
 
-CNdArray &CNdArray::operator=(const CNdArray &other)
+CNdArray CNdArray::transpose() const
 {
-    if (this != &other)
-    {
-        Py_XDECREF(ndarray);
-        ndarray = other.ndarray;
-        dims = other.dims;
-        size = other.size;
-        ndim = other.ndim;
-        Py_INCREF(ndarray);
-    }
-    return *this;
-}
-
-CNdArray &CNdArray::operator=(CNdArray &&other) noexcept
-{
-    if (this != &other)
-    {
-        Py_XDECREF(ndarray);
-        ndarray = other.ndarray;
-        dims = other.dims;
-        size = other.size;
-        ndim = other.ndim;
-        other.ndarray = nullptr;
-    }
-    return *this;
+    return CNumpy::transpose(*this);
 }
 
 CNdArray CNdArray::reshape(const npy_intp d1, const npy_intp d2) const
 {
     return CNumpy::reshape(*this, d1, d2);
 }
-
 
 NeuralNet_CNumpy::NeuralNet_CNumpy(
         const int num_features, const int hidden_layer_size, const int categories)
@@ -793,17 +793,6 @@ NeuralNet_CNumpy::NeuralNet_CNumpy(
     b1 = CNumpy::rng_random(hidden_layer_size, 1) - 0.5f;
     W2 = CNumpy::rng_random(categories, hidden_layer_size) - 0.5f;
     b2 = CNumpy::rng_random(categories, 1) - 0.5f;
-}
-
-CNdArray NeuralNet_CNumpy::one_hot_encode(const CNdArray &Z)
-{
-    auto o = CNumpy::zeros(Z.rows(), CNumpy::max(Z) + 1);
-
-    for (int r = 0; r < Z.rows() - 1; r++)
-    {
-        o(r, int(Z(r, 0))) = 1;
-    }
-    return o.transpose();
 }
 
 CNdArray NeuralNet_CNumpy::forward_prop(const CNdArray &X)
@@ -835,6 +824,17 @@ void NeuralNet_CNumpy::back_prop(const CNdArray &X, const CNdArray &target, cons
     b1 = b1 - db1 * alpha;
     W2 = W2 - dW2 * alpha;
     b2 = b2 - db2 * alpha;
+}
+
+CNdArray NeuralNet_CNumpy::one_hot_encode(const CNdArray &Z)
+{
+    auto o = CNumpy::zeros(Z.rows(), CNumpy::max(Z) + 1);
+
+    for (int r = 0; r < Z.rows() - 1; r++)
+    {
+        o(r, int(Z(r, 0))) = 1;
+    }
+    return o.transpose();
 }
 
 CNdArray NeuralNet_CNumpy::ReLU(const CNdArray &Z)
