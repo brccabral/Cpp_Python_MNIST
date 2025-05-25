@@ -149,5 +149,35 @@ int main()
     acc = NeuralNet_CNumpy::get_accuracy(correct_prediction, Y_train.rows());
     printf("Final \t Correct %.0f\tAccuracy %.4f\n", correct_prediction, acc);
 
+    img_filename = ini.GetValue("MNIST", "TEST_IMAGE_FILE", "t10k-images-idx3-ubyte");
+    img_path = base_dir + "/" + img_filename;
+    label_filename = ini.GetValue("MNIST", "TEST_LABEL_FILE", "t10k-labels-idx1-ubyte");
+    label_path = base_dir + "/" + label_filename;
+
+    MNIST_Dataset test_dataset(
+            img_path.c_str(), label_path.c_str(), TEST_IMAGE_MAGIC, TEST_LABEL_MAGIC);
+    test_dataset.read_mnist_db(max_items);
+
+#ifdef CV_SAVE_IMAGES
+    save_dir = base_dir + "/test";
+    if (save_img)
+        test_dataset.save_dataset_as_png(save_dir);
+    test_dataset.save_dataset_as_csv(save_dir + "/test.csv");
+#endif // CV_SAVE_IMAGES
+
+    auto test_mat = to_matrix(test_dataset._images);
+
+    auto Y_test = get_Y(test_mat);
+    auto X_test = get_X(test_mat);
+    X_test /= 255.0f;
+    auto X_test_T = X_test.transpose();
+
+    output = neural_net.forward_prop(X_test_T);
+
+    prediction = NeuralNet_CNumpy::get_predictions(output);
+    correct_prediction = NeuralNet_CNumpy::get_correct_prediction(prediction, Y_test);
+    acc = NeuralNet_CNumpy::get_accuracy(correct_prediction, Y_test.rows());
+    printf("Test \t Correct %0.f\tAccuracy %.4f\n", correct_prediction, acc);
+
     return EXIT_SUCCESS;
 }
