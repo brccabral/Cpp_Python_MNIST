@@ -9,12 +9,22 @@ public:
 
     explicit PyHandle(PyObject *o) : obj(o)
     {}
-    PyHandle(const PyHandle &o) = default;
-    PyHandle(PyHandle &&o) noexcept : obj(o.obj)
+    PyHandle(const PyHandle &o)
     {
+        obj = o.obj;
+        Py_INCREF(obj);
+    };
+    PyHandle(PyHandle &&o) noexcept
+    {
+        obj = o.obj;
         o.obj = nullptr;
     }
-    PyHandle &operator=(const PyHandle &o) = default;
+    PyHandle &operator=(const PyHandle &o)
+    {
+        obj = o.obj;
+        Py_INCREF(obj);
+        return *this;
+    };
     PyHandle &operator=(PyHandle &&o) noexcept
     {
         Py_XDECREF(obj);
@@ -612,43 +622,19 @@ CNdArray::CNdArray(PyArrayObject *arr)
 
 CNdArray::CNdArray(const CNdArray &other)
 {
-    PyHandle shape{nullptr};
-    if (other.ndim == 1)
-    {
-        shape = PyHandle(PyTuple_Pack(1, PyLong_FromLong(other.dims[0])));
-    }
-    else
-    {
-        shape = PyHandle(
-                PyTuple_Pack(2, PyLong_FromLong(other.dims[0]), PyLong_FromLong(other.dims[1])));
-    }
-    const PyHandle args(PyTuple_Pack(1, shape.get()));
-
-    ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_ndarray, args.get());
-    if (!ndarray)
-    {
-        PyErr_Print();
-        throw std::runtime_error("ERROR copy ctor.");
-    }
-
-    dims = PyArray_DIMS(ndarray);
-    ndim = PyArray_NDIM(ndarray);
-    size = PyArray_SIZE(ndarray);
-
-    auto *data = (double *) PyArray_DATA(ndarray);
-    const auto *other_data = (double *) PyArray_DATA(other.ndarray);
-    std::memcpy(data, other_data, size * sizeof(double));
+    ndarray = other.ndarray;
+    dims = other.dims;
+    size = other.size;
+    ndim = other.ndim;
+    Py_INCREF(ndarray);
 }
 
 CNdArray::CNdArray(CNdArray &&other) noexcept
 {
     ndarray = other.ndarray;
-    if (ndarray && PyArray_Check(ndarray))
-    {
-        dims = PyArray_DIMS(ndarray);
-        ndim = PyArray_NDIM(ndarray);
-        size = PyArray_SIZE(ndarray);
-    }
+    dims = other.dims;
+    size = other.size;
+    ndim = other.ndim;
     other.ndarray = nullptr;
 }
 
@@ -769,37 +755,11 @@ CNdArray &CNdArray::operator=(const CNdArray &other)
 {
     if (this != &other)
     {
-        if (ndarray)
-        {
-            Py_DECREF(ndarray);
-        }
-
-        PyHandle shape{nullptr};
-        if (other.ndim == 1)
-        {
-            shape = PyHandle(PyTuple_Pack(1, PyLong_FromLong(other.dims[0])));
-        }
-        else
-        {
-            shape = PyHandle(PyTuple_Pack(
-                    2, PyLong_FromLong(other.dims[0]), PyLong_FromLong(other.dims[1])));
-        }
-        const PyHandle args(PyTuple_Pack(1, shape.get()));
-
-        ndarray = (PyArrayObject *) PyObject_CallObject(np.cnumpy_ndarray, args.get());
-        if (!ndarray)
-        {
-            PyErr_Print();
-            throw std::runtime_error("ERROR copy assign.");
-        }
-
-        dims = PyArray_DIMS(ndarray);
-        ndim = PyArray_NDIM(ndarray);
-        size = PyArray_SIZE(ndarray);
-
-        auto *data = (double *) PyArray_DATA(ndarray);
-        const auto *other_data = (double *) PyArray_DATA(other.ndarray);
-        std::memcpy(data, other_data, size * sizeof(double));
+        ndarray = other.ndarray;
+        dims = other.dims;
+        size = other.size;
+        ndim = other.ndim;
+        Py_INCREF(ndarray);
     }
     return *this;
 }
@@ -810,12 +770,9 @@ CNdArray &CNdArray::operator=(CNdArray &&other) noexcept
     {
         Py_XDECREF(ndarray);
         ndarray = other.ndarray;
-        if (ndarray && PyArray_Check(ndarray))
-        {
-            dims = PyArray_DIMS(ndarray);
-            ndim = PyArray_NDIM(ndarray);
-            size = PyArray_SIZE(ndarray);
-        }
+        dims = other.dims;
+        size = other.size;
+        ndim = other.ndim;
         other.ndarray = nullptr;
     }
     return *this;
