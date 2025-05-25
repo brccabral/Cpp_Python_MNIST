@@ -27,6 +27,32 @@ blaze::DynamicMatrix<double> to_matrix(const std::vector<MNIST_Image> &_images)
     return mat;
 }
 
+blaze::DynamicVector<double> get_Y(const blaze::DynamicMatrix<double> &mat)
+{
+    const auto rows = mat.rows();
+    blaze::DynamicVector<double> Y(rows);
+    for (size_t r = 0; r < rows; ++r)
+    {
+        Y[r] = mat(r, 0);
+    }
+    return Y;
+}
+
+blaze::DynamicMatrix<double> get_X(const blaze::DynamicMatrix<double> &mat)
+{
+    const size_t rows = mat.rows();
+    const size_t cols = mat.columns();
+    blaze::DynamicMatrix<double> X(rows, cols - 1);
+    for (size_t r = 0; r < rows; ++r)
+    {
+        for (size_t c = 1; c < cols; ++c)
+        {
+            X(r, c - 1) = mat(r, c);
+        }
+    }
+    return X;
+}
+
 int main()
 {
 
@@ -76,7 +102,14 @@ int main()
 
     auto train_mat = to_matrix(train_dataset._images);
 
-    std::cout << train_mat << '\n';
+    auto Y_train = get_Y(train_mat);
+    auto X_train = get_X(train_mat);
+
+    std::cout << Y_train[4] << std::endl;
+    std::cout << X_train.rows() << "," << X_train.columns() << std::endl;
+    for (int c = 0; c < X_train.columns(); c++)
+        std::cout << X_train(4, c) << ", ";
+    std::cout << std::endl;
 
     return EXIT_SUCCESS;
 }
