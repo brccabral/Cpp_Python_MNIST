@@ -151,6 +151,4 @@ public:
     CNdArray W1{nullptr}, b1{nullptr}, W2{nullptr}, b2{nullptr};
     // back prop
     CNdArray Z1{nullptr}, A1{nullptr}, Z2{nullptr}, A2{nullptr};
-    // gradients
-    CNdArray dW1{nullptr}, dB1{nullptr}, dW2{nullptr}, dB2{nullptr};
 };

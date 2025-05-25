@@ -55,6 +55,7 @@ blaze::DynamicMatrix<double> get_X(const blaze::DynamicMatrix<double> &mat)
 
 int main()
 {
+    blaze::setSeed(time(0));
 
     CSimpleIniA ini;
     ini.SetUnicode();
@@ -115,6 +116,8 @@ int main()
 
     X_train /= 255.0;
     auto X_train_T = X_train.transpose();
+
+    auto neural_net = NeuralNet_Blaze(X_train.columns(), hidden_layer_size, categories);
 
     return EXIT_SUCCESS;
 }
