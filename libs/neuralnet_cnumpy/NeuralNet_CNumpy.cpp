@@ -21,6 +21,7 @@ public:
     }
     PyHandle &operator=(const PyHandle &o)
     {
+        Py_XDECREF(obj);
         obj = o.obj;
         Py_INCREF(obj);
         return *this;
@@ -755,6 +756,7 @@ CNdArray &CNdArray::operator=(const CNdArray &other)
 {
     if (this != &other)
     {
+        Py_XDECREF(ndarray);
         ndarray = other.ndarray;
         dims = other.dims;
         size = other.size;
