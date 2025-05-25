@@ -114,6 +114,7 @@ int main()
     auto categories = blaze::max(Y_train) + 1;
 
     X_train /= 255.0;
+    auto X_train_T = X_train.transpose();
 
     return EXIT_SUCCESS;
 }
