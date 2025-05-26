@@ -27,6 +27,26 @@ blaze::DynamicMatrix<double> NeuralNet_Blaze::forward_prop(const blaze::DynamicM
     return A2;
 }
 
+void NeuralNet_Blaze::back_prop(
+        const blaze::DynamicMatrix<double> &X, const blaze::DynamicMatrix<double> &target,
+        const double alpha)
+{
+    const auto y_size = target.columns();
+
+    const blaze::DynamicMatrix<double> dZ2 = (A2 - target) / y_size;
+    const blaze::DynamicMatrix<double> dW2 = dZ2 * blaze::trans(A1);
+    const blaze::DynamicVector<double> db2 = blaze::sum<blaze::rowwise>(dZ2);
+
+    const blaze::DynamicMatrix<double> dZ1 = (blaze::trans(W2) * dZ2) % deriv_ReLU(Z1);
+    const blaze::DynamicMatrix<double> dW1 = dZ1 * X;
+    const blaze::DynamicVector<double> db1 = blaze::sum<blaze::rowwise>(dZ1);
+
+    W1 -= (dW1 * alpha);
+    W2 -= (dW2 * alpha);
+    b1 -= (db1 * alpha);
+    b2 -= (db2 * alpha);
+}
+
 blaze::DynamicMatrix<double> NeuralNet_Blaze::one_hot_encode(const blaze::DynamicMatrix<double> &Z)
 {
     blaze::DynamicMatrix<double> o = blaze::zero<double>(Z.rows(), blaze::max(Z) + 1);
@@ -41,4 +61,9 @@ blaze::DynamicMatrix<double> NeuralNet_Blaze::one_hot_encode(const blaze::Dynami
 blaze::DynamicMatrix<double> NeuralNet_Blaze::ReLU(const blaze::DynamicMatrix<double> &Z)
 {
     return blaze::max(Z, 0.0);
+}
+
+blaze::DynamicMatrix<double> NeuralNet_Blaze::deriv_ReLU(const blaze::DynamicMatrix<double> &Z)
+{
+    return blaze::map(Z, [](const double z) { return z > 0.0 ? 1.0 : 0.0; });
 }

@@ -9,9 +9,13 @@ public:
     NeuralNet_Blaze(int num_features, int hidden_layer_size, int categories);
 
     blaze::DynamicMatrix<double> forward_prop(const blaze::DynamicMatrix<double> &X);
+    void back_prop(
+            const blaze::DynamicMatrix<double> &X, const blaze::DynamicMatrix<double> &target,
+            double alpha);
 
     static blaze::DynamicMatrix<double> one_hot_encode(const blaze::DynamicMatrix<double> &Z);
     static blaze::DynamicMatrix<double> ReLU(const blaze::DynamicMatrix<double> &Z);
+    static blaze::DynamicMatrix<double> deriv_ReLU(const blaze::DynamicMatrix<double> &Z);
 
     blaze::DynamicMatrix<double> W1;
     blaze::DynamicVector<double> b1;

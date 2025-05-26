@@ -71,7 +71,7 @@ int main()
     auto num_generations = (int) ini.GetLongValue("MNIST", "GENERATIONS", 5);
     auto max_items = (int) ini.GetLongValue("MNIST", "MAX_ITEMS", 15);
     bool save_img = ini.GetBoolValue("MNIST", "SAVE_IMG", false);
-    auto alpha = (float) ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
+    auto alpha = ini.GetDoubleValue("MNIST", "ALPHA", 0.1);
     auto hidden_layer_size = (int) ini.GetLongValue("MNIST", "HIDDEN_LAYER_SIZE", 10);
 
     std::string base_dir = ini.GetValue("MNIST", "BASE_DIR", "MNIST_data/MNIST/raw");
@@ -130,6 +130,7 @@ int main()
     for (int generation = 0; generation < num_generations; generation++)
     {
         output = neural_net.forward_prop(X_train_T);
+        neural_net.back_prop(X_train, one_hot_Y, alpha);
     }
 
     std::cout << output << std::endl;
