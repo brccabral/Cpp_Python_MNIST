@@ -27,13 +27,13 @@ blaze::DynamicMatrix<double> to_matrix(const std::vector<MNIST_Image> &_images)
     return mat;
 }
 
-blaze::DynamicVector<double> get_Y(const blaze::DynamicMatrix<double> &mat)
+blaze::DynamicMatrix<double> get_Y(const blaze::DynamicMatrix<double> &mat)
 {
     const auto rows = mat.rows();
-    blaze::DynamicVector<double> Y(rows);
+    blaze::DynamicMatrix<double> Y(rows, 1);
     for (size_t r = 0; r < rows; ++r)
     {
-        Y[r] = mat(r, 0);
+        Y(r, 0) = mat(r, 0);
     }
     return Y;
 }
@@ -106,7 +106,7 @@ int main()
     auto Y_train = get_Y(train_mat);
     auto X_train = get_X(train_mat);
 
-    std::cout << Y_train[4] << std::endl;
+    std::cout << Y_train(4, 0) << std::endl;
     std::cout << X_train.rows() << "," << X_train.columns() << std::endl;
     for (int c = 0; c < X_train.columns(); c++)
         std::cout << X_train(4, c) << ", ";
@@ -118,6 +118,9 @@ int main()
     auto X_train_T = X_train.transpose();
 
     auto neural_net = NeuralNet_Blaze(X_train.columns(), hidden_layer_size, categories);
+    auto one_hot_Y = NeuralNet_Blaze::one_hot_encode(Y_train);
+
+    std::cout << one_hot_Y << std::endl;
 
     return EXIT_SUCCESS;
 }
