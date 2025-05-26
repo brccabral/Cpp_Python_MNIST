@@ -120,7 +120,19 @@ int main()
     auto neural_net = NeuralNet_Blaze(X_train.columns(), hidden_layer_size, categories);
     auto one_hot_Y = NeuralNet_Blaze::one_hot_encode(Y_train);
 
-    std::cout << one_hot_Y << std::endl;
+    blaze::DynamicMatrix<double> output(categories, X_train.rows());
+
+    double correct_prediction = 0;
+    double acc = 0.0f;
+
+    blaze::DynamicMatrix<double> prediction(categories, 1);
+
+    for (int generation = 0; generation < num_generations; generation++)
+    {
+        output = neural_net.forward_prop(X_train_T);
+    }
+
+    std::cout << output << std::endl;
 
     return EXIT_SUCCESS;
 }
