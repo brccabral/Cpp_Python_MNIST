@@ -15,7 +15,7 @@ NeuralNet_Blaze::NeuralNet_Blaze(int num_features, int hidden_layer_size, int ca
 
 blaze::DynamicMatrix<double> NeuralNet_Blaze::one_hot_encode(const blaze::DynamicMatrix<double> &Z)
 {
-    auto o = blaze::DynamicMatrix<double>(Z.rows(), blaze::max(Z) + 1, 0);
+    blaze::DynamicMatrix<double> o = blaze::zero<double>(Z.rows(), blaze::max(Z) + 1);
 
     for (int r = 0; r < Z.rows() - 1; r++)
     {
