@@ -115,7 +115,7 @@ int main()
     auto categories = blaze::max(Y_train) + 1;
 
     X_train /= 255.0;
-    auto X_train_T = X_train.transpose();
+    auto X_train_T = blaze::trans(X_train);
 
     auto neural_net = NeuralNet_Blaze(X_train.columns(), hidden_layer_size, categories);
     auto one_hot_Y = NeuralNet_Blaze::one_hot_encode(Y_train);
