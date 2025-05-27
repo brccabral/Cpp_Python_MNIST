@@ -810,7 +810,7 @@ CNdArray NeuralNet_CNumpy::forward_prop(const CNdArray &X)
 
 void NeuralNet_CNumpy::back_prop(const CNdArray &X, const CNdArray &target, const float alpha)
 {
-    const auto y_size = target.cols();
+    const auto y_size = target.rows();
 
     const auto dZ2 = (A2 - target) / y_size;
     const auto dW2 = dZ2.dot(A1.transpose());

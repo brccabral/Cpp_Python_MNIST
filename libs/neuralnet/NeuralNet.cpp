@@ -58,7 +58,7 @@ Eigen::MatrixXf NeuralNet::deriv_ReLU(Eigen::MatrixXf &Z)
 void NeuralNet::back_prop(
         const Eigen::MatrixXf &X, const Eigen::MatrixXf &target, const float alpha)
 {
-    const int y_size = target.cols();
+    const int y_size = target.rows();
 
     const Eigen::MatrixXf dZ2 = (A2 - target) / y_size;
     dW2 = dZ2 * A1.transpose();

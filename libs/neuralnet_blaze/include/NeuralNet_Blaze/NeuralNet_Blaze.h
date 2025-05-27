@@ -16,6 +16,7 @@ public:
     static blaze::DynamicMatrix<double> one_hot_encode(const blaze::DynamicVector<double> &Z);
     static blaze::DynamicMatrix<double> ReLU(const blaze::DynamicMatrix<double> &Z);
     static blaze::DynamicMatrix<double> deriv_ReLU(const blaze::DynamicMatrix<double> &Z);
+    static blaze::DynamicMatrix<double> Softmax(const blaze::DynamicMatrix<double> &Z);
     static blaze::DynamicVector<double> get_predictions(const blaze::DynamicMatrix<double> &A2);
     static double get_correct_prediction(
             const blaze::DynamicVector<double> &predictions, const blaze::DynamicVector<double> &Y);

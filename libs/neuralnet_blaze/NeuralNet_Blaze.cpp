@@ -18,7 +18,7 @@ blaze::DynamicMatrix<double> NeuralNet_Blaze::forward_prop(const blaze::DynamicM
 
     Z2 = W2 * A1;
     Z2 += expand(b2, Z2.columns());
-    A2 = blaze::softmax(Z2);
+    A2 = Softmax(Z2);
 
     return A2;
 }
@@ -27,7 +27,7 @@ void NeuralNet_Blaze::back_prop(
         const blaze::DynamicMatrix<double> &X, const blaze::DynamicMatrix<double> &target,
         const double alpha)
 {
-    const auto y_size = target.columns();
+    const auto y_size = target.rows();
 
     const blaze::DynamicMatrix<double> dZ2 = (A2 - target) / y_size;
     const blaze::DynamicMatrix<double> dW2 = dZ2 * blaze::trans(A1);
@@ -62,6 +62,30 @@ blaze::DynamicMatrix<double> NeuralNet_Blaze::ReLU(const blaze::DynamicMatrix<do
 blaze::DynamicMatrix<double> NeuralNet_Blaze::deriv_ReLU(const blaze::DynamicMatrix<double> &Z)
 {
     return blaze::map(Z, [](const double z) { return z > 0.0 ? 1.0 : 0.0; });
+}
+
+blaze::DynamicMatrix<double> NeuralNet_Blaze::Softmax(const blaze::DynamicMatrix<double> &Z)
+{
+    blaze::DynamicMatrix<float> result = Z;
+
+    // Subtract column-wise max from each row
+    for (size_t i = 0; i < Z.columns(); ++i)
+    {
+        const double maxVal = blaze::max(blaze::column(Z, i));
+        blaze::column(result, i) -= maxVal;
+    }
+
+    // Exponentiate
+    result = blaze::exp(result);
+
+    // Normalize each column by the column sum
+    for (size_t i = 0; i < result.columns(); ++i)
+    {
+        const double sumVal = blaze::sum(blaze::column(result, i));
+        blaze::column(result, i) /= sumVal;
+    }
+
+    return result;
 }
 
 blaze::DynamicVector<double>
