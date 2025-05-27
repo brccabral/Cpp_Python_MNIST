@@ -19,7 +19,7 @@ class NeuralNet:
 
     @staticmethod
     def softmax(Z: np.ndarray) -> np.ndarray:
-        e = np.exp(Z)
+        e = np.exp(Z - np.max(Z, 0))
         s = np.sum(e, 0)
         return e / s
 
