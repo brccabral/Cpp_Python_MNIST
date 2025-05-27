@@ -47,11 +47,10 @@ class NeuralNet:
     def back_prop(
         self,
         X: np.ndarray,
-        Y: np.ndarray,
         one_hot_Y: np.ndarray,
         alpha: float,
     ) -> None:
-        m = Y.size
+        m = one_hot_Y.shape[1]
         dZ2 = self.A2 - one_hot_Y
         dW2 = 1 / m * dZ2.dot(self.A1.T)
         db2 = 1 / m * np.sum(dZ2, 1).reshape(self.b2.shape)

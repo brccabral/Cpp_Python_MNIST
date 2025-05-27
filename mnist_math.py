@@ -75,7 +75,7 @@ def main():
             acc = NeuralNet.get_accuracy(correct_prediction, Y_train.size)
             print(f"Generation: {generation}\tCorrect {correct_prediction}\tAccuracy: {acc:.4f}")
 
-        neural_net.back_prop(X_train, Y_train, one_hot_Y, alpha)
+        neural_net.back_prop(X_train, one_hot_Y, alpha)
 
     output = neural_net.forward_prop(X_train_T)
     predictions = NeuralNet.get_predictions(output)
