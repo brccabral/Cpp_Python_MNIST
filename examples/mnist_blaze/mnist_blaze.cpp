@@ -27,13 +27,13 @@ blaze::DynamicMatrix<double> to_matrix(const std::vector<MNIST_Image> &_images)
     return mat;
 }
 
-blaze::DynamicMatrix<double> get_Y(const blaze::DynamicMatrix<double> &mat)
+blaze::DynamicVector<double> get_Y(const blaze::DynamicMatrix<double> &mat)
 {
     const auto rows = mat.rows();
-    blaze::DynamicMatrix<double> Y(rows, 1);
+    blaze::DynamicVector<double> Y(rows);
     for (size_t r = 0; r < rows; ++r)
     {
-        Y(r, 0) = mat(r, 0);
+        Y[r] = mat(r, 0);
     }
     return Y;
 }
@@ -106,7 +106,7 @@ int main()
     auto Y_train = get_Y(train_mat);
     auto X_train = get_X(train_mat);
 
-    std::cout << Y_train(4, 0) << std::endl;
+    std::cout << Y_train[4] << std::endl;
     std::cout << X_train.rows() << "," << X_train.columns() << std::endl;
     for (int c = 0; c < X_train.columns(); c++)
         std::cout << X_train(4, c) << ", ";
@@ -125,15 +125,29 @@ int main()
     double correct_prediction = 0;
     double acc = 0.0f;
 
-    blaze::DynamicMatrix<double> prediction(categories, 1);
+    blaze::DynamicVector<double> prediction(categories, 1);
 
     for (int generation = 0; generation < num_generations; generation++)
     {
         output = neural_net.forward_prop(X_train_T);
+
+        if (generation % 50 == 0)
+        {
+            prediction = NeuralNet_Blaze::get_predictions(output);
+            correct_prediction = NeuralNet_Blaze::get_correct_prediction(prediction, Y_train);
+            acc = NeuralNet_Blaze::get_accuracy(correct_prediction, Y_train.size());
+            printf("Generation %d\t Correct %0.f\tAccuracy %.4f\n", generation, correct_prediction,
+                   acc);
+        }
+
         neural_net.back_prop(X_train, one_hot_Y, alpha);
     }
 
-    std::cout << output << std::endl;
+    output = neural_net.forward_prop(X_train_T);
+    prediction = NeuralNet_Blaze::get_predictions(output);
+    correct_prediction = NeuralNet_Blaze::get_correct_prediction(prediction, Y_train);
+    acc = NeuralNet_Blaze::get_accuracy(correct_prediction, Y_train.size());
+    printf("Final\tCorrect %0.f\tAccuracy %.4f\n", correct_prediction, acc);
 
     return EXIT_SUCCESS;
 }

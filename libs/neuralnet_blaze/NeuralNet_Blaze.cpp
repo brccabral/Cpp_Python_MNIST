@@ -43,13 +43,13 @@ void NeuralNet_Blaze::back_prop(
     b2 -= (db2 * alpha);
 }
 
-blaze::DynamicMatrix<double> NeuralNet_Blaze::one_hot_encode(const blaze::DynamicMatrix<double> &Z)
+blaze::DynamicMatrix<double> NeuralNet_Blaze::one_hot_encode(const blaze::DynamicVector<double> &Z)
 {
-    blaze::DynamicMatrix<double> o = blaze::zero<double>(Z.rows(), blaze::max(Z) + 1);
+    blaze::DynamicMatrix<double> o = blaze::zero<double>(Z.size(), blaze::max(Z) + 1);
 
-    for (int r = 0; r < Z.rows() - 1; r++)
+    for (int r = 0; r < Z.size() - 1; r++)
     {
-        o(r, int(Z(r, 0))) = 1;
+        o(r, int(Z[r])) = 1;
     }
     return o.transpose();
 }
@@ -62,4 +62,31 @@ blaze::DynamicMatrix<double> NeuralNet_Blaze::ReLU(const blaze::DynamicMatrix<do
 blaze::DynamicMatrix<double> NeuralNet_Blaze::deriv_ReLU(const blaze::DynamicMatrix<double> &Z)
 {
     return blaze::map(Z, [](const double z) { return z > 0.0 ? 1.0 : 0.0; });
+}
+
+blaze::DynamicVector<double>
+NeuralNet_Blaze::get_predictions(const blaze::DynamicMatrix<double> &A2)
+{
+    blaze::DynamicVector<double> p = blaze::zero<double>(A2.columns());
+    for (int c = 0; c < A2.columns(); c++)
+    {
+        p[c] = blaze::argmax(blaze::column(A2, c));
+    }
+    return p;
+}
+
+double NeuralNet_Blaze::get_correct_prediction(
+        const blaze::DynamicVector<double> &predictions, const blaze::DynamicVector<double> &Y)
+{
+    blaze::DynamicVector<double> result(Y.size());
+    for (int c = 0; c < Y.size(); c++)
+    {
+        result[c] = predictions[c] == Y[c] ? 1.0 : 0.0;
+    }
+    return blaze::sum(result);
+}
+
+double NeuralNet_Blaze::get_accuracy(const double correct_prediction, const size_t size)
+{
+    return correct_prediction / size;
 }
