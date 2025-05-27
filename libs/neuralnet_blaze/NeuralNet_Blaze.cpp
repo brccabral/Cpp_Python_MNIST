@@ -4,14 +4,10 @@
 NeuralNet_Blaze::NeuralNet_Blaze(
         const int num_features, const int hidden_layer_size, const int categories)
 {
-    W1 = blaze::DynamicMatrix<double>(hidden_layer_size, num_features);
-    blaze::randomize(W1, -0.5, 0.5);
-    b1 = blaze::DynamicVector<double>(hidden_layer_size);
-    blaze::randomize(b1, -0.5, 0.5);
-    W2 = blaze::DynamicMatrix<double>(categories, hidden_layer_size);
-    blaze::randomize(W2, -0.5, 0.5);
-    b2 = blaze::DynamicVector<double>(categories);
-    blaze::randomize(b2, -0.5, 0.5);
+    W1 = blaze::rand<blaze::DynamicMatrix<double>>(hidden_layer_size, num_features) - 0.5;
+    b1 = blaze::rand<blaze::DynamicVector<double>>(hidden_layer_size) - 0.5;
+    W2 = blaze::rand<blaze::DynamicMatrix<double>>(categories, hidden_layer_size) - 0.5;
+    b2 = blaze::rand<blaze::DynamicVector<double>>(categories) - 0.5;
 }
 
 blaze::DynamicMatrix<double> NeuralNet_Blaze::forward_prop(const blaze::DynamicMatrix<double> &X)
