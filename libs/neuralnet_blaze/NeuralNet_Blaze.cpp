@@ -27,7 +27,7 @@ void NeuralNet_Blaze::back_prop(
         const blaze::DynamicMatrix<double> &X, const blaze::DynamicMatrix<double> &target,
         const double alpha)
 {
-    const auto y_size = target.rows();
+    const auto y_size = target.columns();
 
     const blaze::DynamicMatrix<double> dZ2 = (A2 - target) / y_size;
     const blaze::DynamicMatrix<double> dW2 = dZ2 * blaze::trans(A1);

@@ -521,7 +521,7 @@ void back_prop(
     {
         create_aux(nn, inputs);
     }
-    const int y_size = one_hot_Y->rows;
+    const int y_size = one_hot_Y->cols;
 
     // const Eigen::MatrixXf dZ2 = A2 - one_hot_Y;
     // reuse A2 as dZ2

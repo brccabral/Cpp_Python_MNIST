@@ -89,8 +89,10 @@ int main()
     Eigen::MatrixXf train_mat = to_matrix(train_dataset._images);
 
     Eigen::VectorXf Y_train = get_Y(train_mat);
-    Eigen::MatrixXf X_train = get_X(train_mat);
     std::cout << Y_train(4) << std::endl;
+
+    Eigen::MatrixXf X_train = get_X(train_mat);
+    X_train = X_train / 255.0f;
     std::cout << X_train.rows() << "," << X_train.cols() << std::endl;
     for (int c = 0; c < X_train.cols(); c++)
         std::cout << X_train(4, c) << ", ";
@@ -98,7 +100,6 @@ int main()
 
     int categories = Y_train.maxCoeff() + 1;
 
-    X_train = X_train / 255.0;
     Eigen::MatrixXf X_train_T = X_train.transpose();
 
     NeuralNet neural_net(X_train.cols(), hidden_layer_size, categories);

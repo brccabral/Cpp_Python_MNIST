@@ -52,7 +52,7 @@ nc::NdArray<float> NeuralNetNC::deriv_ReLU(const nc::NdArray<float> &Z)
 void NeuralNetNC::back_prop(
         const nc::NdArray<float> &X, const nc::NdArray<int> &one_hot_Y, const float alpha)
 {
-    const float m = one_hot_Y.numRows();
+    const float m = one_hot_Y.numCols();
     const auto dZ2 = A2 - one_hot_Y.astype<float>();
     dW2 = 1.0f / m * dZ2.dot(A1.transpose());
     db2 = (1.0f / m * nc::sum(dZ2)).item();

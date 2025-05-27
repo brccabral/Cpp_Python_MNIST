@@ -18,14 +18,6 @@ public:
     Eigen::MatrixXf Z2;
     Eigen::MatrixXf A2;
 
-    // gradients
-    Eigen::MatrixXf dW1;
-    Eigen::VectorXf db1;
-    Eigen::MatrixXf dW2;
-    Eigen::VectorXf db2;
-
-public:
-
     NeuralNet(int num_features, int hidden_layer_size, int categories);
 
     static Eigen::MatrixXf ReLU(const Eigen::MatrixXf &Z);

@@ -41,9 +41,9 @@ Eigen::MatrixXf NeuralNet::forward_prop(const Eigen::MatrixXf &X)
 
 Eigen::MatrixXf NeuralNet::one_hot_encode(Eigen::VectorXf &Z)
 {
-    Eigen::MatrixXf o = Eigen::MatrixXf::Zero(Z.rows(), Z.maxCoeff() + 1);
+    Eigen::MatrixXf o = Eigen::MatrixXf::Zero(Z.size(), Z.maxCoeff() + 1);
 
-    for (int r = 0; r < Z.rows() - 1; r++)
+    for (int r = 0; r < Z.size() - 1; r++)
     {
         o(r, int(Z(r))) = 1;
     }
@@ -58,15 +58,15 @@ Eigen::MatrixXf NeuralNet::deriv_ReLU(Eigen::MatrixXf &Z)
 void NeuralNet::back_prop(
         const Eigen::MatrixXf &X, const Eigen::MatrixXf &target, const float alpha)
 {
-    const int y_size = target.rows();
+    const int y_size = target.cols();
 
-    const Eigen::MatrixXf dZ2 = (A2 - target) / y_size;
-    dW2 = dZ2 * A1.transpose();
-    db2 = dZ2.rowwise().sum();
+    const Eigen::MatrixXf dZ2 = (A2 - target);
+    const Eigen::MatrixXf dW2 = (1.0 / y_size) * dZ2 * A1.transpose();
+    const Eigen::VectorXf db2 = (1.0 / y_size) *  dZ2.rowwise().sum();
 
     const Eigen::MatrixXf dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
-    dW1 = dZ1 * X;
-    db1 = dZ1.rowwise().sum();
+    const Eigen::MatrixXf dW1 = 1.0 / y_size * dZ1 * X;
+    const Eigen::VectorXf db1 = 1.0 / y_size * dZ1.rowwise().sum();
 
     W1 = W1 - dW1 * alpha;
     b1 = b1 - db1 * alpha;
@@ -88,8 +88,12 @@ Eigen::VectorXf NeuralNet::get_predictions(Eigen::MatrixXf &P)
 
 int NeuralNet::get_correct_prediction(const Eigen::VectorXf &p, const Eigen::VectorXf &y)
 {
-    const Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> e = p.cwiseEqual(y);
-    const Eigen::VectorXi e_int = e.unaryExpr([](const bool x) { return x ? 1 : 0; });
+    Eigen::VectorXf e(p.size());
+    for (int i = 0; i < p.size(); i++)
+    {
+        e[i] = std::abs(p[i] - y[i]);
+    }
+    const Eigen::VectorXi e_int = e.unaryExpr([](const float x) { return x < 0.0001 ? 1 : 0; });
     return e_int.sum();
 }
 
