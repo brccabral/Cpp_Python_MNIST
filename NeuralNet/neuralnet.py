@@ -56,7 +56,7 @@ class NeuralNet:
         dW2 = 1 / m * dZ2.dot(self.A1.T)
         db2 = 1 / m * np.sum(dZ2, 1).reshape(self.b2.shape)
         dZ1: np.ndarray = self.W2.T.dot(dZ2) * NeuralNet.deriv_ReLU(self.Z1)
-        dW1 = 1 / m * dZ1.dot(X.T)
+        dW1 = 1 / m * dZ1.dot(X)
         db1 = 1 / m * np.sum(dZ1, 1).reshape(self.b1.shape)
 
         self.W1 = self.W1 - alpha * dW1

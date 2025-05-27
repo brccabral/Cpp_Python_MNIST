@@ -817,7 +817,7 @@ void NeuralNet_CNumpy::back_prop(const CNdArray &X, const CNdArray &target, cons
     const auto db2 = CNumpy::sum(dZ2, 1).reshape(b2.rows(), b2.cols());
 
     const auto dZ1 = W2.transpose().dot(dZ2) * deriv_ReLU(Z1);
-    const auto dW1 = dZ1.dot(X.transpose());
+    const auto dW1 = dZ1.dot(X);
     const auto db1 = CNumpy::sum(dZ1, 1).reshape(b1.rows(), b1.cols());
 
     W1 = W1 - dW1 * alpha;
