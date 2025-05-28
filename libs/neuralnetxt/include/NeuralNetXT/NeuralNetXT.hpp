@@ -18,12 +18,6 @@ private:
     xt::xarray<float> Z2;
     xt::xarray<float> A2;
 
-    // gradients
-    xt::xarray<float> dW1;
-    float db1{};
-    xt::xarray<float> dW2;
-    float db2{};
-
 public:
 
     NeuralNetXT(unsigned int num_features, unsigned int hidden_layer_size, unsigned int categories);

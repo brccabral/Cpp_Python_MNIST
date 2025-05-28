@@ -19,12 +19,6 @@ private:
     nc::NdArray<float> Z2;
     nc::NdArray<float> A2;
 
-    // gradients
-    nc::NdArray<float> dW1;
-    float db1{};
-    nc::NdArray<float> dW2;
-    float db2{};
-
 public:
 
     NeuralNetNC(unsigned int num_features, unsigned int hidden_layer_size, unsigned int categories);

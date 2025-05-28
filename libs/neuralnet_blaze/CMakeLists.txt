@@ -6,6 +6,6 @@ target_include_directories(neuralnet_blaze PUBLIC include)
 target_link_libraries(neuralnet_blaze PUBLIC blaze::blaze)
 
 if (USE_SIMD)
-    target_compile_options(neuralnet_blaze PUBLIC ${SIMD_FLAGS})
-    target_link_options(neuralnet_blaze PUBLIC ${SIMD_FLAGS})
+    target_compile_options(neuralnet_blaze PUBLIC ${SIMD_FLAGS_COMPILER})
+    target_link_options(neuralnet_blaze PUBLIC ${SIMD_FLAGS_LINKER})
 endif ()

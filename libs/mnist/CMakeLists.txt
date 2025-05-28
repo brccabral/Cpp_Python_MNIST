@@ -3,8 +3,8 @@ target_sources(mnist PRIVATE MNIST_Dataset.cpp MNIST_Image.cpp)
 target_include_directories(mnist PUBLIC include)
 
 if (USE_SIMD)
-    target_compile_options(mnist PUBLIC ${SIMD_FLAGS})
-    target_link_options(mnist PUBLIC ${SIMD_FLAGS})
+    target_compile_options(mnist PUBLIC ${SIMD_FLAGS_COMPILER})
+    target_link_options(mnist PUBLIC ${SIMD_FLAGS_LINKER})
 endif ()
 
 if (SAVE_IMAGES)

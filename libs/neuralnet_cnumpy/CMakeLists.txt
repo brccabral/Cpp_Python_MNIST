@@ -15,6 +15,6 @@ target_include_directories(neuralnet_cnumpy PUBLIC include)
 target_link_libraries(neuralnet_cnumpy PUBLIC Python3::Python Python3::Module Python3::NumPy)
 
 if (USE_SIMD)
-    target_compile_options(neuralnet_cnumpy PUBLIC ${SIMD_FLAGS})
-    target_link_options(neuralnet_cnumpy PUBLIC ${SIMD_FLAGS})
+    target_compile_options(neuralnet_cnumpy PUBLIC ${SIMD_FLAGS_COMPILER})
+    target_link_options(neuralnet_cnumpy PUBLIC ${SIMD_FLAGS_LINKER})
 endif ()

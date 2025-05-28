@@ -4,6 +4,7 @@
 #endif // CV_SAVE_IMAGES
 #include <cstring>
 #include <fstream>
+#include <iostream>
 
 std::ostream &operator<<(std::ostream &outs, const MNIST_Image &m)
 {

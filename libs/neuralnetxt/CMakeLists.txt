@@ -27,8 +27,8 @@ endif ()
 if (USE_SIMD)
     # find_package(xtensor) tries to find xsim
     target_compile_definitions(neuralnetxt PUBLIC XTENSOR_USE_XSIMD)
-    target_compile_options(neuralnetxt PUBLIC ${SIMD_FLAGS})
-    target_link_options(neuralnetxt PUBLIC ${SIMD_FLAGS})
+    target_compile_options(neuralnetxt PUBLIC ${SIMD_FLAGS_COMPILER})
+    target_link_options(neuralnetxt PUBLIC ${SIMD_FLAGS_LINKER})
     target_link_libraries(neuralnetxt PUBLIC xtensor::optimize xsimd)
 endif ()
 

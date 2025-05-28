@@ -10,6 +10,6 @@ target_sources(torchnet
 target_link_libraries(torchnet INTERFACE "${TORCH_LIBRARIES}")
 
 if (USE_SIMD)
-    target_compile_options(torchnet INTERFACE ${SIMD_FLAGS})
-    target_link_options(torchnet INTERFACE ${SIMD_FLAGS})
+    target_compile_options(torchnet INTERFACE ${SIMD_FLAGS_COMPILER})
+    target_link_options(torchnet INTERFACE ${SIMD_FLAGS_LINKER})
 endif ()

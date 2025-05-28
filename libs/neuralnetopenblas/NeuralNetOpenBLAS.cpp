@@ -1,10 +1,16 @@
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <NeuralNetOpenBLAS/NeuralNetOpenBLAS.h>
 #include <immintrin.h>
 #include <omp.h>
 
-MatrixDouble *create_matrix(const uint rows, const uint cols)
+#ifdef _WIN32
+inline void srand48(long seedval) { srand((unsigned int)seedval); }
+inline double drand48() { return ((double)rand() / (double)RAND_MAX); }
+#endif
+
+MatrixDouble *create_matrix(const uint32_t rows, const uint32_t cols)
 {
     assert(rows > 0 && cols > 0);
 
@@ -178,7 +184,7 @@ void nn_seed(const size_t value)
     srand48(value);
 }
 
-MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint column)
+MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint32_t column)
 {
     assert(mat);
     assert(column < mat->cols);
@@ -401,7 +407,7 @@ void get_predictions(const NeuralNetOpenBLAS *nn)
     }
 }
 
-uint get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *labels)
+uint32_t get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *labels)
 {
     assert(nn);
     assert(labels);

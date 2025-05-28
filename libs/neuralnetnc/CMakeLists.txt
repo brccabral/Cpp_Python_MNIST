@@ -7,8 +7,8 @@ target_compile_features(neuralnetnc PUBLIC cxx_std_20)
 if (USE_SIMD)
     find_package(TBB REQUIRED)
 
-    target_compile_options(neuralnetnc PUBLIC ${SIMD_FLAGS})
-    target_link_options(neuralnetnc PUBLIC ${SIMD_FLAGS})
+    target_compile_options(neuralnetnc PUBLIC ${SIMD_FLAGS_COMPILER})
+    target_link_options(neuralnetnc PUBLIC ${SIMD_FLAGS_LINKER})
     target_link_libraries(neuralnetnc PUBLIC TBB::tbb)
 
     if (WIN32)

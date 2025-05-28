@@ -54,12 +54,12 @@ void NeuralNetNC::back_prop(
 {
     const float m = one_hot_Y.numCols();
     const auto dZ2 = A2 - one_hot_Y.astype<float>();
-    dW2 = 1.0f / m * dZ2.dot(A1.transpose());
-    db2 = (1.0f / m * nc::sum(dZ2)).item();
+    const auto dW2 = 1.0f / m * dZ2.dot(A1.transpose());
+    const auto db2 = 1.0f / m * nc::sum(dZ2, nc::Axis::COL).reshape(b2.shape());
 
     const auto dZ1 = W2.transpose().dot(dZ2) * NeuralNetNC::deriv_ReLU(Z1);
-    dW1 = 1.0f / m * dZ1.dot(X);
-    db1 = (1.0f / m * nc::sum(dZ1)).item();
+    const auto dW1 = 1.0f / m * dZ1.dot(X);
+    const auto db1 = 1.0f / m * nc::sum(dZ1, nc::Axis::COL).reshape(b1.shape());
 
     W1 = W1 - alpha * dW1;
     b1 = b1 - alpha * db1;

@@ -55,12 +55,14 @@ void NeuralNetXT::back_prop(
 {
     const auto m = (float) one_hot_Y.shape()[1];
     const auto dZ2 = A2 - xt::cast<float>(one_hot_Y);
-    dW2 = 1.0f / m * xt::linalg::dot(dZ2, xt::transpose(A1));
-    db2 = (1.0f / m * xt::sum(dZ2))();
+    const auto dW2 = 1.0f / m * xt::linalg::dot(dZ2, xt::transpose(A1));
+    xt::xarray<float> s2 = xt::sum(dZ2, {1});
+    const auto db2 = 1.0f / m * s2.reshape(b2.shape());
 
     const auto dZ1 = xt::linalg::dot(xt::transpose(W2), dZ2) * NeuralNetXT::deriv_ReLU(Z1);
-    dW1 = 1.0f / m * xt::linalg::dot(dZ1, X);
-    db1 = (1.0f / m * xt::sum(dZ1))();
+    const auto dW1 = 1.0f / m * xt::linalg::dot(dZ1, X);
+    xt::xarray<float> s1 = xt::sum(dZ1, {1});
+    const auto db1 = 1.0f / m * s1.reshape(b1.shape());
 
     W1 = W1 - alpha * dW1;
     b1 = b1 - alpha * db1;
