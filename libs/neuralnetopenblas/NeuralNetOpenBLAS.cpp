@@ -6,8 +6,14 @@
 #include <omp.h>
 
 #ifdef _WIN32
-inline void srand48(long seedval) { srand((unsigned int)seedval); }
-inline double drand48() { return ((double)rand() / (double)RAND_MAX); }
+inline void srand48(long seedval)
+{
+    srand((unsigned int) seedval);
+}
+inline double drand48()
+{
+    return ((double) rand() / (double) RAND_MAX);
+}
 #endif
 
 MatrixDouble *create_matrix(const uint32_t rows, const uint32_t cols)
@@ -80,6 +86,8 @@ NeuralNetOpenBLAS *create_neuralnet_openblas(
     nn->dW1 = NULL;
     nn->dW2 = NULL;
     nn->dZ1 = NULL;
+    nn->db1 = NULL;
+    nn->db2 = NULL;
     nn->A2ones = NULL;
     nn->A2sum = NULL;
     nn->predictions = NULL;
@@ -165,6 +173,16 @@ void free_neuralnet_openblas(NeuralNetOpenBLAS *nn)
     {
         free_matrix(nn->dZ1);
         nn->dZ1 = NULL;
+    }
+    if (nn->db1 != NULL)
+    {
+        free_matrix(nn->db1);
+        nn->db1 = NULL;
+    }
+    if (nn->db2 != NULL)
+    {
+        free_matrix(nn->db2);
+        nn->db2 = NULL;
     }
     free(nn);
     nn = NULL;
@@ -341,6 +359,18 @@ void create_aux(NeuralNetOpenBLAS *nn, const MatrixDouble *inputs)
         }
         nn->dW2 = create_matrix(nn->W2->rows, nn->W2->cols);
 
+        if (nn->db1)
+        {
+            free_matrix(nn->db1);
+        }
+        nn->db1 = create_matrix(nn->b1->rows, nn->b1->cols);
+
+        if (nn->db2)
+        {
+            free_matrix(nn->db2);
+        }
+        nn->db2 = create_matrix(nn->b2->rows, nn->b2->cols);
+
         if (nn->A2ones)
         {
             free_matrix(nn->A2ones);
@@ -400,7 +430,7 @@ void get_predictions(const NeuralNetOpenBLAS *nn)
            nn->predictions->rows * nn->predictions->cols * sizeof(double));
 
 #pragma omp parallel for default(none) shared(nn)
-    for (int col = 0; col < nn->A2->cols; ++col)
+    for (uint32_t col = 0; col < nn->A2->cols; ++col)
     {
         const int index = cblas_idmax(nn->A2->rows, &nn->A2->data[col], nn->A2->cols);
         nn->predictions->data[col] = index % nn->A2->rows;
@@ -418,7 +448,7 @@ uint32_t get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble 
     int correct_count = 0;
 
 #pragma omp parallel for default(none) shared(nn, labels) reduction(+ : correct_count)
-    for (int row = 0; row < nn->predictions->rows; ++row)
+    for (uint32_t row = 0; row < nn->predictions->rows; ++row)
     {
         if (nn->predictions->data[row] == labels->data[row])
         {
@@ -543,8 +573,11 @@ void back_prop(
     multiply_ABt(nn->A2, nn->A1, nn->dW2);
     cblas_dscal(nn->dW2->rows * nn->dW2->cols, 1.0 / y_size, nn->dW2->data, 1);
 
-    // db2 = dZ2.sum() / y_size;
-    const double db2 = cblas_dsum(nn->A2->rows * nn->A2->cols, nn->A2->data, 1) / y_size;
+    // db2 = dZ2.rowwise().sum() / y_size;
+    for (size_t r = 0; r < nn->A2->rows; ++r)
+    {
+        nn->db2->data[r] = cblas_dsum(nn->A2->cols, nn->A2->data + r * nn->A2->cols, 1) / y_size;
+    }
 
     // const Eigen::MatrixXf dZ1 = (W2.transpose() * dZ2).cwiseProduct(deriv_ReLU(Z1));
     // w2 categ, hidden
@@ -563,8 +596,11 @@ void back_prop(
     multiply_AB(nn->dZ1, inputs, nn->dW1);
     cblas_dscal(nn->dW1->rows * nn->dW1->cols, 1.0 / y_size, nn->dW1->data, 1);
 
-    // db1 = dZ1.sum() / y_size;
-    const double db1 = cblas_dsum(nn->dZ1->rows * nn->dZ1->cols, nn->dZ1->data, 1) / y_size;
+    // db1 = dZ1.rowwise().sum() / y_size;
+    for (size_t r = 0; r < nn->dZ1->rows; ++r)
+    {
+        nn->db1->data[r] = cblas_dsum(nn->dZ1->cols, nn->dZ1->data + r * nn->dZ1->cols, 1) / y_size;
+    }
 
     // W1 = W1 - dW1 * alpha;
     // W1 hidden, features
@@ -572,13 +608,13 @@ void back_prop(
     cblas_daxpy(nn->W1->rows * nn->W1->cols, -alpha, nn->dW1->data, 1, nn->W1->data, 1);
 
     // b1 = b1.array() - db1 * alpha;
-    subtract_scalar(nn->b1, db1 * alpha);
+    cblas_daxpy(nn->b1->rows * nn->b1->cols, -alpha, nn->db1->data, 1, nn->b1->data, 1);
 
     // W2 = W2 - dW2 * alpha;
     cblas_daxpy(nn->W2->rows * nn->W2->cols, -alpha, nn->dW2->data, 1, nn->W2->data, 1);
 
     // b2 = b2.array() - db2 * alpha;
-    subtract_scalar(nn->b2, db2 * alpha);
+    cblas_daxpy(nn->b2->rows * nn->b2->cols, -alpha, nn->db2->data, 1, nn->b2->data, 1);
 }
 
 void multiply_AB(const MatrixDouble *A, const MatrixDouble *B, const MatrixDouble *result)

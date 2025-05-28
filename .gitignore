@@ -1,5 +1,5 @@
 MNIST_data/
-.venv/
+.venv*/
 venv/
 .vscode/
 cmake-build-*/

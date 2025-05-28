@@ -31,6 +31,7 @@ typedef struct NeuralNetOpenBLAS
     // derivatives
     MatrixDouble *Z1 = NULL, *A1 = NULL, *A2 = NULL;
     MatrixDouble *dW1 = NULL, *dW2 = NULL, *dZ1 = NULL;
+    MatrixDouble *db1 = NULL, *db2 = NULL;
     // auxiliaries
     MatrixDouble *A2ones = NULL, *A2sum = NULL, *predictions = NULL;
 
