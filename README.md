@@ -115,7 +115,13 @@ Files: train images, train labels, test images, test labels
     - **Blaze**  
       https://bitbucket.org/blaze-lib/blaze/  
       Blaze is an open-source, high-performance C++ math library for dense and sparse arithmetic.
-      Clone the repo, build and install.
+      Clone the repo, configure and install (it is header only library, there is no compiled target).
+      ```sh
+      git clone --depth 1 https://bitbucket.org/blaze-lib/blaze/
+      cd blaze
+      cmake -B cmake-build -S . -DCMAKE_INSTALL_PREFIX=/usr/local
+      cmake --build cmake-build --target install
+      ```
 
 - Python
     - **Python PyTorch**  
