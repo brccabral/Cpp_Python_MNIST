@@ -103,7 +103,7 @@ Files: train images, train labels, test images, test labels
       The CXX_FLAGS needs to have "-D_GLIBCXX_USE_CXX11_ABI=1", not 0  
       Unzip to this workspace (`./workspace/libtorch`), or somewhere in your path (`/usr/local` or `$HOME/.local`).  
       On Windows, you may need to download both `Debug` and `Release`.
-    - **OpenBLAS**
+    - **OpenBLAS**  
       https://www.openblas.net/  
       An implementation of _BLAS (Basic Linear Algebra Subprograms)_  
       I had to download it on Windows.  
@@ -112,6 +112,10 @@ Files: train images, train labels, test images, test labels
       ```shell
       sudo apt install libopenblas-dev liblapacke-dev
       ```
+    - **Blaze**  
+      https://bitbucket.org/blaze-lib/blaze/  
+      Blaze is an open-source, high-performance C++ math library for dense and sparse arithmetic.
+      Clone the repo, build and install.
 
 - Python
     - **Python PyTorch**  
