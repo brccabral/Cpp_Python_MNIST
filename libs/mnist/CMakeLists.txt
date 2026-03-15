@@ -1,6 +1,7 @@
 add_library(mnist STATIC)
 target_sources(mnist PRIVATE MNIST_Dataset.cpp MNIST_Image.cpp)
 target_include_directories(mnist PUBLIC include)
+target_link_libraries(mnist PUBLIC SimpleIni::SimpleIni)
 
 if (USE_SIMD)
     target_compile_options(mnist PUBLIC ${SIMD_FLAGS_COMPILER})

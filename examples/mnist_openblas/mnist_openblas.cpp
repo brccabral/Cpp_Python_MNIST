@@ -6,7 +6,7 @@
 
 #include <ctime>
 #include <iostream>
-#include <SimpleIni/SimpleIni.h>
+#include <SimpleIni.h>
 #include <MNIST/MNIST_Dataset.hpp>
 #include <NeuralNetOpenBLAS/NeuralNetOpenBLAS.h>
 

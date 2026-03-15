@@ -4,7 +4,7 @@
 #endif
 #endif
 
-#include <SimpleIni/SimpleIni.h>
+#include <SimpleIni.h>
 #include <iostream>
 #include <MNIST/MNIST_Dataset.hpp>
 #include <Eigen/Dense>

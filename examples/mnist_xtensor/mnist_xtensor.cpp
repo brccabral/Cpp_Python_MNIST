@@ -6,7 +6,7 @@
 
 #include <iostream>
 #include <MNIST/MNIST_Dataset.hpp>
-#include <SimpleIni/SimpleIni.h>
+#include <SimpleIni.h>
 #include <xtensor/xarray.hpp>
 #include <xtensor/xio.hpp>
 #include <xtensor/xview.hpp>

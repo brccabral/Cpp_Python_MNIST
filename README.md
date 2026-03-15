@@ -31,6 +31,12 @@ Files: train images, train labels, test images, test labels
       Parse and use `config.ini`  
       Header only library  
       I used `SimpleInit 4.19`.
+      ```sh
+      git clone --depth 1 https://github.com/brofield/simpleini.git
+      cd simpleini
+      cmake -B cmake-bcode -S . -DCMAKE_INSTALL_PREFIX=/usr/local
+      cmake --build cmake-bcode --target install
+      ```
     - **NumCpp**  
       https://github.com/dpilger26/NumCpp  
       Another math library (similar to `numpy`)  

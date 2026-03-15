@@ -37,5 +37,8 @@ endif (WIN32)
 install(FILES config.ini
         DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
+# SimpleIni: common library for all examples
+find_package(SimpleIni REQUIRED)
+
 add_subdirectory(libs)
 add_subdirectory(examples)
