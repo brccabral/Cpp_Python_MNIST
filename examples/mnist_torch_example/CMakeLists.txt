@@ -2,7 +2,6 @@ find_package(Torch REQUIRED)
 
 add_executable(mnist_torch_example)
 target_sources(mnist_torch_example PRIVATE mnist_torch_example.cpp)
-target_include_directories(mnist_torch_example PRIVATE ${PROJECT_SOURCE_DIR}/dependencies)
 target_link_libraries(mnist_torch_example PRIVATE "${TORCH_LIBRARIES}" SimpleIni::SimpleIni)
 
 if (USE_SIMD)

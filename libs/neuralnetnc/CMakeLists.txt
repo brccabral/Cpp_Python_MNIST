@@ -1,6 +1,6 @@
 add_library(neuralnetnc STATIC)
 target_sources(neuralnetnc PRIVATE NeuralNetNC.cpp)
-target_include_directories(neuralnetnc PUBLIC include ${PROJECT_SOURCE_DIR}/dependencies/nc)
+target_include_directories(neuralnetnc PUBLIC include)
 
 target_compile_features(neuralnetnc PUBLIC cxx_std_20)
 

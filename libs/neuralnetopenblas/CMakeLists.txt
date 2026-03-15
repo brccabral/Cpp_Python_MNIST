@@ -6,7 +6,6 @@ target_include_directories(neuralnetopenblas
         PUBLIC
         include
         ${OpenBLAS_INCLUDE_DIRS}
-        ${PROJECT_SOURCE_DIR}/include
 )
 if (WIN32)
     target_link_libraries(neuralnetopenblas PUBLIC OpenBLAS::OpenBLAS)
