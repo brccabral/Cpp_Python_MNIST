@@ -1,6 +1,9 @@
+find_package(NumCpp REQUIRED)
+
 add_library(neuralnetnc STATIC)
 target_sources(neuralnetnc PRIVATE NeuralNetNC.cpp)
 target_include_directories(neuralnetnc PUBLIC include)
+target_link_libraries(neuralnetnc PUBLIC NumCpp::NumCpp)
 
 target_compile_features(neuralnetnc PUBLIC cxx_std_20)
 

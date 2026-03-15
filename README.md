@@ -41,6 +41,12 @@ Files: train images, train labels, test images, test labels
       https://github.com/dpilger26/NumCpp  
       Another math library (similar to `numpy`)  
       Header only library
+      ```sh
+      git clone --depth 1 https://github.com/dpilger26/NumCpp.git
+      cd NumCpp
+      cmake -B cmake-bcode -S . -DCMAKE_INSTALL_PREFIX=/usr/local -DNUMCPP_NO_USE_BOOST=ON
+      cmake --build cmake-bcode --target install
+      ```
     - **xtensor**  
       https://github.com/xtensor-stack/xtensor  
       One more math library (similar to `numpy`)  
