@@ -16,10 +16,6 @@ if (USE_SIMD)
     endif (WIN32)
 endif ()
 
-if (NC_NO_USE_BOOST)
-    target_compile_definitions(neuralnetnc PUBLIC NUMCPP_NO_USE_BOOST)
-endif ()
-
 if (NC_USE_MULTITHREAD)
     message("NumCpp to use MultiThread")
     find_package(TBB REQUIRED)

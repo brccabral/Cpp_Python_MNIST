@@ -12,10 +12,10 @@ option(SAVE_IMAGES "Use OpenCV to save images" OFF)
 
 # Windows can't compile with both XTENSOR_USE_XSIMD and XTENSOR_USE_TBB
 if (USE_SIMD)
-    set(XTENSOR_USE_XSIMD ON)
+    set(XTENSOR_USE_XSIMD ON CACHE BOOL "")
 endif ()
 if (USE_TBB)
-    set(XTENSOR_USE_TBB ON)
+    set(XTENSOR_USE_TBB ON CACHE BOOL "")
 endif ()
 
 include(CheckCXXCompilerFlag)
@@ -27,12 +27,16 @@ endif ()
 message("COMPILER_SUPPORT_OMP ${COMPILER_SUPPORT_OMP}")
 
 if (WIN32)
-    set(SIMD_FLAGS_COMPILER /arch:AVX2 /fp:fast /GL)
-    set(SIMD_FLAGS_LINKER /LTCG)
+    set(SIMD_FLAGS_COMPILER "/arch:AVX2" "/fp:fast" "/GL" CACHE STRING "")
+    set(SIMD_FLAGS_LINKER "/LTCG" CACHE STRING "")
 else ()
-    set(SIMD_FLAGS_COMPILER "-march=native" "-mtune=native" "-fopenmp")
-    set(SIMD_FLAGS_LINKER "-fopenmp")
+    set(SIMD_FLAGS_COMPILER "-march=native" "-mtune=native" "-fopenmp" CACHE STRING "")
+    set(SIMD_FLAGS_LINKER "-fopenmp" CACHE STRING "")
 endif (WIN32)
+
+if (NC_NO_USE_BOOST)
+    set(NUMCPP_NO_USE_BOOST ON CACHE BOOL "")
+endif ()
 
 install(FILES config.ini
         DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
