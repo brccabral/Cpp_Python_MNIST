@@ -116,10 +116,12 @@ Files: train images, train labels, test images, test labels
       Unzip to this workspace (`./workspace/libtorch`), or somewhere in your path (`/usr/local` or `$HOME/.local`).  
       On Windows, you may need to download both `Debug` and `Release`.
     - **OpenBLAS**  
-      https://www.openblas.net/  
       An implementation of _BLAS (Basic Linear Algebra Subprograms)_  
-      I had to download it on Windows.  
-      Add to your `%PATH%` and set `-DOpenBLAS_DIR` on _cmake_.
+      https://www.openblas.net/  
+      Prefer getting OpenBLAS from **vcpkg**
+      https://github.com/OpenMathLib/OpenBLAS (On Windows, compiling from source has a bug, download it precompiled from _Releases_).  
+      I had to download it on Windows (either precompiled from _GitHub_ or from _vcpkg_).  
+      Add the _bin_ path to your `%PATH%` and set `-DOpenBLAS_DIR` (_share/openblas/cmake_ or _lib/cmake/openblas_).
       On Linux it is a dependency of `xtensor`, but can be installed independently.
       ```shell
       sudo apt install libopenblas-dev liblapacke-dev
