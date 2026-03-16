@@ -16,7 +16,7 @@ inline double drand48()
 }
 #endif
 
-MatrixDouble *create_matrix(const uint32_t rows, const uint32_t cols)
+MatrixDouble *create_matrix(const blasint rows, const blasint cols)
 {
     assert(rows > 0 && cols > 0);
 
@@ -191,7 +191,7 @@ void free_neuralnet_openblas(NeuralNetOpenBLAS *nn)
 void fill_random_matrix(const MatrixDouble *mat, const double offset)
 {
     assert(mat);
-    for (int i = 0; i < mat->rows * mat->cols; i++)
+    for (blasint i = 0; i < mat->rows * mat->cols; i++)
     {
         mat->data[i] = drand48() + offset;
     }
@@ -202,7 +202,7 @@ void nn_seed(const size_t value)
     srand48(value);
 }
 
-MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint32_t column)
+MatrixDouble *one_hot_encode(const MatrixDouble *mat, const blasint column)
 {
     assert(mat);
     assert(column < mat->cols);
@@ -223,7 +223,7 @@ MatrixDouble *one_hot_encode(const MatrixDouble *mat, const uint32_t column)
         const double value = (mat->data[i * mat->cols + column]);
         if (value >= 0 && value < one_hot_Y->rows)
         {
-            one_hot_Y->data[uint32_t(one_hot_Y->cols * value + i)] = 1.0;
+            one_hot_Y->data[blasint(one_hot_Y->cols * value + i)] = 1.0;
         }
     }
     return one_hot_Y;
@@ -430,14 +430,14 @@ void get_predictions(const NeuralNetOpenBLAS *nn)
            nn->predictions->rows * nn->predictions->cols * sizeof(double));
 
 #pragma omp parallel for default(none) shared(nn)
-    for (uint32_t col = 0; col < nn->A2->cols; ++col)
+    for (blasint col = 0; col < nn->A2->cols; ++col)
     {
         const int index = cblas_idmax(nn->A2->rows, &nn->A2->data[col], nn->A2->cols);
         nn->predictions->data[col] = index % nn->A2->rows;
     }
 }
 
-uint32_t get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *labels)
+blasint get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble *labels)
 {
     assert(nn);
     assert(labels);
@@ -448,7 +448,7 @@ uint32_t get_correct_prediction(const NeuralNetOpenBLAS *nn, const MatrixDouble 
     int correct_count = 0;
 
 #pragma omp parallel for default(none) shared(nn, labels) reduction(+ : correct_count)
-    for (uint32_t row = 0; row < nn->predictions->rows; ++row)
+    for (blasint row = 0; row < nn->predictions->rows; ++row)
     {
         if (nn->predictions->data[row] == labels->data[row])
         {

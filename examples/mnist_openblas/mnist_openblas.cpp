@@ -28,7 +28,7 @@ MatrixDouble *to_openblas(const std::vector<MNIST_Image> &_images)
         return NULL;
     }
 
-    for (int img = 0; img < mat->rows; img++)
+    for (blasint img = 0; img < mat->rows; img++)
     {
         mat->data[img * mat->cols + 0] = float(_images.at(img)._label);
         for (int pix = 0; pix < number_pixels; pix++)
@@ -66,7 +66,7 @@ MatrixDouble *get_X(const MatrixDouble *mat)
         return NULL;
     }
 
-    for (int row = 0; row < mat->rows; row++)
+    for (blasint row = 0; row < mat->rows; row++)
     {
         cblas_dcopy(X->cols, &mat->data[row * mat->cols + 1], 1, &X->data[row * X->cols], 1);
     }
@@ -149,7 +149,7 @@ int main()
     DESCRIBE_MATRIX(train_mat);
     DESCRIBE_MATRIX(Y_train_float);
     DESCRIBE_MATRIX(X_train);
-    for (int c = 0; c < X_train->cols; ++c)
+    for (blasint c = 0; c < X_train->cols; ++c)
     {
         printf("%g ", X_train->data[4 * X_train->cols + c]);
     }
