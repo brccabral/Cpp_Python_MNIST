@@ -121,6 +121,8 @@ public:
     PyObject *cnumpy_reshape{};
     static CNdArray reshape(const CNdArray &a, npy_intp d1, npy_intp d2);
 
+    static std::string version();
+
 private:
 
     CNumpy();

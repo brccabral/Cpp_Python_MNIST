@@ -61,6 +61,7 @@ CNdArray get_X(const CNdArray &mat)
 
 int main()
 {
+    std::cout << CNumpy::version() << std::endl;
     CNumpy::random_seed(time(nullptr));
 
     CSimpleIniA ini;

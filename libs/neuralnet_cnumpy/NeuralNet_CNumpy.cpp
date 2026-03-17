@@ -631,6 +631,19 @@ CNdArray CNumpy::transpose(const CNdArray &a)
     return result;
 }
 
+std::string CNumpy::version()
+{
+    const PyHandle version(PyObject_GetAttrString(np.cnumpy, "__version__"));
+    if (!version.get())
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::version.");
+    }
+    const char *value = PyUnicode_AsUTF8(version.get());
+    return std::string(value);
+    return NPY_FEATURE_VERSION_STRING;
+}
+
 CNdArray::CNdArray(PyArrayObject *arr)
 {
     if (arr && PyArray_Check(arr))
