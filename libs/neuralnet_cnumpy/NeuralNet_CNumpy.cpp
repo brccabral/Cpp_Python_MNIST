@@ -641,7 +641,6 @@ std::string CNumpy::version()
     }
     const char *value = PyUnicode_AsUTF8(version.get());
     return std::string(value);
-    return NPY_FEATURE_VERSION_STRING;
 }
 
 CNdArray::CNdArray(PyArrayObject *arr)
