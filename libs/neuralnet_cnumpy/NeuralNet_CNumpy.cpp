@@ -86,17 +86,17 @@ CNumpy::CNumpy()
     Py_Initialize();
 #endif
 
-    if (!init_numpy())
-    {
-        throw std::invalid_argument("Could not init numpy.");
-    }
-
     cnumpy = PyImport_ImportModule("numpy");
     if (!cnumpy)
     {
         PyErr_Print();
         finalize();
         throw std::invalid_argument("Could not import numpy.");
+    }
+
+    if (!init_numpy())
+    {
+        throw std::invalid_argument("Could not init numpy.");
     }
 
     cnumpy_ndarray = PyObject_GetAttrString(cnumpy, "ndarray");
