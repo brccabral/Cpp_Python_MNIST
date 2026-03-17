@@ -379,6 +379,21 @@ double CNumpy::max(const CNdArray &a)
     return value;
 }
 
+CNdArray CNumpy::max(const CNdArray &a, const long axis)
+{
+    const PyHandle ax(PyLong_FromLong(axis));
+
+    const auto ndarray = (PyArrayObject *)PyObject_CallFunctionObjArgs(np.cnumpy_max, a.ndarray, ax.get(), NULL);
+    if (!ndarray)
+    {
+        PyErr_Print();
+        throw std::runtime_error("ERROR CNumpy::max(a, axis).");
+    }
+
+    CNdArray result{ndarray};
+    return result;
+}
+
 CNdArray CNumpy::subtract(const CNdArray &a, const double value)
 {
     const PyHandle v(PyFloat_FromDouble(value));
@@ -881,7 +896,7 @@ CNdArray NeuralNet_CNumpy::deriv_ReLU(const CNdArray &Z)
 
 CNdArray NeuralNet_CNumpy::softmax(const CNdArray &Z)
 {
-    const auto e = CNumpy::exp(Z);
+    const auto e = CNumpy::exp(Z - CNumpy::max(Z, 0));
     const auto s = CNumpy::sum(e, 0);
     return e / s;
 }

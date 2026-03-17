@@ -90,6 +90,7 @@ public:
     static CNdArray add(const CNdArray &a, const CNdArray &b);
     PyObject *cnumpy_max{};
     [[nodiscard]] static double max(const CNdArray &a);
+    [[nodiscard]] static CNdArray max(const CNdArray &a, long axis);
     PyObject *cnumpy_subtract{};
     static CNdArray subtract(const CNdArray &a, double value);
     static CNdArray subtract(const CNdArray &a, const CNdArray &b);
