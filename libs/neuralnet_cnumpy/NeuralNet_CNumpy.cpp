@@ -65,7 +65,27 @@ std::ostream &operator<<(std::ostream &os, const CNdArray &arr)
 
 CNumpy::CNumpy()
 {
+#ifdef Python3_ROOT_DIR
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
+
+    config.site_import = 1;
+    config.use_environment = 1;
+    config.module_search_paths_set = 1;
+
+    PyConfig_SetString(&config, &config.home, L"" Python3_ROOT_DIR);
+    PyConfig_SetString(&config, &config.program_name, L"" Python3_EXECUTABLE);
+    PyConfig_SetString(&config, &config.pythonpath_env, L"" Python3_SITEARCH);
+    PyWideStringList_Append(&config.module_search_paths, L"" Python3_SITEARCH);
+    PyWideStringList_Append(&config.module_search_paths, L"" Python3_STDLIB);
+    PyWideStringList_Append(&config.module_search_paths, L"" Python3_STDLIB "/lib-dynload");
+
+    Py_InitializeFromConfig(&config);
+    PyConfig_Clear(&config);
+#else
     Py_Initialize();
+#endif
+
     if (!init_numpy())
     {
         throw std::invalid_argument("Could not init numpy.");
@@ -76,7 +96,7 @@ CNumpy::CNumpy()
     {
         PyErr_Print();
         finalize();
-        throw std::invalid_argument("Could not init numpy.");
+        throw std::invalid_argument("Could not import numpy.");
     }
 
     cnumpy_ndarray = PyObject_GetAttrString(cnumpy, "ndarray");
