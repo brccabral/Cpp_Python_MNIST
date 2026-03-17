@@ -8,6 +8,7 @@ find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 message("Python3_ROOT_DIR ${Python3_ROOT_DIR}")
 message("Python3_EXECUTABLE ${Python3_EXECUTABLE}")
 message("Python3_SITEARCH ${Python3_SITEARCH}")
+message("Python3_STDLIB ${Python3_STDLIB}")
 message("Python3_NumPy_VERSION ${Python3_NumPy_VERSION}")
 
 add_library(neuralnet_cnumpy STATIC)
