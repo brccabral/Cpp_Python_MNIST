@@ -3,6 +3,9 @@ project(MNISTCpp)
 
 include(GNUInstallDirs)
 
+# flag to ignore User Registry at ~/.cmake/packages
+set(CMAKE_FIND_USE_PACKAGE_REGISTRY FALSE)
+
 # https://xtensor.readthedocs.io/en/latest/build-options.html#external-dependencies
 option(USE_SIMD "Enables XTENSOR_USE_XSIMD - SIMD optimizations" OFF)
 option(USE_TBB "Enables XTENSOR_USE_TBB - parallelism" OFF)
